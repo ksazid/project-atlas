@@ -14,6 +14,27 @@
       "source": "product/PRD.md",
       "status": "approved",
       "sliceIds": ["VS-01"]
+    },
+    {
+      "id": "FR-03",
+      "title": "Business Profile",
+      "source": "product/PRD.md",
+      "status": "approved",
+      "sliceIds": ["VS-02"]
+    },
+    {
+      "id": "FR-04",
+      "title": "Business Goals",
+      "source": "product/PRD.md",
+      "status": "approved",
+      "sliceIds": ["VS-02"]
+    },
+    {
+      "id": "FR-05",
+      "title": "Business Context",
+      "source": "product/PRD.md",
+      "status": "approved",
+      "sliceIds": ["VS-02"]
     }
   ]
 }
