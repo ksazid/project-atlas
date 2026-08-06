@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-02",
-  "title": "Business Profile and Context",
+  "sliceId": "VS-03",
+  "title": "Knowledge Pack Foundation",
   "status": "active",
-  "lifecycle": "testing",
+  "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
-  "requirements": ["FR-03", "FR-04", "FR-05"],
+  "requirements": ["FR-06"],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -16,18 +16,17 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-01@9346e8dce871d90eab3e629ce921a3af254ba6fc"
+    "VS-01@9346e8dce871d90eab3e629ce921a3af254ba6fc",
+    "VS-02@9c080a4a8867076be95ddd672b646e7eb5f2a535"
   ],
   "blockers": [],
   "allowedPaths": [
     "apps/mobile/**",
     "apps/api/**",
-    "packages/contracts/**",
-    "packages/design-tokens/**",
     "tests/**",
-    "product/**",
     "delivery/**",
-    "docs/slices/VS-02.md",
+    "docs/**",
+    "README.md",
     "scripts/**",
     ".github/workflows/ci.yml",
     ".github/workflows/intake.yml",
@@ -50,10 +49,10 @@
       "legal-privacy"
     ],
     "notes": [
-      "Extends the existing Business boundary with confirmed profile, goals and context.",
-      "Publicly sourced values retain provenance and require owner confirmation.",
-      "Runtime implementation and tests are complete; exact-head validation is pending.",
-      "No deployment, release, production credentials or production enablement are authorized."
+      "Adds the modular Knowledge Pack business-domain foundation without restructuring PES Mobile.",
+      "Published versions are immutable and businesses retain explicit exact-version assignments.",
+      "CI, migration, API tests, mobile checks, security baseline and product intake passed for the certified SHA.",
+      "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
   },
   "approvals": [
@@ -63,20 +62,28 @@
       "version": "ATLAS-PRD-001@1.0",
       "commitSha": "9346e8dce871d90eab3e629ce921a3af254ba6fc",
       "by": "ksazid",
-      "at": "2026-08-06T21:15:00+02:00",
-      "rationale": "Product Owner approved bypass-merging certified VS-01 after repeated GitHub-hosted runner infrastructure failures and instructed starting the next approved slice."
+      "at": "2026-08-06T23:04:00+02:00",
+      "rationale": "Product Owner approved VS-03 as the Knowledge Pack Foundation for FR-06 using the locked modular versioned business-domain model."
     },
     {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-02@1.0",
-      "commitSha": "9c080a4a8867076be95ddd672b646e7eb5f2a535",
+      "version": "VS-03@1.0",
+      "commitSha": "47fe54ac1bc29c54c3de0938de8c33c7d9083db3",
       "by": "ksazid",
-      "at": "2026-08-06T22:31:00+02:00",
-      "rationale": "Product Owner granted standing approval through runtime implementation and testing and requested no repeated permission prompts. Deployment and release remain deferred."
+      "at": "2026-08-06T23:10:00+02:00",
+      "rationale": "Product Owner granted standing approval through runtime implementation and testing while keeping deployment, release and production enablement deferred."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-03@1.0",
+      "commitSha": "c2fad5f7a6e4fe517932ca6371de41fb132233e5",
+      "by": "ksazid",
+      "at": "2026-08-07T01:41:00+02:00",
+      "rationale": "Product Owner approved certification close-out after CI #47, Security baseline #44 and Product intake #42 passed on the exact certified SHA."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
@@ -85,22 +92,21 @@
     "discovery": 100,
     "decisions": 100,
     "implementation": 100,
-    "testing": 90,
-    "certification": 0,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
+    "status": "passed",
+    "commitSha": "c2fad5f7a6e4fe517932ca6371de41fb132233e5",
     "evidence": [
-      "delivery/traceability.json",
-      "tests/api/BusinessPolicyTests.cs",
-      "tests/api/BusinessIsolationTests.cs",
-      "apps/api/Migrations/20260806224500_BusinessProfileAndContext.cs",
-      "apps/mobile/app/(tabs)/profile.tsx",
-      "apps/mobile/app/(tabs)/goals.tsx",
-      "apps/mobile/app/(tabs)/context.tsx"
+      "https://github.com/ksazid/project-atlas/actions/runs/31131783407",
+      "https://github.com/ksazid/project-atlas/actions/runs/31131784882",
+      "https://github.com/ksazid/project-atlas/actions/runs/31131785131",
+      "tests/api/KnowledgePackPolicyTests.cs",
+      "apps/api/Migrations/20260807001500_KnowledgePackFoundation.cs",
+      "apps/mobile/src/features/knowledge-pack/KnowledgePackScreen.tsx"
     ]
   },
   "release": {
@@ -118,12 +124,12 @@
     "metrics": []
   },
   "links": {
-    "specification": "docs/slices/VS-02.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/6",
+    "specification": "docs/slices/VS-03.md",
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/7",
     "evidence": [
-      "delivery/traceability.json",
-      "tests/api/BusinessPolicyTests.cs",
-      "tests/api/BusinessIsolationTests.cs"
+      "https://github.com/ksazid/project-atlas/actions/runs/31131783407",
+      "https://github.com/ksazid/project-atlas/actions/runs/31131784882",
+      "https://github.com/ksazid/project-atlas/actions/runs/31131785131"
     ]
   },
   "maxAttempts": 3
