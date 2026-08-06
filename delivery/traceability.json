@@ -5,57 +5,41 @@
       "requirementId": "FR-01",
       "sliceId": "VS-01",
       "specification": "docs/slices/VS-01.md",
-      "implementation": [
-        "apps/api/Program.cs",
-        "apps/mobile/app/sign-in.tsx",
-        "apps/mobile/src/auth/provider.ts",
-        "apps/mobile/src/auth/session.ts"
-      ],
-      "tests": [
-        "tests/api/BusinessPolicyTests.cs",
-        "tests/api/BusinessIsolationTests.cs"
-      ],
+      "implementation": ["apps/api/Program.cs", "apps/mobile/app/sign-in.tsx", "apps/mobile/src/auth/provider.ts", "apps/mobile/src/auth/session.ts"],
+      "tests": ["tests/api/BusinessPolicyTests.cs", "tests/api/BusinessIsolationTests.cs"],
       "status": "implemented"
     },
     {
       "requirementId": "FR-02",
       "sliceId": "VS-01",
       "specification": "docs/slices/VS-01.md",
-      "implementation": [
-        "apps/api/AtlasDomain.cs",
-        "apps/api/Program.cs",
-        "apps/api/Migrations/20260806152000_InitialIdentityAndBusiness.cs",
-        "apps/mobile/app/create-business.tsx"
-      ],
-      "tests": [
-        "tests/api/BusinessPolicyTests.cs",
-        "tests/api/BusinessIsolationTests.cs"
-      ],
+      "implementation": ["apps/api/AtlasDomain.cs", "apps/api/Program.cs", "apps/api/Migrations/20260806152000_InitialIdentityAndBusiness.cs", "apps/mobile/app/create-business.tsx"],
+      "tests": ["tests/api/BusinessPolicyTests.cs", "tests/api/BusinessIsolationTests.cs"],
       "status": "implemented"
     },
     {
       "requirementId": "FR-03",
       "sliceId": "VS-02",
       "specification": "docs/slices/VS-02.md",
-      "implementation": [],
-      "tests": [],
-      "status": "planned"
+      "implementation": ["apps/api/AtlasDomain.cs", "apps/api/Program.cs", "apps/api/Migrations/20260806215000_BusinessProfileGoalsContext.cs", "apps/mobile/app/(tabs)/profile.tsx", "apps/mobile/src/api/atlas-client.ts"],
+      "tests": ["tests/api/BusinessPolicyTests.cs", "tests/api/BusinessIsolationTests.cs"],
+      "status": "implemented"
     },
     {
       "requirementId": "FR-04",
       "sliceId": "VS-02",
       "specification": "docs/slices/VS-02.md",
-      "implementation": [],
-      "tests": [],
-      "status": "planned"
+      "implementation": ["apps/api/AtlasDomain.cs", "apps/api/Program.cs", "apps/mobile/app/(tabs)/goals.tsx", "apps/mobile/src/api/atlas-client.ts"],
+      "tests": ["tests/api/BusinessPolicyTests.cs", "tests/api/BusinessIsolationTests.cs"],
+      "status": "implemented"
     },
     {
       "requirementId": "FR-05",
       "sliceId": "VS-02",
       "specification": "docs/slices/VS-02.md",
-      "implementation": [],
-      "tests": [],
-      "status": "planned"
+      "implementation": ["apps/api/AtlasDomain.cs", "apps/api/Program.cs", "apps/mobile/app/(tabs)/context.tsx", "apps/mobile/src/api/atlas-client.ts"],
+      "tests": ["tests/api/BusinessPolicyTests.cs", "tests/api/BusinessIsolationTests.cs"],
+      "status": "implemented"
     }
   ]
 }

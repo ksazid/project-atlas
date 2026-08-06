@@ -9,6 +9,12 @@ public static class MembershipRoles
     public const string PlatformAdministrator = "PlatformAdministrator";
 }
 
+public static class FieldSources
+{
+    public const string Owner = "owner";
+    public const string Public = "public";
+}
+
 public sealed record CreateBusinessRequest(string Name, string Category, string Country, string Timezone, string Currency, string PrimaryLocation, string OperatingStatus)
 {
     public Dictionary<string, string[]> Validate()
@@ -30,6 +36,44 @@ public sealed record BusinessResponse(Guid Id, string Name, string Category, str
 {
     public static BusinessResponse From(Business business) => new(business.Id, business.Name, business.Category, business.Country, business.Timezone, business.Currency, business.PrimaryLocation, business.OperatingStatus);
 }
+
+public sealed record UpsertBusinessProfileRequest(
+    string? Description,
+    string? Address,
+    string? Website,
+    string? Phone,
+    string? Email,
+    string? SocialChannels,
+    string? BusinessHours,
+    string Language,
+    string Source,
+    bool OwnerConfirmed)
+{
+    public Dictionary<string, string[]> Validate()
+    {
+        var errors = new Dictionary<string, string[]>();
+        if (string.IsNullOrWhiteSpace(Language)) errors[nameof(Language)] = ["Language is required."];
+        if (Source is not FieldSources.Owner and not FieldSources.Public) errors[nameof(Source)] = ["Source must be owner or public."];
+        if (Source == FieldSources.Public && !OwnerConfirmed) errors[nameof(OwnerConfirmed)] = ["Publicly sourced profile data must be owner-confirmed."];
+        return errors;
+    }
+}
+
+public sealed record UpsertGoalsRequest(IReadOnlyList<GoalInput> Goals)
+{
+    public Dictionary<string, string[]> Validate()
+    {
+        var errors = new Dictionary<string, string[]>();
+        if (Goals.Count == 0) errors[nameof(Goals)] = ["At least one goal is required."];
+        if (Goals.Count > 10) errors[nameof(Goals)] = ["A maximum of ten goals is supported."];
+        if (Goals.Any(x => string.IsNullOrWhiteSpace(x.Title))) errors[nameof(Goals)] = ["Every goal requires a title."];
+        if (Goals.Select(x => x.Priority).Distinct().Count() != Goals.Count) errors[nameof(Goals)] = ["Goal priorities must be unique."];
+        return errors;
+    }
+}
+
+public sealed record GoalInput(string Type, string Title, int Priority, bool IsCustom);
+public sealed record UpsertContextRequest(string Key, string Value, string Source, bool OwnerConfirmed);
 
 public sealed class UserAccount
 {
@@ -59,6 +103,44 @@ public sealed class Business
     };
 }
 
+public sealed class BusinessProfile
+{
+    public Guid BusinessId { get; set; }
+    public string? Description { get; set; }
+    public string? Address { get; set; }
+    public string? Website { get; set; }
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? SocialChannels { get; set; }
+    public string? BusinessHours { get; set; }
+    public required string Language { get; set; }
+    public required string Source { get; set; }
+    public bool OwnerConfirmed { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+public sealed class BusinessGoal
+{
+    public Guid Id { get; set; }
+    public Guid BusinessId { get; set; }
+    public required string Type { get; set; }
+    public required string Title { get; set; }
+    public int Priority { get; set; }
+    public bool IsCustom { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+public sealed class BusinessContextEntry
+{
+    public Guid Id { get; set; }
+    public Guid BusinessId { get; set; }
+    public required string Key { get; set; }
+    public required string Value { get; set; }
+    public required string Source { get; set; }
+    public bool OwnerConfirmed { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
 public sealed class BusinessMembership
 {
     public Guid Id { get; set; }
@@ -83,6 +165,9 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
 {
     public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
     public DbSet<Business> Businesses => Set<Business>();
+    public DbSet<BusinessProfile> BusinessProfiles => Set<BusinessProfile>();
+    public DbSet<BusinessGoal> BusinessGoals => Set<BusinessGoal>();
+    public DbSet<BusinessContextEntry> BusinessContextEntries => Set<BusinessContextEntry>();
     public DbSet<BusinessMembership> BusinessMemberships => Set<BusinessMembership>();
     public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>();
 
@@ -90,6 +175,9 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     {
         modelBuilder.Entity<UserAccount>().HasIndex(x => x.ProviderSubject).IsUnique();
         modelBuilder.Entity<Business>().Property(x => x.Version).IsRowVersion();
+        modelBuilder.Entity<BusinessProfile>().HasKey(x => x.BusinessId);
+        modelBuilder.Entity<BusinessGoal>().HasIndex(x => new { x.BusinessId, x.Priority }).IsUnique();
+        modelBuilder.Entity<BusinessContextEntry>().HasIndex(x => new { x.BusinessId, x.Key }).IsUnique();
         modelBuilder.Entity<BusinessMembership>().HasIndex(x => new { x.BusinessId, x.UserAccountId, x.Role }).IsUnique();
         modelBuilder.Entity<BusinessMembership>().HasOne(x => x.UserAccount).WithMany().HasForeignKey(x => x.UserAccountId);
         modelBuilder.Entity<AuditRecord>().HasIndex(x => new { x.BusinessId, x.OccurredAt });
