@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Atlas.Api;
 
@@ -37,6 +38,7 @@ public sealed record KnowledgePackContent(
     }
 }
 
+[Index(nameof(Key), nameof(Version), IsUnique = true)]
 public sealed class KnowledgePack
 {
     public Guid Id { get; private set; }
@@ -72,6 +74,8 @@ public sealed class KnowledgePack
     }
 }
 
+[Index(nameof(BusinessId), nameof(PackKey), nameof(PackVersion), IsUnique = true)]
+[Index(nameof(BusinessId), nameof(IsActive))]
 public sealed class BusinessKnowledgePack
 {
     public Guid Id { get; set; }
@@ -81,6 +85,7 @@ public sealed class BusinessKnowledgePack
     public required string PackVersion { get; set; }
     public bool IsActive { get; set; }
     public DateTimeOffset AssignedAt { get; set; }
+    public Business Business { get; set; } = null!;
     public KnowledgePack KnowledgePack { get; set; } = null!;
 
     public static BusinessKnowledgePack Assign(Guid businessId, KnowledgePack pack, bool active = true) => new()
