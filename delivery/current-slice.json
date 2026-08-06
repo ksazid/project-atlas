@@ -3,7 +3,7 @@
   "sliceId": "VS-02",
   "title": "Business Profile and Context",
   "status": "active",
-  "lifecycle": "implementation-complete",
+  "lifecycle": "testing",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-03", "FR-04", "FR-05"],
@@ -91,7 +91,7 @@
     "validation": 0
   },
   "certification": {
-    "status": "pending-validation",
+    "status": "not-started",
     "commitSha": null,
     "evidence": [
       "delivery/traceability.json",
