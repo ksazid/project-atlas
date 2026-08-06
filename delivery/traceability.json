@@ -32,6 +32,30 @@
         "tests/api/BusinessIsolationTests.cs"
       ],
       "status": "implemented"
+    },
+    {
+      "requirementId": "FR-03",
+      "sliceId": "VS-02",
+      "specification": "docs/slices/VS-02.md",
+      "implementation": [],
+      "tests": [],
+      "status": "planned"
+    },
+    {
+      "requirementId": "FR-04",
+      "sliceId": "VS-02",
+      "specification": "docs/slices/VS-02.md",
+      "implementation": [],
+      "tests": [],
+      "status": "planned"
+    },
+    {
+      "requirementId": "FR-05",
+      "sliceId": "VS-02",
+      "specification": "docs/slices/VS-02.md",
+      "implementation": [],
+      "tests": [],
+      "status": "planned"
     }
   ]
 }
