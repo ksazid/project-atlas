@@ -120,7 +120,6 @@ public sealed class KnowledgeSection
     public KnowledgePackVersion KnowledgePackVersion { get; set; } = null!;
 }
 
-[Index(nameof(BusinessId), nameof(IsCurrent), IsUnique = true)]
 public sealed class BusinessKnowledgeAssignment
 {
     public Guid Id { get; set; }
