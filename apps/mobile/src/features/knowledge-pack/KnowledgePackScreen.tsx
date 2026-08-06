@@ -15,7 +15,10 @@ export function KnowledgePackScreen() {
   const [isCached, setIsCached] = useState(false);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
 
-  const applyPack = (value: KnowledgePack) => { packRef.current = value; setPack(value); };
+  const applyPack = useCallback((value: KnowledgePack) => {
+    packRef.current = value;
+    setPack(value);
+  }, []);
 
   const load = useCallback(async (manual = false) => {
     manual ? setRefreshing(true) : setState('loading');
@@ -47,7 +50,7 @@ export function KnowledgePackScreen() {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [applyPack]);
 
   useEffect(() => { void load(); }, [load]);
 
