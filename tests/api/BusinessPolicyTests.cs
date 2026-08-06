@@ -1,4 +1,5 @@
 using Atlas.Api;
+using Xunit;
 
 namespace Atlas.Api.Tests;
 
