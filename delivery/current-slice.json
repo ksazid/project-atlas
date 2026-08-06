@@ -3,7 +3,7 @@
   "sliceId": "VS-04",
   "title": "Today's Focus",
   "status": "active",
-  "lifecycle": "ready-for-implementation",
+  "lifecycle": "testing",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-07"],
@@ -49,7 +49,7 @@
     ],
     "notes": [
       "Introduces the primary current Opportunity and owner decision path on the existing mobile Home experience.",
-      "Evidence and Atlas interpretation must remain distinct, and eligibility must be enforced by application policy.",
+      "Evidence and Atlas interpretation remain distinct, and eligibility is enforced by deterministic application policy.",
       "Historical Opportunities retain the exact Knowledge Pack key and version used.",
       "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
@@ -81,9 +81,9 @@
   "decisionIds": [],
   "progress": {
     "discovery": 100,
-    "decisions": 60,
-    "implementation": 0,
-    "testing": 0,
+    "decisions": 100,
+    "implementation": 100,
+    "testing": 70,
     "certification": 0,
     "release": 0,
     "validation": 0
@@ -93,8 +93,9 @@
     "commitSha": null,
     "evidence": [
       "docs/slices/VS-04.md",
-      "product/PRD.md",
-      "product/TRD.md"
+      "tests/api/OpportunityPolicyTests.cs",
+      "apps/api/Migrations/20260807015000_TodaysFocus.cs",
+      "apps/mobile/src/features/today-focus/TodayFocusScreen.tsx"
     ]
   },
   "release": {
@@ -113,10 +114,11 @@
   },
   "links": {
     "specification": "docs/slices/VS-04.md",
-    "implementationPr": null,
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/8",
     "evidence": [
-      "docs/slices/VS-04.md",
-      "product/PRD.md"
+      "tests/api/OpportunityPolicyTests.cs",
+      "apps/api/Migrations/20260807015000_TodaysFocus.cs",
+      "apps/mobile/src/features/today-focus/TodayFocusScreen.tsx"
     ]
   },
   "maxAttempts": 3
