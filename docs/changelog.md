@@ -20,11 +20,15 @@
 - PR #7 scope was corrected from a single serialized document model to the approved modular versioned model.
 - Legacy VS-02 delivery metadata now uses valid PES lifecycle and certification status values.
 
+### Certification
+
+- Certified exact SHA: `c2fad5f7a6e4fe517932ca6371de41fb132233e5`.
+- CI #47 passed preflight, mobile TypeScript/lint/tests, .NET restore, EF Core migration, API tests and dashboard build.
+- Security baseline #44 passed.
+- Product intake #42 passed.
+- Release, deployment and production enablement remain unauthorized.
+
 ### Not included
 
 - AI execution, prompts, embeddings, vector database, semantic search, production deployment, production credentials, or paid-service activation.
 - A standalone admin UI, because no admin application currently exists in the repository.
-
-### Validation status
-
-GitHub Actions is enabled and automatic pull-request execution is active. The first certification run exposed invalid legacy VS-02 governance values; those values were corrected. Full compilation, migration, test, and dashboard certification remains pending the next CI result.
