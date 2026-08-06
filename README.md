@@ -8,6 +8,18 @@ An open-source governance layer for turning an approved **PRD** and **TRD** into
 
 Product Engineering Starter (PES) decides **what is approved and safe to build**. [Superpowers](https://github.com/obra/superpowers) provides the default methodology for planning, implementing, reviewing, debugging and finishing an approved slice.
 
+## Atlas implementation status
+
+The current product implementation uses PES without restructuring the framework.
+
+- VS-01: identity and Business foundation
+- VS-02: Business profile, goals and context
+- VS-03: modular Knowledge Pack foundation in PR #7
+
+VS-03 introduces `KnowledgePack -> KnowledgePackVersion -> KnowledgeSection[]`, immutable published versions, explicit exact-version business assignment, lifecycle and audit APIs, optimistic concurrency, and a unified mobile Knowledge Pack view with secure offline caching. It does not introduce AI execution, embeddings, vector storage, production deployment, production credentials, or paid services.
+
+See `docs/slices/VS-03.md`, `docs/architecture.md`, and `docs/domain-model.md`.
+
 ## What PES provides
 
 - PRD/TRD intake and conflict detection
@@ -178,71 +190,9 @@ PES begins in **Lite** mode and adds complexity only when evidence shows it will
 | **Standard** | Growing products, multiple modules and formal releases | Optional risk-triggered review graph |
 | **Enterprise** | High-risk, regulated or multi-team products | Optional full specialist delivery graph |
 
-### Why the delivery graph is not available in Lite
-
-A graph adds routing, specialist hand-offs, integration and independent review calls. That increases token usage and coordination time. For routine CRUD, copy changes, isolated styling and low-risk maintenance, those costs usually exceed the value gained.
-
-Standard and Enterprise make the graph available because medium- and high-risk changes can create much larger downstream costs when defects, security gaps or incompatible decisions are missed. Even in those modes, the graph is **not automatic**: a reviewed trigger and human approval are required for each slice.
-
 ## Risk-triggered delivery graph
 
-### Standard review graph
-
-```text
-Approved slice
-→ router
-→ implementer
-→ deterministic checks
-→ reviewer
-→ human checkpoint
-```
-
-Standard mode allows one specialist, one review cycle and no parallel execution by default.
-
-### Enterprise delivery graph
-
-```text
-Approved slice
-→ router
-→ selected specialists
-→ shared state
-→ integrator
-→ deterministic checks
-→ independent reviewer
-→ human checkpoint
-```
-
-Enterprise may select up to three roles from researcher, architect, security, data and builder, with at most two review cycles by default.
-
-### Activation triggers
-
-Typical triggers include:
-
-- authentication or authorization
-- payments or financial state
-- sensitive data
-- database migrations
-- public API contract changes
-- major architecture changes
-- cross-module changes
-- production release candidates
-- repeated implementation failures
-
-### Cost controls
-
-The graph is designed to reduce total delivery cost, not merely add agents. PES requires:
-
-- one focused context pack reused across nodes
-- deterministic checks before model-backed review
-- unchanged nodes skipped using input or commit hashes
-- one integrator rather than all specialists rereading every output
-- capped specialists, retries and review cycles
-- budget-exceeded stop conditions
-- token and outcome recording for later evaluation
-
-The graph cannot change approved scope, accept security risk, merge code or deploy.
-
-Check the active-mode configuration:
+Standard and Enterprise modes can activate bounded specialist review when risk justifies it. The graph cannot change approved scope, accept security risk, merge code, or deploy.
 
 ```bash
 npm run delivery-graph:check
@@ -264,77 +214,17 @@ Guidance: `docs/integrations/DELIVERY-GRAPH.md`
 | Preflight and certification | Branch completion workflow |
 | Release and production approval | No release authority |
 
-## Optional integrations
-
-### NotebookLM
-
-Use `npm run knowledge:export` to create a curated onboarding and Q&A bundle. GitHub remains authoritative. See `docs/integrations/NOTEBOOKLM.md`.
-
-### MemPalace
-
-Optional local-first memory for large requirements and long-running products. Retrieved memories must be verified against current Git sources.
-
-```bash
-uv tool install mempalace
-npm run memory:doctor
-mempalace init .
-```
-
-See `docs/integrations/MEMPALACE.md`.
-
-### Caveman Lite
-
-Optional concise communication and guarded context compression. Lite brevity is suitable for routine summaries, CI triage, commits and review comments—not PRDs, ADRs, security findings, plans or release evidence.
-
-```bash
-npm run optimize:context
-```
-
-See `docs/integrations/CAVEMAN.md`.
-
 ## Deployment strategy
 
-PES treats frontend, API and database as one coordinated release, even when hosted by different providers.
-
-Supported topology choices:
-
-- **Advisor recommended** — PES recommends a topology; the user approves it.
-- **Single provider** — frontend, API and database use one provider where supported.
-- **Split deployment** — frontend, API and database use independently selected providers.
-
-```bash
-npm run deployment:advise
-```
-
-The advisor considers runtime compatibility, PostgreSQL requirements, traffic, bandwidth, cold starts, previews, background jobs, regions, recovery, cross-provider complexity and budget. It never provisions or deploys infrastructure.
-
-Release order:
-
-```text
-Certified SHA
-→ database readiness and migrations
-→ API deployment and health checks
-→ frontend deployment
-→ end-to-end smoke tests
-→ human production approval
-```
-
-See `docs/integrations/DEPLOYMENT-COST.md`.
+PES treats frontend, API and database as one coordinated release. Deployment requires a certified exact SHA and explicit human release and production approval.
 
 ## UI workflow
 
-Use the approved design baseline first, then only relevant installed skills:
-
-1. Taste Skill for suitable marketing, editorial and approved redesign work.
-2. UI UX Pro Max for product workflows, accessibility and responsive states.
-3. Impeccable for bounded polish.
-4. Emil design engineering for purposeful motion.
-5. Ponytail for maintainable implementation.
-6. Superpowers for planning, implementation and review.
+Use the approved design baseline first, then only relevant installed skills. Product features must extend the existing PES visual and technical framework rather than replace it.
 
 ## Security model
 
-Use deterministic secret scanning, dependency validation, authorization tests, security headers and protected-path rules. Codex Security remains optional and risk-triggered for authentication, authorization, payments, uploads, webhooks, sensitive persistence, migrations and release candidates.
+Use deterministic secret scanning, dependency validation, authorization tests, security headers and protected-path rules. Codex Security remains optional and risk-triggered.
 
 ## Main commands
 
@@ -362,14 +252,6 @@ npm run engineering:advise
 npm run profile:show
 ```
 
-## Large requirements
-
-Parse the whole product once, plan broadly at release and milestone level, detail only the next milestone and execute only the active slice. Use focused context packs under `delivery/context/<slice-id>/`; MemPalace may retrieve historical context, but Git remains authoritative.
-
-```text
-Product → Release → Milestone → Epic → Vertical Slice → Context Retrieval → Superpowers Plan → Task
-```
-
 ## Deliberate exclusions
 
 No Kubernetes default, microservice generation, event-sourcing default, generic repositories, uncontrolled agent swarms, autonomous merge, autonomous production deployment, general-purpose project-management system, mandatory hosting provider or mandatory Ruflo dependency.
@@ -377,17 +259,3 @@ No Kubernetes default, microservice generation, event-sourcing default, generic 
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
-
-## npm registry troubleshooting
-
-This open-source starter uses the public npm registry through the repository `.npmrc`. If an organization overrides npm with a private mirror, that mirror must proxy scoped packages such as `@types/react`. Verify with:
-
-```bash
-npm config get registry
-npm install
-npm run preflight:structure
-npx expo install --fix --cwd apps/mobile
-```
-
-PES does not vendor JavaScript dependencies into the repository.

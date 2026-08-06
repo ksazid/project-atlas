@@ -10,6 +10,8 @@ export type BusinessProfile = {
 };
 export type BusinessGoal = { id?: string; title: string; type: string; priority: number; isCustom: boolean };
 export type BusinessContextEntry = { key: string; value: string; source: 'owner' | 'public'; ownerConfirmed: boolean };
+export type KnowledgeSection = { id: string; stableKey: string; category: string; title: string; content: string; metadataJson?: string | null; order: number; locale: string };
+export type KnowledgePack = { key: string; name: string; description: string; version: string; status: string; locale: string; sections: KnowledgeSection[]; assignedAt: string };
 
 async function request<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${env.apiUrl}${path}`, { ...init, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, ...init?.headers } });
@@ -45,5 +47,8 @@ export async function saveContext(accessToken: string, businessId: string, entri
     await request(`/api/v1/businesses/${businessId}/context/${encodeURIComponent(entry.key)}`, accessToken, { method: 'PUT', body: JSON.stringify(entry) });
   }
   return getContext(accessToken, businessId);
+}
+export function getKnowledgePack(accessToken: string, businessId: string): Promise<KnowledgePack> {
+  return request(`/api/v1/businesses/${businessId}/knowledge-pack`, accessToken);
 }
 export async function logout(accessToken: string): Promise<void> { await request('/api/v1/session/logout', accessToken, { method: 'POST' }); }

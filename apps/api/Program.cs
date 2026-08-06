@@ -64,9 +64,28 @@ app.MapPost("/api/v1/businesses", async (CreateBusinessRequest request, ClaimsPr
 
     await using var transaction = await db.Database.BeginTransactionAsync(ct);
     var business = Business.Create(request);
+    var genericVersion = await db.KnowledgePackVersions
+        .Include(x => x.KnowledgePack)
+        .Include(x => x.Sections)
+        .SingleOrDefaultAsync(x => x.KnowledgePack.Key == KnowledgePackKeys.GenericBusiness &&
+            x.VersionNumber == GenericBusinessKnowledgePack.InitialVersion && x.Status == KnowledgePackStatuses.Published, ct);
+
+    KnowledgePack genericPack;
+    if (genericVersion is null)
+    {
+        (genericPack, genericVersion) = GenericBusinessKnowledgePack.Create(account.Id);
+        db.KnowledgePacks.Add(genericPack);
+    }
+    else
+    {
+        genericPack = genericVersion.KnowledgePack;
+    }
+
     db.Businesses.Add(business);
     db.BusinessMemberships.Add(new BusinessMembership { Id = Guid.NewGuid(), BusinessId = business.Id, UserAccountId = account.Id, Role = MembershipRoles.BusinessOwner, CreatedAt = DateTimeOffset.UtcNow });
+    db.BusinessKnowledgeAssignments.Add(BusinessKnowledgeAssignment.Assign(business.Id, genericPack, genericVersion, account.Id));
     db.AuditRecords.Add(AuditRecord.Create(account.Id, business.Id, "business.created"));
+    db.AuditRecords.Add(AuditRecord.Create(account.Id, business.Id, $"knowledge-pack.assigned:{genericPack.Key}:{genericVersion.VersionNumber}"));
     await db.SaveChangesAsync(ct);
     await transaction.CommitAsync(ct);
     return Results.Created($"/api/v1/businesses/{business.Id}", BusinessResponse.From(business));
@@ -179,6 +198,8 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/context/{key}", async (Guid bus
     await db.SaveChangesAsync(ct);
     return Results.Ok(entry);
 }).RequireAuthorization("BusinessOwner");
+
+app.MapKnowledgePackEndpoints();
 
 app.MapPost("/api/v1/session/logout", (HttpContext context) =>
     Results.Ok(new { status = "signed_out", correlationId = context.TraceIdentifier })).RequireAuthorization();
