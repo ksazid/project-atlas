@@ -47,7 +47,7 @@ public sealed class KnowledgePackFoundation : Migration
             constraints: table =>
             {
                 table.PrimaryKey("PK_KnowledgePackVersions", x => x.Id);
-                table.ForeignKey("FK_KnowledgePackVersions_KnowledgePacks_KnowledgePackId", x => x.KnowledgePackId, "KnowledgePacks", "Id", onDelete: ReferentialAction.Cascade);
+                table.ForeignKey("FK_KnowledgePackVersions_KnowledgePacks_KnowledgePackId", x => x.KnowledgePackId, "KnowledgePacks", "Id", onDelete: ReferentialAction.Restrict);
             });
 
         migrationBuilder.CreateTable(
@@ -95,7 +95,7 @@ public sealed class KnowledgePackFoundation : Migration
             constraints: table =>
             {
                 table.PrimaryKey("PK_BusinessKnowledgeAssignments", x => x.Id);
-                table.ForeignKey("FK_BusinessKnowledgeAssignments_Businesses_BusinessId", x => x.BusinessId, "Businesses", "Id", onDelete: ReferentialAction.Cascade);
+                table.ForeignKey("FK_BusinessKnowledgeAssignments_Businesses_BusinessId", x => x.BusinessId, "Businesses", "Id", onDelete: ReferentialAction.Restrict);
                 table.ForeignKey("FK_BusinessKnowledgeAssignments_KnowledgePacks_KnowledgePackId", x => x.KnowledgePackId, "KnowledgePacks", "Id", onDelete: ReferentialAction.Restrict);
                 table.ForeignKey("FK_BusinessKnowledgeAssignments_KnowledgePackVersions_KnowledgePackVersionId", x => x.KnowledgePackVersionId, "KnowledgePackVersions", "Id", onDelete: ReferentialAction.Restrict);
             });
@@ -106,7 +106,12 @@ public sealed class KnowledgePackFoundation : Migration
         migrationBuilder.CreateIndex("IX_KnowledgeSections_KnowledgePackVersionId_Order", "KnowledgeSections", new[] { "KnowledgePackVersionId", "Order" }, unique: true);
         migrationBuilder.CreateIndex("IX_BusinessKnowledgeAssignments_KnowledgePackId", "BusinessKnowledgeAssignments", "KnowledgePackId");
         migrationBuilder.CreateIndex("IX_BusinessKnowledgeAssignments_KnowledgePackVersionId", "BusinessKnowledgeAssignments", "KnowledgePackVersionId");
-        migrationBuilder.CreateIndex("IX_BusinessKnowledgeAssignments_BusinessId_IsCurrent", "BusinessKnowledgeAssignments", new[] { "BusinessId", "IsCurrent" }, unique: true);
+        migrationBuilder.CreateIndex(
+            name: "IX_BusinessKnowledgeAssignments_BusinessId_Current",
+            table: "BusinessKnowledgeAssignments",
+            column: "BusinessId",
+            unique: true,
+            filter: "\"IsCurrent\" = TRUE");
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
