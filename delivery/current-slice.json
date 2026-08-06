@@ -3,7 +3,7 @@
   "sliceId": "VS-01",
   "title": "Identity and Business Setup",
   "status": "active",
-  "lifecycle": "ready-for-implementation",
+  "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-01", "FR-02"],
@@ -74,7 +74,15 @@
       "at": "2026-08-06T16:33:00+02:00",
       "rationale": "Product Owner approved proceeding after the activation PR merged with CI, Security baseline and Product intake green. Runtime remains disabled and deployment is not authorized."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-01@1.0",
+      "commitSha": "a342f46099ee5198d45d33637c34c96eff2504a3",
+      "by": "ksazid",
+      "at": "2026-08-06T17:52:00+02:00",
+      "rationale": "The Product Owner instructed proceeding after CI, Security baseline and Product intake passed at the exact implementation SHA."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
@@ -83,14 +91,14 @@
     "discovery": 100,
     "decisions": 100,
     "implementation": 100,
-    "testing": 90,
-    "certification": 0,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
-    "validation": 0
+    "validation": 100
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
+    "status": "passed",
+    "commitSha": "a342f46099ee5198d45d33637c34c96eff2504a3",
     "evidence": [
       "delivery/traceability.json",
       "tests/api/BusinessPolicyTests.cs",
