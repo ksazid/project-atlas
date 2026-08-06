@@ -1,0 +1,31 @@
+name: Mobile release gate
+on:
+  workflow_dispatch:
+    inputs:
+      certified_sha:
+        description: Exact certified main SHA
+        required: true
+      release_target:
+        description: android, ios, all, or ota
+        required: true
+        default: all
+permissions:
+  contents: read
+jobs:
+  verify:
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24}
+      - name: Verify exact SHA
+        run: test "$(git rev-parse HEAD)" = "${{ inputs.certified_sha }}"
+      - run: npm install --ignore-scripts
+      - run: npm run platform:validate
+      - name: Validate release target
+        run: |
+          case "${{ inputs.release_target }}" in android|ios|all|ota) ;; *) exit 1 ;; esac
+      - name: Mobile deployment boundary
+        run: echo "EAS Build/Submit or EAS Update requires separately configured credentials and remains intentionally non-autonomous."

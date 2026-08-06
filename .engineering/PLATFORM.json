@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "platform": "mobile",
+  "application": {
+    "mobilePath": "apps/mobile",
+    "apiPath": "apps/api"
+  },
+  "mobile": {
+    "framework": "expo",
+    "sdk": "57",
+    "reactNative": "0.86",
+    "targets": [
+      "android",
+      "ios"
+    ],
+    "eas": true
+  },
+  "webProductAppEnabled": false,
+  "dashboard": {
+    "enabled": true,
+    "purpose": "read-only PES governance dashboard; not the product application"
+  }
+}
