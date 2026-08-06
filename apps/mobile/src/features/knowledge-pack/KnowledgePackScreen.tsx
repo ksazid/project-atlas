@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getKnowledgePack, type KnowledgePack } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
@@ -9,16 +9,20 @@ type LoadState = 'loading' | 'ready' | 'empty' | 'error';
 
 export function KnowledgePackScreen() {
   const [pack, setPack] = useState<KnowledgePack | null>(null);
+  const packRef = useRef<KnowledgePack | null>(null);
   const [state, setState] = useState<LoadState>('loading');
   const [refreshing, setRefreshing] = useState(false);
   const [isCached, setIsCached] = useState(false);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
+
+  const applyPack = (value: KnowledgePack) => { packRef.current = value; setPack(value); };
 
   const load = useCallback(async (manual = false) => {
     manual ? setRefreshing(true) : setState('loading');
     try {
       const session = await loadSession();
       if (!session?.businessId) {
+        packRef.current = null;
         setPack(null);
         setState('empty');
         return;
@@ -26,24 +30,24 @@ export function KnowledgePackScreen() {
 
       const cached = await loadCachedKnowledgePack(session.businessId);
       if (cached) {
-        setPack(cached.pack);
+        applyPack(cached.pack);
         setIsCached(true);
         setCachedAt(cached.cachedAt);
         setState('ready');
       }
 
       const current = await getKnowledgePack(session.accessToken, session.businessId);
-      setPack(current);
+      applyPack(current);
       setIsCached(false);
       setCachedAt(null);
       setState('ready');
       await saveCachedKnowledgePack(session.businessId, current);
     } catch {
-      if (!pack) setState('error');
+      if (!packRef.current) setState('error');
     } finally {
       setRefreshing(false);
     }
-  }, [pack]);
+  }, []);
 
   useEffect(() => { void load(); }, [load]);
 
