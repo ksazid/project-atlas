@@ -35,8 +35,9 @@ jobs:
         with: {dotnet-version: '10.0.x'}
       - run: npm install --ignore-scripts
       - run: npm run preflight
+      - run: dotnet restore apps/api/Atlas.Api.csproj
       - run: dotnet tool install --global dotnet-ef --version 10.0.10
-      - run: dotnet ef database update --project apps/api/Atlas.Api.csproj --context AtlasDbContext
+      - run: dotnet ef database update --project apps/api/Atlas.Api.csproj --context AtlasDbContext --no-build
       - run: dotnet test tests/api/Atlas.Api.Tests.csproj --configuration Release
       - run: npm run dashboard:build
       - uses: actions/upload-artifact@v4
