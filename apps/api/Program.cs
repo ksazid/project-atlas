@@ -36,13 +36,13 @@ app.MapGet("/health/ready", async (AtlasDbContext db, CancellationToken ct) =>
 
 static string? Subject(ClaimsPrincipal user) => user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
 
-static async Task<(UserAccount Account, bool Allowed)?> OwnerContext(Guid businessId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct)
+static async Task<UserAccount?> OwnerAccount(Guid businessId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct)
 {
     var subject = Subject(user);
     if (string.IsNullOrWhiteSpace(subject)) return null;
     var membership = await db.BusinessMemberships.Include(x => x.UserAccount)
         .SingleOrDefaultAsync(x => x.BusinessId == businessId && x.UserAccount.ProviderSubject == subject && x.Role == MembershipRoles.BusinessOwner, ct);
-    return membership is null ? null : (membership.UserAccount, true);
+    return membership?.UserAccount;
 }
 
 app.MapPost("/api/v1/businesses", async (CreateBusinessRequest request, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
@@ -83,15 +83,15 @@ app.MapGet("/api/v1/businesses/{businessId:guid}", async (Guid businessId, Claim
 
 app.MapGet("/api/v1/businesses/{businessId:guid}/profile", async (Guid businessId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
 {
-    if (await OwnerContext(businessId, user, db, ct) is null) return Results.NotFound();
+    if (await OwnerAccount(businessId, user, db, ct) is null) return Results.NotFound();
     var profile = await db.BusinessProfiles.SingleOrDefaultAsync(x => x.BusinessId == businessId, ct);
     return Results.Ok(profile);
 }).RequireAuthorization("BusinessOwner");
 
 app.MapPut("/api/v1/businesses/{businessId:guid}/profile", async (Guid businessId, UpsertBusinessProfileRequest request, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
 {
-    var owner = await OwnerContext(businessId, user, db, ct);
-    if (owner is null) return Results.NotFound();
+    var account = await OwnerAccount(businessId, user, db, ct);
+    if (account is null) return Results.NotFound();
     var errors = request.Validate();
     if (errors.Count > 0) return Results.ValidationProblem(errors, extensions: new Dictionary<string, object?> { ["code"] = "profile_invalid" });
 
@@ -112,21 +112,21 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/profile", async (Guid businessI
     profile.Source = request.Source;
     profile.OwnerConfirmed = request.OwnerConfirmed;
     profile.UpdatedAt = DateTimeOffset.UtcNow;
-    db.AuditRecords.Add(AuditRecord.Create(owner.Value.Account.Id, businessId, "business.profile.updated"));
+    db.AuditRecords.Add(AuditRecord.Create(account.Id, businessId, "business.profile.updated"));
     await db.SaveChangesAsync(ct);
     return Results.Ok(profile);
 }).RequireAuthorization("BusinessOwner");
 
 app.MapGet("/api/v1/businesses/{businessId:guid}/goals", async (Guid businessId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
 {
-    if (await OwnerContext(businessId, user, db, ct) is null) return Results.NotFound();
+    if (await OwnerAccount(businessId, user, db, ct) is null) return Results.NotFound();
     return Results.Ok(await db.BusinessGoals.Where(x => x.BusinessId == businessId).OrderBy(x => x.Priority).ToListAsync(ct));
 }).RequireAuthorization("BusinessOwner");
 
 app.MapPut("/api/v1/businesses/{businessId:guid}/goals", async (Guid businessId, UpsertGoalsRequest request, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
 {
-    var owner = await OwnerContext(businessId, user, db, ct);
-    if (owner is null) return Results.NotFound();
+    var account = await OwnerAccount(businessId, user, db, ct);
+    if (account is null) return Results.NotFound();
     var errors = request.Validate();
     if (errors.Count > 0) return Results.ValidationProblem(errors, extensions: new Dictionary<string, object?> { ["code"] = "goals_invalid" });
 
@@ -137,37 +137,45 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/goals", async (Guid businessId,
         Id = Guid.NewGuid(), BusinessId = businessId, Type = x.Type.Trim(), Title = x.Title.Trim(), Priority = x.Priority,
         IsCustom = x.IsCustom, UpdatedAt = DateTimeOffset.UtcNow
     }));
-    db.AuditRecords.Add(AuditRecord.Create(owner.Value.Account.Id, businessId, "business.goals.updated"));
+    db.AuditRecords.Add(AuditRecord.Create(account.Id, businessId, "business.goals.updated"));
     await db.SaveChangesAsync(ct);
     return Results.NoContent();
 }).RequireAuthorization("BusinessOwner");
 
 app.MapGet("/api/v1/businesses/{businessId:guid}/context", async (Guid businessId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
 {
-    if (await OwnerContext(businessId, user, db, ct) is null) return Results.NotFound();
+    if (await OwnerAccount(businessId, user, db, ct) is null) return Results.NotFound();
     return Results.Ok(await db.BusinessContextEntries.Where(x => x.BusinessId == businessId).OrderBy(x => x.Key).ToListAsync(ct));
 }).RequireAuthorization("BusinessOwner");
 
 app.MapPut("/api/v1/businesses/{businessId:guid}/context/{key}", async (Guid businessId, string key, UpsertContextRequest request, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
 {
-    var owner = await OwnerContext(businessId, user, db, ct);
-    if (owner is null) return Results.NotFound();
+    var account = await OwnerAccount(businessId, user, db, ct);
+    if (account is null) return Results.NotFound();
     if (!string.Equals(key, request.Key, StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(request.Value))
         return Results.ValidationProblem(new Dictionary<string, string[]> { ["context"] = ["Context key and value are required and must match the route."] });
     if (request.Source is not FieldSources.Owner and not FieldSources.Public || request.Source == FieldSources.Public && !request.OwnerConfirmed)
         return Results.ValidationProblem(new Dictionary<string, string[]> { ["source"] = ["Public context must be owner-confirmed."] });
 
-    var entry = await db.BusinessContextEntries.SingleOrDefaultAsync(x => x.BusinessId == businessId && x.Key == key, ct);
+    var normalizedKey = key.Trim().ToLowerInvariant();
+    var entry = await db.BusinessContextEntries.SingleOrDefaultAsync(x => x.BusinessId == businessId && x.Key == normalizedKey, ct);
     if (entry is null)
     {
-        entry = new BusinessContextEntry { Id = Guid.NewGuid(), BusinessId = businessId, Key = key.Trim() };
+        entry = new BusinessContextEntry
+        {
+            Id = Guid.NewGuid(), BusinessId = businessId, Key = normalizedKey, Value = request.Value.Trim(),
+            Source = request.Source, OwnerConfirmed = request.OwnerConfirmed, UpdatedAt = DateTimeOffset.UtcNow
+        };
         db.BusinessContextEntries.Add(entry);
     }
-    entry.Value = request.Value.Trim();
-    entry.Source = request.Source;
-    entry.OwnerConfirmed = request.OwnerConfirmed;
-    entry.UpdatedAt = DateTimeOffset.UtcNow;
-    db.AuditRecords.Add(AuditRecord.Create(owner.Value.Account.Id, businessId, "business.context.updated"));
+    else
+    {
+        entry.Value = request.Value.Trim();
+        entry.Source = request.Source;
+        entry.OwnerConfirmed = request.OwnerConfirmed;
+        entry.UpdatedAt = DateTimeOffset.UtcNow;
+    }
+    db.AuditRecords.Add(AuditRecord.Create(account.Id, businessId, "business.context.updated"));
     await db.SaveChangesAsync(ct);
     return Results.Ok(entry);
 }).RequireAuthorization("BusinessOwner");
