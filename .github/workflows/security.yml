@@ -2,12 +2,16 @@ name: Security baseline
 on:
   pull_request:
   workflow_dispatch:
+concurrency:
+  group: security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 permissions:
   contents: read
   security-events: write
 jobs:
   secrets:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with: {fetch-depth: 0}
