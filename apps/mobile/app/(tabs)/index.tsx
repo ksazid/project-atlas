@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { KnowledgePackScreen } from '@/features/knowledge-pack/KnowledgePackScreen';
+import { TodayFocusScreen } from '@/features/today-focus/TodayFocusScreen';
 
 export default function HomeScreen() {
-  return <><KnowledgePackScreen /><StatusBar style="auto" /></>;
+  return <><TodayFocusScreen /><StatusBar style="auto" /></>;
 }
