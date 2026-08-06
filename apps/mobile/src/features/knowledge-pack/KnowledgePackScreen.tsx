@@ -21,7 +21,10 @@ export function KnowledgePackScreen() {
   }, []);
 
   const load = useCallback(async (manual = false) => {
-    manual ? setRefreshing(true) : setState('loading');
+    if (manual) {
+      setRefreshing(true);
+    }
+
     try {
       const session = await loadSession();
       if (!session?.businessId) {
@@ -52,11 +55,18 @@ export function KnowledgePackScreen() {
     }
   }, [applyPack]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const retry = () => {
+    setState('loading');
+    void load();
+  };
 
   if (state === 'loading') return <View style={styles.center}><Text accessibilityLiveRegion="polite">Loading Knowledge Pack…</Text></View>;
   if (state === 'empty') return <View style={styles.center}><Text accessibilityRole="header" style={styles.title}>Knowledge Pack</Text><Text style={styles.body}>Create or select a business to view its Knowledge Pack.</Text></View>;
-  if (state === 'error') return <View style={styles.center}><Text accessibilityRole="header" style={styles.title}>Knowledge Pack unavailable</Text><Text style={styles.body}>We could not load the Knowledge Pack.</Text><Pressable accessibilityRole="button" onPress={() => void load()} style={styles.button}><Text style={styles.buttonText}>Try again</Text></Pressable></View>;
+  if (state === 'error') return <View style={styles.center}><Text accessibilityRole="header" style={styles.title}>Knowledge Pack unavailable</Text><Text style={styles.body}>We could not load the Knowledge Pack.</Text><Pressable accessibilityRole="button" onPress={retry} style={styles.button}><Text style={styles.buttonText}>Try again</Text></Pressable></View>;
 
   return (
     <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}>
