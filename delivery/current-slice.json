@@ -3,9 +3,9 @@
   "sliceId": "VS-01",
   "title": "Identity and Business Setup",
   "status": "active",
-  "lifecycle": "approved",
+  "lifecycle": "certified",
   "riskLevel": "high",
-  "implementationMode": "specification-only",
+  "implementationMode": "runtime-disabled",
   "requirements": ["FR-01", "FR-02"],
   "owners": {
     "product": "ksazid",
@@ -50,7 +50,8 @@
     ],
     "notes": [
       "Introduces the first runtime identity and Business isolation boundary.",
-      "No production credentials, deployment or production enablement are authorised by this activation."
+      "Implementation is authorized only in runtime-disabled mode.",
+      "No production credentials, deployment, release or production enablement are authorized."
     ]
   },
   "approvals": [
@@ -64,25 +65,46 @@
       "rationale": "Product Owner instructed preparation and activation of VS-01 against approved FR-01 and FR-02, without deployment."
     },
     {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "implementation", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "implementation",
+      "status": "approved",
+      "version": "VS-01@1.0",
+      "commitSha": null,
+      "by": "ksazid",
+      "at": "2026-08-06T16:33:00+02:00",
+      "rationale": "Product Owner approved proceeding after the activation PR merged with CI, Security baseline and Product intake green. Runtime remains disabled and deployment is not authorized."
+    },
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-01@1.0",
+      "commitSha": "a342f46099ee5198d45d33637c34c96eff2504a3",
+      "by": "ksazid",
+      "at": "2026-08-06T17:52:00+02:00",
+      "rationale": "The Product Owner instructed proceeding after CI, Security baseline and Product intake passed at the exact implementation SHA."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
   "decisionIds": [],
   "progress": {
     "discovery": 100,
-    "decisions": 40,
-    "implementation": 0,
-    "testing": 0,
-    "certification": 0,
+    "decisions": 100,
+    "implementation": 100,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
-    "validation": 0
+    "validation": 100
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
-    "evidence": []
+    "status": "passed",
+    "commitSha": "a342f46099ee5198d45d33637c34c96eff2504a3",
+    "evidence": [
+      "delivery/traceability.json",
+      "tests/api/BusinessPolicyTests.cs",
+      "tests/api/BusinessIsolationTests.cs",
+      "apps/api/Migrations/20260806152000_InitialIdentityAndBusiness.cs"
+    ]
   },
   "release": {
     "status": "not-authorized",
@@ -100,8 +122,12 @@
   },
   "links": {
     "specification": "docs/slices/VS-01.md",
-    "implementationPr": null,
-    "evidence": []
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/3",
+    "evidence": [
+      "delivery/traceability.json",
+      "tests/api/BusinessPolicyTests.cs",
+      "tests/api/BusinessIsolationTests.cs"
+    ]
   },
   "maxAttempts": 3
 }

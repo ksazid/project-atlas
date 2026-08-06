@@ -11,12 +11,34 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: atlas
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d atlas"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      ConnectionStrings__Atlas: Host=localhost;Port=5432;Database=atlas;Username=postgres;Password=postgres
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: 24}
+      - uses: actions/setup-dotnet@v4
+        with: {dotnet-version: '10.0.x'}
       - run: npm install --ignore-scripts
       - run: npm run preflight
+      - run: dotnet restore apps/api/Atlas.Api.csproj
+      - run: dotnet tool install --global dotnet-ef --version 10.0.10
+      - run: dotnet ef database update --project apps/api/Atlas.Api.csproj --context AtlasDbContext
+      - run: dotnet test tests/api/Atlas.Api.Tests.csproj --configuration Release
       - run: npm run dashboard:build
       - uses: actions/upload-artifact@v4
         with:

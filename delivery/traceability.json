@@ -5,17 +5,33 @@
       "requirementId": "FR-01",
       "sliceId": "VS-01",
       "specification": "docs/slices/VS-01.md",
-      "implementation": [],
-      "tests": [],
-      "status": "specified"
+      "implementation": [
+        "apps/api/Program.cs",
+        "apps/mobile/app/sign-in.tsx",
+        "apps/mobile/src/auth/provider.ts",
+        "apps/mobile/src/auth/session.ts"
+      ],
+      "tests": [
+        "tests/api/BusinessPolicyTests.cs",
+        "tests/api/BusinessIsolationTests.cs"
+      ],
+      "status": "implemented"
     },
     {
       "requirementId": "FR-02",
       "sliceId": "VS-01",
       "specification": "docs/slices/VS-01.md",
-      "implementation": [],
-      "tests": [],
-      "status": "specified"
+      "implementation": [
+        "apps/api/AtlasDomain.cs",
+        "apps/api/Program.cs",
+        "apps/api/Migrations/20260806152000_InitialIdentityAndBusiness.cs",
+        "apps/mobile/app/create-business.tsx"
+      ],
+      "tests": [
+        "tests/api/BusinessPolicyTests.cs",
+        "tests/api/BusinessIsolationTests.cs"
+      ],
+      "status": "implemented"
     }
   ]
 }

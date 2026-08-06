@@ -1,13 +1,17 @@
 name: Product intake
 on:
   pull_request:
-    paths: ["product/**", "security/**", "delivery/**", "planning/**"]
+    paths: ["product/**", "security/**", "delivery/**", "planning/**", ".github/workflows/intake.yml"]
   workflow_dispatch:
+concurrency:
+  group: product-intake-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 permissions:
   contents: read
 jobs:
   intake:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
