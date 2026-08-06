@@ -18,6 +18,7 @@
 
 - Business creation now provisions and assigns the Generic Business Knowledge Pack version.
 - PR #7 scope was corrected from a single serialized document model to the approved modular versioned model.
+- Legacy VS-02 delivery metadata now uses valid PES lifecycle and certification status values.
 
 ### Not included
 
@@ -26,4 +27,4 @@
 
 ### Validation status
 
-GitHub Actions has not created workflow runs for the current branch. Compilation, migration execution, mobile type-checking, and complete certification therefore remain unverified by CI.
+GitHub Actions is enabled and automatic pull-request execution is active. The first certification run exposed invalid legacy VS-02 governance values; those values were corrected. Full compilation, migration, test, and dashboard certification remains pending the next CI result.
