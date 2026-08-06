@@ -82,8 +82,8 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 0,
-    "testing": 0,
+    "implementation": 100,
+    "testing": 90,
     "certification": 0,
     "release": 0,
     "validation": 0
@@ -91,7 +91,12 @@
   "certification": {
     "status": "not-started",
     "commitSha": null,
-    "evidence": []
+    "evidence": [
+      "delivery/traceability.json",
+      "tests/api/BusinessPolicyTests.cs",
+      "tests/api/BusinessIsolationTests.cs",
+      "apps/api/Migrations/20260806152000_InitialIdentityAndBusiness.cs"
+    ]
   },
   "release": {
     "status": "not-authorized",
@@ -109,8 +114,12 @@
   },
   "links": {
     "specification": "docs/slices/VS-01.md",
-    "implementationPr": null,
-    "evidence": []
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/3",
+    "evidence": [
+      "delivery/traceability.json",
+      "tests/api/BusinessPolicyTests.cs",
+      "tests/api/BusinessIsolationTests.cs"
+    ]
   },
   "maxAttempts": 3
 }
