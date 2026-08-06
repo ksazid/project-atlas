@@ -7,38 +7,124 @@
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-03", "FR-04", "FR-05"],
-  "owners": {"product": "ksazid", "engineering": "ksazid", "operations": "ksazid", "security": "ksazid"},
-  "dependencies": ["ATLAS-PRD-001", "ATLAS-TRD-001", "VS-01@9346e8dce871d90eab3e629ce921a3af254ba6fc"],
+  "owners": {
+    "product": "ksazid",
+    "engineering": "ksazid",
+    "operations": "ksazid",
+    "security": "ksazid"
+  },
+  "dependencies": [
+    "ATLAS-PRD-001",
+    "ATLAS-TRD-001",
+    "VS-01@9346e8dce871d90eab3e629ce921a3af254ba6fc"
+  ],
   "blockers": [],
-  "allowedPaths": ["apps/mobile/**", "apps/api/**", "packages/contracts/**", "packages/design-tokens/**", "tests/**", "product/**", "delivery/**", "docs/slices/VS-02.md", "scripts/**", ".github/workflows/ci.yml", ".github/workflows/intake.yml", ".github/workflows/security.yml"],
-  "protectedPaths": [".github/workflows/release.yml", "infrastructure/**", "**/Payments/**", "**/Uploads/**"],
+  "allowedPaths": [
+    "apps/mobile/**",
+    "apps/api/**",
+    "packages/contracts/**",
+    "packages/design-tokens/**",
+    "tests/**",
+    "product/**",
+    "delivery/**",
+    "docs/slices/VS-02.md",
+    "scripts/**",
+    ".github/workflows/ci.yml",
+    ".github/workflows/intake.yml",
+    ".github/workflows/security.yml"
+  ],
+  "protectedPaths": [
+    ".github/workflows/release.yml",
+    "infrastructure/**",
+    "**/Payments/**",
+    "**/Uploads/**"
+  ],
   "impact": {
-    "areas": ["frontend", "api", "database", "authorization", "sensitive-data", "customer-flow", "legal-privacy"],
+    "areas": [
+      "frontend",
+      "api",
+      "database",
+      "authorization",
+      "sensitive-data",
+      "customer-flow",
+      "legal-privacy"
+    ],
     "notes": [
       "Extends the existing Business boundary with confirmed profile, goals and context.",
       "Publicly sourced values retain provenance and require owner confirmation.",
-      "Runtime implementation and testing are authorized; deployment remains deferred.",
-      "No release, production credentials or production enablement are authorized."
+      "Runtime implementation and tests are complete; exact-head validation is pending.",
+      "No deployment, release, production credentials or production enablement are authorized."
     ]
   },
   "approvals": [
-    {"type": "scope", "status": "approved", "version": "ATLAS-PRD-001@1.0", "commitSha": "9346e8dce871d90eab3e629ce921a3af254ba6fc", "by": "ksazid", "at": "2026-08-06T21:15:00+02:00", "rationale": "Product Owner approved bypass-merging certified VS-01 after repeated GitHub-hosted runner infrastructure failures and instructed starting the next approved slice."},
+    {
+      "type": "scope",
+      "status": "approved",
+      "version": "ATLAS-PRD-001@1.0",
+      "commitSha": "9346e8dce871d90eab3e629ce921a3af254ba6fc",
+      "by": "ksazid",
+      "at": "2026-08-06T21:15:00+02:00",
+      "rationale": "Product Owner approved bypass-merging certified VS-01 after repeated GitHub-hosted runner infrastructure failures and instructed starting the next approved slice."
+    },
     {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "implementation", "status": "approved", "version": "VS-02@1.0", "commitSha": "9c080a4a8867076be95ddd672b646e7eb5f2a535", "by": "ksazid", "at": "2026-08-06T22:31:00+02:00", "rationale": "Product Owner granted standing approval through runtime implementation and testing and requested no repeated permission prompts. Deployment and release remain deferred."},
+    {
+      "type": "implementation",
+      "status": "approved",
+      "version": "VS-02@1.0",
+      "commitSha": "9c080a4a8867076be95ddd672b646e7eb5f2a535",
+      "by": "ksazid",
+      "at": "2026-08-06T22:31:00+02:00",
+      "rationale": "Product Owner granted standing approval through runtime implementation and testing and requested no repeated permission prompts. Deployment and release remain deferred."
+    },
     {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
   "decisionIds": [],
-  "progress": {"discovery": 100, "decisions": 100, "implementation": 100, "testing": 85, "certification": 0, "release": 0, "validation": 60},
-  "certification": {"status": "not-started", "commitSha": null, "evidence": ["delivery/traceability.json", "tests/api/BusinessPolicyTests.cs", "tests/api/BusinessIsolationTests.cs", "apps/api/Migrations/20260806215000_BusinessProfileGoalsContext.cs"]},
-  "release": {"status": "not-authorized", "releaseId": null},
-  "rollback": {"status": "not-applicable", "rollbackId": null},
-  "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
+  "progress": {
+    "discovery": 100,
+    "decisions": 100,
+    "implementation": 100,
+    "testing": 90,
+    "certification": 0,
+    "release": 0,
+    "validation": 0
+  },
+  "certification": {
+    "status": "pending-validation",
+    "commitSha": null,
+    "evidence": [
+      "delivery/traceability.json",
+      "tests/api/BusinessPolicyTests.cs",
+      "tests/api/BusinessIsolationTests.cs",
+      "apps/api/Migrations/20260806224500_BusinessProfileAndContext.cs",
+      "apps/mobile/app/(tabs)/profile.tsx",
+      "apps/mobile/app/(tabs)/goals.tsx",
+      "apps/mobile/app/(tabs)/context.tsx"
+    ]
+  },
+  "release": {
+    "status": "not-authorized",
+    "releaseId": null
+  },
+  "rollback": {
+    "status": "not-applicable",
+    "rollbackId": null
+  },
+  "postRelease": {
+    "status": "not-started",
+    "reviewAt": null,
+    "expectedOutcome": null,
+    "metrics": []
+  },
   "links": {
     "specification": "docs/slices/VS-02.md",
     "implementationPr": "https://github.com/ksazid/project-atlas/pull/6",
-    "evidence": ["delivery/traceability.json", "tests/api/BusinessPolicyTests.cs", "tests/api/BusinessIsolationTests.cs", "apps/api/Migrations/20260806215000_BusinessProfileGoalsContext.cs"]
+    "evidence": [
+      "delivery/traceability.json",
+      "tests/api/BusinessPolicyTests.cs",
+      "tests/api/BusinessIsolationTests.cs"
+    ]
   },
   "maxAttempts": 3
 }
