@@ -154,25 +154,48 @@ public static class KnowledgePackEndpoints
                 .SingleOrDefaultAsync(x => x.Id == versionId && x.KnowledgePackId == packId, ct);
             if (version is null) return Results.NotFound();
             try { version.EnsureEditable(); } catch (InvalidOperationException ex) { return Results.Conflict(new { code = "knowledge_pack_version_immutable", message = ex.Message }); }
-            if (string.IsNullOrWhiteSpace(request.StableKey) || string.IsNullOrWhiteSpace(request.Category) || string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Content) || request.Order < 1)
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["section"] = ["Stable key, category, title, content and a positive order are required."] });
+            if (string.IsNullOrWhiteSpace(request.StableKey) || string.IsNullOrWhiteSpace(request.Category) || string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Content) || string.IsNullOrWhiteSpace(request.Locale) || request.Order < 1)
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["section"] = ["Stable key, category, title, content, locale and a positive order are required."] });
             if (version.Sections.Any(x => x.Id != sectionId && (x.StableKey == request.StableKey || x.Order == request.Order)))
                 return Results.Conflict(new { code = "knowledge_section_duplicate_key_or_order" });
 
             var section = version.Sections.SingleOrDefault(x => x.Id == sectionId);
             if (section is null)
             {
-                section = new KnowledgeSection { Id = sectionId, KnowledgePackVersionId = versionId, KnowledgePackVersion = version, CreatedAt = DateTimeOffset.UtcNow };
+                section = new KnowledgeSection
+                {
+                    Id = sectionId,
+                    KnowledgePackVersionId = versionId,
+                    KnowledgePackVersion = version,
+                    StableKey = request.StableKey.Trim(),
+                    Category = request.Category.Trim(),
+                    Title = request.Title.Trim(),
+                    Content = request.Content.Trim(),
+                    MetadataJson = request.MetadataJson,
+                    Order = request.Order,
+                    Locale = request.Locale.Trim(),
+                    TranslationGroupKey = request.TranslationGroupKey?.Trim(),
+                    Source = request.Source?.Trim(),
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow
+                };
                 version.Sections.Add(section);
             }
-            else if (request.ExpectedVersion is uint expected)
+            else
             {
-                db.Entry(section).Property(x => x.ConcurrencyVersion).OriginalValue = expected;
+                if (request.ExpectedVersion is uint expected)
+                    db.Entry(section).Property(x => x.ConcurrencyVersion).OriginalValue = expected;
+                section.StableKey = request.StableKey.Trim();
+                section.Category = request.Category.Trim();
+                section.Title = request.Title.Trim();
+                section.Content = request.Content.Trim();
+                section.MetadataJson = request.MetadataJson;
+                section.Order = request.Order;
+                section.Locale = request.Locale.Trim();
+                section.TranslationGroupKey = request.TranslationGroupKey?.Trim();
+                section.Source = request.Source?.Trim();
+                section.UpdatedAt = DateTimeOffset.UtcNow;
             }
-            section.StableKey = request.StableKey.Trim(); section.Category = request.Category.Trim(); section.Title = request.Title.Trim();
-            section.Content = request.Content.Trim(); section.MetadataJson = request.MetadataJson; section.Order = request.Order;
-            section.Locale = request.Locale.Trim(); section.TranslationGroupKey = request.TranslationGroupKey?.Trim(); section.Source = request.Source?.Trim();
-            section.UpdatedAt = DateTimeOffset.UtcNow;
             db.AuditRecords.Add(AuditRecord.Create(actor.Id, null, $"knowledge-pack.section.upserted:{packId}:{versionId}:{sectionId}"));
             try { await db.SaveChangesAsync(ct); }
             catch (DbUpdateConcurrencyException) { return Results.Conflict(new { code = "knowledge_section_stale" }); }
@@ -230,7 +253,8 @@ public static class KnowledgePackEndpoints
             {
                 if (request.ExpectedCurrentAssignmentVersion is uint expected) db.Entry(current).Property(x => x.ConcurrencyVersion).OriginalValue = expected;
                 if (current.KnowledgePackVersionId == version.Id) return Results.Ok(new { assignmentId = current.Id, unchanged = true });
-                current.IsCurrent = false; current.EndedAt = DateTimeOffset.UtcNow;
+                current.IsCurrent = false;
+                current.EndedAt = DateTimeOffset.UtcNow;
             }
             var assignment = BusinessKnowledgeAssignment.Assign(businessId, version.KnowledgePack, version, actor.Id);
             db.BusinessKnowledgeAssignments.Add(assignment);
