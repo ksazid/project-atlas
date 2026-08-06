@@ -64,9 +64,19 @@ app.MapPost("/api/v1/businesses", async (CreateBusinessRequest request, ClaimsPr
 
     await using var transaction = await db.Database.BeginTransactionAsync(ct);
     var business = Business.Create(request);
+    var genericPack = await db.Set<KnowledgePack>()
+        .SingleOrDefaultAsync(x => x.Key == KnowledgePackKeys.GenericBusiness && x.Version == GenericBusinessKnowledgePack.Version, ct);
+    if (genericPack is null)
+    {
+        genericPack = GenericBusinessKnowledgePack.Create();
+        db.Set<KnowledgePack>().Add(genericPack);
+    }
+
     db.Businesses.Add(business);
     db.BusinessMemberships.Add(new BusinessMembership { Id = Guid.NewGuid(), BusinessId = business.Id, UserAccountId = account.Id, Role = MembershipRoles.BusinessOwner, CreatedAt = DateTimeOffset.UtcNow });
+    db.Set<BusinessKnowledgePack>().Add(BusinessKnowledgePack.Assign(business.Id, genericPack));
     db.AuditRecords.Add(AuditRecord.Create(account.Id, business.Id, "business.created"));
+    db.AuditRecords.Add(AuditRecord.Create(account.Id, business.Id, $"knowledge-pack.assigned:{genericPack.Key}:{genericPack.Version}"));
     await db.SaveChangesAsync(ct);
     await transaction.CommitAsync(ct);
     return Results.Created($"/api/v1/businesses/{business.Id}", BusinessResponse.From(business));
@@ -179,6 +189,8 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/context/{key}", async (Guid bus
     await db.SaveChangesAsync(ct);
     return Results.Ok(entry);
 }).RequireAuthorization("BusinessOwner");
+
+app.MapKnowledgePackEndpoints();
 
 app.MapPost("/api/v1/session/logout", (HttpContext context) =>
     Results.Ok(new { status = "signed_out", correlationId = context.TraceIdentifier })).RequireAuthorization();
