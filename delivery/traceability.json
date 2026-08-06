@@ -1,1 +1,21 @@
-{"schemaVersion":1,"links":[]}
+{
+  "schemaVersion": 1,
+  "links": [
+    {
+      "requirementId": "FR-01",
+      "sliceId": "VS-01",
+      "specification": "docs/slices/VS-01.md",
+      "implementation": [],
+      "tests": [],
+      "status": "specified"
+    },
+    {
+      "requirementId": "FR-02",
+      "sliceId": "VS-01",
+      "specification": "docs/slices/VS-01.md",
+      "implementation": [],
+      "tests": [],
+      "status": "specified"
+    }
+  ]
+}

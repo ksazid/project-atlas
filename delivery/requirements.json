@@ -1,1 +1,19 @@
-{"schemaVersion":1,"requirements":[]}
+{
+  "schemaVersion": 1,
+  "requirements": [
+    {
+      "id": "FR-01",
+      "title": "Identity and access",
+      "source": "product/PRD.md",
+      "status": "approved",
+      "sliceIds": ["VS-01"]
+    },
+    {
+      "id": "FR-02",
+      "title": "Business creation",
+      "source": "product/PRD.md",
+      "status": "approved",
+      "sliceIds": ["VS-01"]
+    }
+  ]
+}
