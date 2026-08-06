@@ -3,9 +3,9 @@
   "sliceId": "VS-02",
   "title": "Business Profile and Context",
   "status": "active",
-  "lifecycle": "approved",
+  "lifecycle": "ready-for-implementation",
   "riskLevel": "high",
-  "implementationMode": "specification-only",
+  "implementationMode": "runtime-disabled",
   "requirements": ["FR-03", "FR-04", "FR-05"],
   "owners": {
     "product": "ksazid",
@@ -52,7 +52,8 @@
     "notes": [
       "Extends the existing Business boundary with confirmed profile, goals and context.",
       "Publicly sourced values must retain provenance and require owner confirmation.",
-      "No deployment, release or production enablement is authorized."
+      "Runtime implementation and testing are authorized; deployment remains deferred.",
+      "No release, production credentials or production enablement are authorized."
     ]
   },
   "approvals": [
@@ -66,7 +67,15 @@
       "rationale": "Product Owner approved bypass-merging certified VS-01 after repeated GitHub-hosted runner infrastructure failures and instructed starting the next approved slice."
     },
     {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "implementation", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "implementation",
+      "status": "approved",
+      "version": "VS-02@1.0",
+      "commitSha": "9c080a4a8867076be95ddd672b646e7eb5f2a535",
+      "by": "ksazid",
+      "at": "2026-08-06T22:31:00+02:00",
+      "rationale": "Product Owner granted standing approval through runtime implementation and testing and requested no repeated permission prompts. Deployment and release remain deferred."
+    },
     {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
