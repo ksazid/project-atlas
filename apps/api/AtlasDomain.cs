@@ -37,17 +37,7 @@ public sealed record BusinessResponse(Guid Id, string Name, string Category, str
     public static BusinessResponse From(Business business) => new(business.Id, business.Name, business.Category, business.Country, business.Timezone, business.Currency, business.PrimaryLocation, business.OperatingStatus);
 }
 
-public sealed record UpsertBusinessProfileRequest(
-    string? Description,
-    string? Address,
-    string? Website,
-    string? Phone,
-    string? Email,
-    string? SocialChannels,
-    string? BusinessHours,
-    string Language,
-    string Source,
-    bool OwnerConfirmed)
+public sealed record UpsertBusinessProfileRequest(string? Description, string? Address, string? Website, string? Phone, string? Email, string? SocialChannels, string? BusinessHours, string Language, string Source, bool OwnerConfirmed)
 {
     public Dictionary<string, string[]> Validate()
     {
@@ -75,101 +65,34 @@ public sealed record UpsertGoalsRequest(IReadOnlyList<GoalInput> Goals)
 public sealed record GoalInput(string Type, string Title, int Priority, bool IsCustom);
 public sealed record UpsertContextRequest(string Key, string Value, string Source, bool OwnerConfirmed);
 
-public sealed class UserAccount
-{
-    public Guid Id { get; set; }
-    public required string ProviderSubject { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
-}
-
+public sealed class UserAccount { public Guid Id { get; set; } public required string ProviderSubject { get; set; } public DateTimeOffset CreatedAt { get; set; } }
 public sealed class Business
 {
-    public Guid Id { get; set; }
-    public required string Name { get; set; }
-    public required string Category { get; set; }
-    public required string Country { get; set; }
-    public required string Timezone { get; set; }
-    public required string Currency { get; set; }
-    public required string PrimaryLocation { get; set; }
-    public required string OperatingStatus { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
-    public uint Version { get; set; }
-
-    public static Business Create(CreateBusinessRequest request) => new()
-    {
-        Id = Guid.NewGuid(), Name = request.Name.Trim(), Category = request.Category.Trim(), Country = request.Country.Trim(),
-        Timezone = request.Timezone.Trim(), Currency = request.Currency.Trim().ToUpperInvariant(), PrimaryLocation = request.PrimaryLocation.Trim(),
-        OperatingStatus = request.OperatingStatus.Trim(), CreatedAt = DateTimeOffset.UtcNow
-    };
+    public Guid Id { get; set; } public required string Name { get; set; } public required string Category { get; set; }
+    public required string Country { get; set; } public required string Timezone { get; set; } public required string Currency { get; set; }
+    public required string PrimaryLocation { get; set; } public required string OperatingStatus { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } public uint Version { get; set; }
+    public static Business Create(CreateBusinessRequest request) => new() { Id = Guid.NewGuid(), Name = request.Name.Trim(), Category = request.Category.Trim(), Country = request.Country.Trim(), Timezone = request.Timezone.Trim(), Currency = request.Currency.Trim().ToUpperInvariant(), PrimaryLocation = request.PrimaryLocation.Trim(), OperatingStatus = request.OperatingStatus.Trim(), CreatedAt = DateTimeOffset.UtcNow };
 }
-
-public sealed class BusinessProfile
-{
-    public Guid BusinessId { get; set; }
-    public string? Description { get; set; }
-    public string? Address { get; set; }
-    public string? Website { get; set; }
-    public string? Phone { get; set; }
-    public string? Email { get; set; }
-    public string? SocialChannels { get; set; }
-    public string? BusinessHours { get; set; }
-    public required string Language { get; set; }
-    public required string Source { get; set; }
-    public bool OwnerConfirmed { get; set; }
-    public DateTimeOffset UpdatedAt { get; set; }
-}
-
-public sealed class BusinessGoal
-{
-    public Guid Id { get; set; }
-    public Guid BusinessId { get; set; }
-    public required string Type { get; set; }
-    public required string Title { get; set; }
-    public int Priority { get; set; }
-    public bool IsCustom { get; set; }
-    public DateTimeOffset UpdatedAt { get; set; }
-}
-
-public sealed class BusinessContextEntry
-{
-    public Guid Id { get; set; }
-    public Guid BusinessId { get; set; }
-    public required string Key { get; set; }
-    public required string Value { get; set; }
-    public required string Source { get; set; }
-    public bool OwnerConfirmed { get; set; }
-    public DateTimeOffset UpdatedAt { get; set; }
-}
-
-public sealed class BusinessMembership
-{
-    public Guid Id { get; set; }
-    public Guid BusinessId { get; set; }
-    public Guid UserAccountId { get; set; }
-    public required string Role { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
-    public UserAccount UserAccount { get; set; } = null!;
-}
-
+public sealed class BusinessProfile { public Guid BusinessId { get; set; } public string? Description { get; set; } public string? Address { get; set; } public string? Website { get; set; } public string? Phone { get; set; } public string? Email { get; set; } public string? SocialChannels { get; set; } public string? BusinessHours { get; set; } public required string Language { get; set; } public required string Source { get; set; } public bool OwnerConfirmed { get; set; } public DateTimeOffset UpdatedAt { get; set; } }
+public sealed class BusinessGoal { public Guid Id { get; set; } public Guid BusinessId { get; set; } public required string Type { get; set; } public required string Title { get; set; } public int Priority { get; set; } public bool IsCustom { get; set; } public DateTimeOffset UpdatedAt { get; set; } }
+public sealed class BusinessContextEntry { public Guid Id { get; set; } public Guid BusinessId { get; set; } public required string Key { get; set; } public required string Value { get; set; } public required string Source { get; set; } public bool OwnerConfirmed { get; set; } public DateTimeOffset UpdatedAt { get; set; } }
+public sealed class BusinessMembership { public Guid Id { get; set; } public Guid BusinessId { get; set; } public Guid UserAccountId { get; set; } public required string Role { get; set; } public DateTimeOffset CreatedAt { get; set; } public UserAccount UserAccount { get; set; } = null!; }
 public sealed class AuditRecord
 {
-    public Guid Id { get; set; }
-    public Guid UserAccountId { get; set; }
-    public Guid? BusinessId { get; set; }
-    public required string Action { get; set; }
-    public DateTimeOffset OccurredAt { get; set; }
+    public Guid Id { get; set; } public Guid UserAccountId { get; set; } public Guid? BusinessId { get; set; }
+    public required string Action { get; set; } public DateTimeOffset OccurredAt { get; set; }
     public static AuditRecord Create(Guid accountId, Guid? businessId, string action) => new() { Id = Guid.NewGuid(), UserAccountId = accountId, BusinessId = businessId, Action = action, OccurredAt = DateTimeOffset.UtcNow };
 }
 
 public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : DbContext(options)
 {
-    public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
-    public DbSet<Business> Businesses => Set<Business>();
-    public DbSet<BusinessProfile> BusinessProfiles => Set<BusinessProfile>();
-    public DbSet<BusinessGoal> BusinessGoals => Set<BusinessGoal>();
-    public DbSet<BusinessContextEntry> BusinessContextEntries => Set<BusinessContextEntry>();
-    public DbSet<BusinessMembership> BusinessMemberships => Set<BusinessMembership>();
-    public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>();
+    public DbSet<UserAccount> UserAccounts => Set<UserAccount>(); public DbSet<Business> Businesses => Set<Business>();
+    public DbSet<BusinessProfile> BusinessProfiles => Set<BusinessProfile>(); public DbSet<BusinessGoal> BusinessGoals => Set<BusinessGoal>();
+    public DbSet<BusinessContextEntry> BusinessContextEntries => Set<BusinessContextEntry>(); public DbSet<BusinessMembership> BusinessMemberships => Set<BusinessMembership>();
+    public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>(); public DbSet<KnowledgePack> KnowledgePacks => Set<KnowledgePack>();
+    public DbSet<KnowledgePackVersion> KnowledgePackVersions => Set<KnowledgePackVersion>(); public DbSet<KnowledgeSection> KnowledgeSections => Set<KnowledgeSection>();
+    public DbSet<BusinessKnowledgeAssignment> BusinessKnowledgeAssignments => Set<BusinessKnowledgeAssignment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -181,5 +104,15 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<BusinessMembership>().HasIndex(x => new { x.BusinessId, x.UserAccountId, x.Role }).IsUnique();
         modelBuilder.Entity<BusinessMembership>().HasOne(x => x.UserAccount).WithMany().HasForeignKey(x => x.UserAccountId);
         modelBuilder.Entity<AuditRecord>().HasIndex(x => new { x.BusinessId, x.OccurredAt });
+
+        modelBuilder.Entity<KnowledgePack>().Property(x => x.Version).IsRowVersion();
+        modelBuilder.Entity<KnowledgePackVersion>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<KnowledgeSection>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<BusinessKnowledgeAssignment>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<KnowledgePackVersion>().HasOne(x => x.KnowledgePack).WithMany(x => x.Versions).HasForeignKey(x => x.KnowledgePackId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<KnowledgeSection>().HasOne(x => x.KnowledgePackVersion).WithMany(x => x.Sections).HasForeignKey(x => x.KnowledgePackVersionId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.Business).WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.KnowledgePack).WithMany().HasForeignKey(x => x.KnowledgePackId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.KnowledgePackVersion).WithMany().HasForeignKey(x => x.KnowledgePackVersionId).OnDelete(DeleteBehavior.Restrict);
     }
 }
