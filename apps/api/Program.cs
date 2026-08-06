@@ -64,19 +64,28 @@ app.MapPost("/api/v1/businesses", async (CreateBusinessRequest request, ClaimsPr
 
     await using var transaction = await db.Database.BeginTransactionAsync(ct);
     var business = Business.Create(request);
-    var genericPack = await db.Set<KnowledgePack>()
-        .SingleOrDefaultAsync(x => x.Key == KnowledgePackKeys.GenericBusiness && x.Version == GenericBusinessKnowledgePack.Version, ct);
-    if (genericPack is null)
+    var genericVersion = await db.KnowledgePackVersions
+        .Include(x => x.KnowledgePack)
+        .Include(x => x.Sections)
+        .SingleOrDefaultAsync(x => x.KnowledgePack.Key == KnowledgePackKeys.GenericBusiness &&
+            x.VersionNumber == GenericBusinessKnowledgePack.InitialVersion && x.Status == KnowledgePackStatuses.Published, ct);
+
+    KnowledgePack genericPack;
+    if (genericVersion is null)
     {
-        genericPack = GenericBusinessKnowledgePack.Create();
-        db.Set<KnowledgePack>().Add(genericPack);
+        (genericPack, genericVersion) = GenericBusinessKnowledgePack.Create(account.Id);
+        db.KnowledgePacks.Add(genericPack);
+    }
+    else
+    {
+        genericPack = genericVersion.KnowledgePack;
     }
 
     db.Businesses.Add(business);
     db.BusinessMemberships.Add(new BusinessMembership { Id = Guid.NewGuid(), BusinessId = business.Id, UserAccountId = account.Id, Role = MembershipRoles.BusinessOwner, CreatedAt = DateTimeOffset.UtcNow });
-    db.Set<BusinessKnowledgePack>().Add(BusinessKnowledgePack.Assign(business.Id, genericPack));
+    db.BusinessKnowledgeAssignments.Add(BusinessKnowledgeAssignment.Assign(business.Id, genericPack, genericVersion, account.Id));
     db.AuditRecords.Add(AuditRecord.Create(account.Id, business.Id, "business.created"));
-    db.AuditRecords.Add(AuditRecord.Create(account.Id, business.Id, $"knowledge-pack.assigned:{genericPack.Key}:{genericPack.Version}"));
+    db.AuditRecords.Add(AuditRecord.Create(account.Id, business.Id, $"knowledge-pack.assigned:{genericPack.Key}:{genericVersion.VersionNumber}"));
     await db.SaveChangesAsync(ct);
     await transaction.CommitAsync(ct);
     return Results.Created($"/api/v1/businesses/{business.Id}", BusinessResponse.From(business));
