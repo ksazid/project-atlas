@@ -114,5 +114,6 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.Business).WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.KnowledgePack).WithMany().HasForeignKey(x => x.KnowledgePackId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.KnowledgePackVersion).WithMany().HasForeignKey(x => x.KnowledgePackVersionId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<BusinessKnowledgeAssignment>().HasIndex(x => x.BusinessId).IsUnique().HasFilter("\"IsCurrent\" = TRUE");
     }
 }
