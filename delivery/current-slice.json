@@ -1,28 +1,68 @@
 {
   "schemaVersion": 2,
-  "sliceId": null,
-  "title": null,
-  "status": "inactive",
-  "lifecycle": "proposed",
-  "riskLevel": "low",
+  "sliceId": "VS-01",
+  "title": "Identity and Business Setup",
+  "status": "active",
+  "lifecycle": "approved",
+  "riskLevel": "high",
   "implementationMode": "specification-only",
-  "requirements": [],
+  "requirements": ["FR-01", "FR-02"],
   "owners": {
-    "product": null,
-    "engineering": null,
-    "operations": null,
-    "security": null
+    "product": "ksazid",
+    "engineering": "ksazid",
+    "operations": "ksazid",
+    "security": "ksazid"
   },
-  "dependencies": [],
+  "dependencies": ["ATLAS-PRD-001", "ATLAS-TRD-001"],
   "blockers": [],
-  "allowedPaths": [],
-  "protectedPaths": [".github/workflows/release.yml"],
+  "allowedPaths": [
+    "apps/mobile/**",
+    "apps/api/**",
+    "packages/contracts/**",
+    "packages/design-tokens/**",
+    "tests/**",
+    "product/**",
+    "delivery/**",
+    "docs/slices/VS-01.md",
+    "scripts/**",
+    ".github/workflows/ci.yml",
+    ".github/workflows/intake.yml",
+    ".github/workflows/security.yml"
+  ],
+  "protectedPaths": [
+    ".github/workflows/release.yml",
+    "infrastructure/**",
+    "**/Payments/**",
+    "**/Uploads/**"
+  ],
   "impact": {
-    "areas": [],
-    "notes": []
+    "areas": [
+      "architecture",
+      "frontend",
+      "api",
+      "database",
+      "authentication",
+      "authorization",
+      "sensitive-data",
+      "customer-flow",
+      "legal-privacy",
+      "operations-support"
+    ],
+    "notes": [
+      "Introduces the first runtime identity and Business isolation boundary.",
+      "No production credentials, deployment or production enablement are authorised by this activation."
+    ]
   },
   "approvals": [
-    {"type": "scope", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "scope",
+      "status": "approved",
+      "version": "ATLAS-PRD-001@1.0",
+      "commitSha": null,
+      "by": "ksazid",
+      "at": "2026-08-06T16:22:00+02:00",
+      "rationale": "Product Owner instructed preparation and activation of VS-01 against approved FR-01 and FR-02, without deployment."
+    },
     {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "implementation", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
@@ -31,8 +71,8 @@
   ],
   "decisionIds": [],
   "progress": {
-    "discovery": 0,
-    "decisions": 0,
+    "discovery": 100,
+    "decisions": 40,
     "implementation": 0,
     "testing": 0,
     "certification": 0,
@@ -59,7 +99,7 @@
     "metrics": []
   },
   "links": {
-    "specification": null,
+    "specification": "docs/slices/VS-01.md",
     "implementationPr": null,
     "evidence": []
   },
