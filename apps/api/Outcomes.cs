@@ -128,7 +128,7 @@ public static class OutcomeEndpoints
             Guid businessId, Guid opportunityId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
         {
             if (await OwnerAccount(businessId, user, db, ct) is null) return Results.NotFound();
-            var outcome = await db.Outcomes.SingleOrDefaultAsync(x => x.BusinessId == businessId && x.OpportunityId == opportunityId, ct);
+            var outcome = await db.Set<Outcome>().SingleOrDefaultAsync(x => x.BusinessId == businessId && x.OpportunityId == opportunityId, ct);
             return outcome is null ? Results.NotFound() : Results.Ok(OutcomeResponse.From(outcome));
         }).RequireAuthorization("BusinessOwner");
 
@@ -145,7 +145,7 @@ public static class OutcomeEndpoints
             if (!OutcomePolicy.CanCapture(opportunity, DateTimeOffset.UtcNow))
                 return Results.Conflict(new { code = "outcome_not_eligible", message = "Complete the Action before capturing an Outcome." });
 
-            var outcome = await db.Outcomes.SingleOrDefaultAsync(x => x.BusinessId == businessId && x.OpportunityId == opportunityId, ct);
+            var outcome = await db.Set<Outcome>().SingleOrDefaultAsync(x => x.BusinessId == businessId && x.OpportunityId == opportunityId, ct);
             if (outcome is not null && request.Version != outcome.ConcurrencyVersion)
                 return Results.Conflict(new { code = "outcome_stale", message = "The Outcome changed. Refresh before saving again." });
             if (outcome is null && request.Version.HasValue)
@@ -161,7 +161,7 @@ public static class OutcomeEndpoints
                     KnowledgePackVersion = opportunity.KnowledgePackVersion, CapturedByUserAccountId = account.Id,
                     CapturedAt = now, ResultSummary = string.Empty, EvidenceClass = OutcomeEvidenceClasses.Unknown
                 };
-                db.Outcomes.Add(outcome);
+                db.Set<Outcome>().Add(outcome);
             }
 
             outcome.UsefulnessRating = request.UsefulnessRating;
@@ -176,7 +176,7 @@ public static class OutcomeEndpoints
             outcome.UpdatedAt = now;
 
             var memoryKey = $"outcome:{opportunity.Id}";
-            var memory = await db.BusinessMemoryItems.SingleOrDefaultAsync(x => x.BusinessId == businessId && x.StableKey == memoryKey, ct);
+            var memory = await db.Set<BusinessMemoryItem>().SingleOrDefaultAsync(x => x.BusinessId == businessId && x.StableKey == memoryKey, ct);
             var memoryValue = $"{outcome.EvidenceClass}: {outcome.ResultSummary}";
             if (memory is null)
             {
@@ -185,7 +185,7 @@ public static class OutcomeEndpoints
                     Id = Guid.NewGuid(), BusinessId = businessId, StableKey = memoryKey, Category = BusinessMemoryCategories.Outcome,
                     SourceType = "outcome", SourceId = outcome.Id, Value = memoryValue, IsDeletable = true, CapturedAt = now, UpdatedAt = now
                 };
-                db.BusinessMemoryItems.Add(memory);
+                db.Set<BusinessMemoryItem>().Add(memory);
             }
             else
             {
@@ -203,7 +203,7 @@ public static class OutcomeEndpoints
             Guid businessId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
         {
             if (await OwnerAccount(businessId, user, db, ct) is null) return Results.NotFound();
-            var items = await db.BusinessMemoryItems.Where(x => x.BusinessId == businessId).OrderByDescending(x => x.UpdatedAt)
+            var items = await db.Set<BusinessMemoryItem>().Where(x => x.BusinessId == businessId).OrderByDescending(x => x.UpdatedAt)
                 .Select(x => new BusinessMemoryResponse(x.Id, x.StableKey, x.Category, x.SourceType, x.SourceId, x.Value, x.IsDeletable, x.UpdatedAt, x.ConcurrencyVersion))
                 .ToListAsync(ct);
             return Results.Ok(items);
@@ -214,10 +214,10 @@ public static class OutcomeEndpoints
         {
             var account = await OwnerAccount(businessId, user, db, ct);
             if (account is null) return Results.NotFound();
-            var item = await db.BusinessMemoryItems.SingleOrDefaultAsync(x => x.Id == memoryId && x.BusinessId == businessId, ct);
+            var item = await db.Set<BusinessMemoryItem>().SingleOrDefaultAsync(x => x.Id == memoryId && x.BusinessId == businessId, ct);
             if (item is null) return Results.NotFound();
             if (!item.IsDeletable) return Results.Conflict(new { code = "memory_not_deletable", message = "This memory item is part of the required Business record." });
-            db.BusinessMemoryItems.Remove(item);
+            db.Set<BusinessMemoryItem>().Remove(item);
             db.AuditRecords.Add(AuditRecord.Create(account.Id, businessId, $"memory.deleted:{item.StableKey}"));
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
