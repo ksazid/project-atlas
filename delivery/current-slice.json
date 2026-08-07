@@ -3,7 +3,7 @@
   "sliceId": "VS-09",
   "title": "History",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "testing",
   "riskLevel": "medium",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-12"],
@@ -40,12 +40,11 @@
   "impact": {
     "areas": ["frontend", "api", "authorization", "customer-flow", "analytics"],
     "notes": [
-      "Adds a chronological, business-isolated History view over existing Opportunities, Actions, Execution Kits, feedback and Outcomes.",
-      "History is implemented as a read-oriented projection over existing authoritative records; no duplicate History table or source of truth is introduced.",
-      "The initial API supports status, category, goal and date filtering with Business scoping applied before projection.",
-      "History preserves exact Knowledge Pack provenance and produces factual learning summaries without causal claims.",
-      "Deterministic filter, limit and safe evidence-category policy tests are included.",
-      "PES navigation, routing, authentication, state management and framework structure remain unchanged.",
+      "Adds a chronological, business-isolated History view over authoritative Opportunities, Actions, Execution Kits and Outcomes without introducing duplicate History persistence.",
+      "Supports status, category, goal and date filters in the API; the mobile MVP exposes status and category filters with bounded retrieval.",
+      "History preserves exact Knowledge Pack provenance and reports factual learning summaries without causal attribution.",
+      "Mobile History is an existing-shell route launched from Today’s Focus; no PES tab, navigation framework, authentication or state architecture changes were made.",
+      "History cards deep-link to existing Opportunity Detail and support loading, empty, degraded/error and refresh states.",
       "Runtime remains disabled outside development/test; release, deployment and production enablement are not authorized."
     ]
   },
@@ -77,8 +76,8 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 35,
-    "testing": 5,
+    "implementation": 100,
+    "testing": 20,
     "certification": 0,
     "release": 0,
     "validation": 0
@@ -91,8 +90,10 @@
     "specification": "docs/slices/VS-09.md",
     "implementationPr": "https://github.com/ksazid/project-atlas/pull/14",
     "evidence": [
+      "tests/api/HistoryPolicyTests.cs",
       "apps/api/History.cs",
-      "tests/api/HistoryPolicyTests.cs"
+      "apps/mobile/src/features/history/HistoryScreen.tsx",
+      "apps/mobile/app/history.tsx"
     ]
   },
   "maxAttempts": 3
