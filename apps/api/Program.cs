@@ -201,6 +201,7 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/context/{key}", async (Guid bus
 
 app.MapKnowledgePackEndpoints();
 app.MapOpportunityEndpoints();
+app.MapExecutionKitEndpoints();
 
 app.MapPost("/api/v1/session/logout", (HttpContext context) =>
     Results.Ok(new { status = "signed_out", correlationId = context.TraceIdentifier })).RequireAuthorization();
