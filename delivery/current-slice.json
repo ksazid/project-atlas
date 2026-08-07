@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-07",
-  "title": "Action Status and Feedback",
-  "status": "active",
+  "sliceId": "VS-08",
+  "title": "Outcome Capture and Business Memory",
+  "status": "completed",
   "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
-  "requirements": ["FR-10"],
+  "requirements": ["FR-11", "FR-14"],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -16,7 +16,7 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-06@a53ca139f7e640c5918039afedf6d9b8379c3fd9"
+    "VS-07@1e757e8b9e3b8d90ca21df71f35bde0b300c8c48"
   ],
   "blockers": [],
   "allowedPaths": [
@@ -38,14 +38,16 @@
     "**/Uploads/**"
   ],
   "impact": {
-    "areas": ["frontend", "api", "database", "authorization", "customer-flow", "operations-support"],
+    "areas": ["frontend", "api", "database", "authorization", "sensitive-data", "customer-flow", "analytics", "legal-privacy"],
     "notes": [
-      "Adds governed owner decisions for Applied, Completed, Skipped, Not Relevant and Rejected.",
-      "Structured reasons are required where relevant and every transition is business-isolated and auditable.",
-      "Append-only decision persistence, transition policy, APIs, migration, policy tests and mobile integration are implemented.",
-      "Opportunity Detail and Execution Kit expose the same governed Action Decision state without changing PES navigation or framework structure.",
-      "The VS-04 decision endpoint remains available for backward compatibility while VS-07 uses the richer append-only decision API.",
-      "Runtime remains disabled outside development/test; release and production enablement are not authorized."
+      "Adds owner-controlled Outcome capture after an Action reaches Completed.",
+      "Outcomes support usefulness, owner-reported result, time spent, optional notes, measurable results, follow-up date and measured/owner-reported/estimated/unknown evidence classification.",
+      "Outcome persistence retains exact Opportunity, Goal and Knowledge Pack provenance and rejects stale writes with PostgreSQL row-version concurrency.",
+      "Outcome capture creates a transparent product-domain Business Memory projection with stable keys and explicit source metadata.",
+      "Outcome-derived Business Memory is inspectable and deletable without mutating historical Action or Opportunity records.",
+      "Mobile Outcome capture is integrated into Opportunity Detail and Business Memory is surfaced in the existing Settings screen; PES navigation and framework structure are unchanged.",
+      "CI #131, Security baseline #123 and Product intake #108 passed on the certified implementation SHA.",
+      "Runtime remains disabled outside development/test and deployment is not authorized."
     ]
   },
   "approvals": [
@@ -53,29 +55,29 @@
       "type": "scope",
       "status": "approved",
       "version": "ATLAS-PRD-001@1.0",
-      "commitSha": "a53ca139f7e640c5918039afedf6d9b8379c3fd9",
+      "commitSha": "1e757e8b9e3b8d90ca21df71f35bde0b300c8c48",
       "by": "ksazid",
-      "at": "2026-08-07T13:43:00+02:00",
-      "rationale": "Product Owner instructed pausing deployment work and starting the next approved slice; the PRD maps VS-07 to FR-10 Action decisions."
+      "at": "2026-08-07T15:38:00+02:00",
+      "rationale": "Product Owner authorized closing VS-07, merging it and starting the next approved slice. The approved PRD maps VS-08 to Outcome Capture and Business Memory."
     },
     {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-07@1.0",
-      "commitSha": "a53ca139f7e640c5918039afedf6d9b8379c3fd9",
+      "version": "VS-08@1.0",
+      "commitSha": "1e757e8b9e3b8d90ca21df71f35bde0b300c8c48",
       "by": "ksazid",
-      "at": "2026-08-07T13:43:00+02:00",
-      "rationale": "Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
+      "at": "2026-08-07T15:38:00+02:00",
+      "rationale": "Authorization covers implementation and testing. Certification, merge, release, deployment and production enablement remain separately gated."
     },
     {
       "type": "certification",
       "status": "approved",
-      "version": "VS-07@1.0",
-      "commitSha": "cd463ca3a77e9e2fa39a74b91b9fcfefe1502d05",
+      "version": "VS-08@1.0",
+      "commitSha": "f0ff647bae5cf140d40fe66404a35e54d2d4a4bd",
       "by": "ksazid",
-      "at": "2026-08-07T15:38:00+02:00",
-      "rationale": "CI #114, Security baseline #107 and Product intake #92 passed on the implementation head; Product Owner authorized close-out and merge."
+      "at": "2026-08-07T17:05:00+02:00",
+      "rationale": "Product Owner authorized merge after CI #131, Security baseline #123 and Product intake #108 passed on the exact VS-08 implementation SHA."
     },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
@@ -92,19 +94,27 @@
   },
   "certification": {
     "status": "passed",
-    "commitSha": "cd463ca3a77e9e2fa39a74b91b9fcfefe1502d05",
-    "evidence": ["CI #114", "Security baseline #107", "Product intake #92"]
+    "commitSha": "f0ff647bae5cf140d40fe66404a35e54d2d4a4bd",
+    "evidence": [
+      "https://github.com/ksazid/project-atlas/actions/runs/31185257222",
+      "https://github.com/ksazid/project-atlas/actions/runs/31185256529",
+      "https://github.com/ksazid/project-atlas/actions/runs/31185256567",
+      "tests/api/OutcomePolicyTests.cs",
+      "apps/api/Migrations/20260807155500_OutcomesAndBusinessMemory.cs",
+      "apps/mobile/src/features/outcomes/OutcomeCapturePanel.tsx",
+      "apps/mobile/src/features/business-memory/BusinessMemoryPanel.tsx"
+    ]
   },
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
-    "specification": "docs/slices/VS-07.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/12",
+    "specification": "docs/slices/VS-08.md",
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/13",
     "evidence": [
-      "tests/api/ActionDecisionPolicyTests.cs",
-      "apps/api/Migrations/20260807135000_ActionDecisions.cs",
-      "apps/mobile/src/features/action-decisions/ActionDecisionPanel.tsx"
+      "https://github.com/ksazid/project-atlas/actions/runs/31185257222",
+      "https://github.com/ksazid/project-atlas/actions/runs/31185256529",
+      "https://github.com/ksazid/project-atlas/actions/runs/31185256567"
     ]
   },
   "maxAttempts": 3

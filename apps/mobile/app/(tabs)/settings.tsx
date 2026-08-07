@@ -1,3 +1,17 @@
-import { StyleSheet, Text, View } from 'react-native';
-export default function SettingsScreen() { return <View style={styles.container}><Text accessibilityRole="header" style={styles.title}>Settings</Text><Text>Product-specific settings belong in approved slices.</Text></View>; }
-const styles=StyleSheet.create({container:{flex:1,justifyContent:'center',padding:24,gap:12},title:{fontSize:28,fontWeight:'700'}});
+import { ScrollView, StyleSheet, Text } from 'react-native';
+import { BusinessMemoryPanel } from '@/features/business-memory/BusinessMemoryPanel';
+import { tokens } from '@/theme/tokens';
+
+export default function SettingsScreen() {
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text accessibilityRole="header" style={styles.title}>Settings</Text>
+      <BusinessMemoryPanel />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { padding: tokens.spacing.lg, gap: tokens.spacing.lg, paddingBottom: 40 },
+  title: { fontSize: tokens.typography.title, fontWeight: '700' },
+});

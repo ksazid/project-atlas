@@ -95,6 +95,7 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     public DbSet<BusinessKnowledgeAssignment> BusinessKnowledgeAssignments => Set<BusinessKnowledgeAssignment>();
     public DbSet<ExecutionKit> ExecutionKits => Set<ExecutionKit>(); public DbSet<ExecutionAsset> ExecutionAssets => Set<ExecutionAsset>();
     public DbSet<ActionDecisionRecord> ActionDecisionRecords => Set<ActionDecisionRecord>();
+    public DbSet<Outcome> Outcomes => Set<Outcome>(); public DbSet<BusinessMemoryItem> BusinessMemoryItems => Set<BusinessMemoryItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -126,5 +127,17 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
 
         modelBuilder.Entity<ActionDecisionRecord>().HasIndex(x => new { x.BusinessId, x.OpportunityId, x.DecidedAt });
         modelBuilder.Entity<ActionDecisionRecord>().HasIndex(x => new { x.OpportunityId, x.DecidedAt });
+
+        modelBuilder.Entity<Outcome>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<Outcome>().Property(x => x.ResultSummary).HasMaxLength(1000);
+        modelBuilder.Entity<Outcome>().Property(x => x.OwnerNotes).HasMaxLength(2000);
+        modelBuilder.Entity<Outcome>().HasIndex(x => new { x.BusinessId, x.OpportunityId }).IsUnique();
+        modelBuilder.Entity<Outcome>().HasIndex(x => new { x.BusinessId, x.FollowUpAt });
+
+        modelBuilder.Entity<BusinessMemoryItem>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<BusinessMemoryItem>().Property(x => x.StableKey).HasMaxLength(200);
+        modelBuilder.Entity<BusinessMemoryItem>().Property(x => x.Value).HasMaxLength(2000);
+        modelBuilder.Entity<BusinessMemoryItem>().HasIndex(x => new { x.BusinessId, x.StableKey }).IsUnique();
+        modelBuilder.Entity<BusinessMemoryItem>().HasIndex(x => new { x.BusinessId, x.Category, x.UpdatedAt });
     }
 }

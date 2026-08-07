@@ -46,6 +46,22 @@ export type ExecutionKit = {
   id: string; opportunityId: string; knowledgePackKey: string; knowledgePackVersion: string;
   versionNumber: number; status: string; assets: ExecutionAsset[]; version: number;
 };
+export type OutcomeEvidenceClass = 'measured' | 'owner-reported' | 'estimated' | 'unknown';
+export type Outcome = {
+  id: string; opportunityId: string; usefulnessRating: number; resultSummary: string; timeSpentMinutes: number;
+  ownerNotes?: string | null; measureName?: string | null; measureValue?: number | null; measureUnit?: string | null;
+  evidenceClass: OutcomeEvidenceClass; followUpAt?: string | null; capturedAt: string; updatedAt: string;
+  knowledgePackKey: string; knowledgePackVersion: string; version: number;
+};
+export type OutcomeInput = {
+  usefulnessRating: number; resultSummary: string; timeSpentMinutes: number; ownerNotes?: string;
+  measureName?: string; measureValue?: number; measureUnit?: string; evidenceClass: OutcomeEvidenceClass;
+  followUpAt?: string; version?: number;
+};
+export type BusinessMemoryItem = {
+  id: string; stableKey: string; category: string; sourceType: string; sourceId?: string | null; value: string;
+  isDeletable: boolean; updatedAt: string; version: number;
+};
 
 async function request<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${env.apiUrl}${path}`, { ...init, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, ...init?.headers } });
@@ -124,5 +140,19 @@ export function trackExecutionAssetCopy(accessToken: string, businessId: string,
   return request(`/api/v1/businesses/${businessId}/execution-kits/${kitId}/assets/${asset.id}/copied`, accessToken, {
     method: 'POST', body: JSON.stringify({ version: asset.version }),
   });
+}
+export function getOutcome(accessToken: string, businessId: string, opportunityId: string): Promise<Outcome> {
+  return request(`/api/v1/businesses/${businessId}/opportunities/${opportunityId}/outcome`, accessToken);
+}
+export function saveOutcome(accessToken: string, businessId: string, opportunityId: string, input: OutcomeInput): Promise<Outcome> {
+  return request(`/api/v1/businesses/${businessId}/opportunities/${opportunityId}/outcome`, accessToken, {
+    method: 'PUT', body: JSON.stringify(input),
+  });
+}
+export function getBusinessMemory(accessToken: string, businessId: string): Promise<BusinessMemoryItem[]> {
+  return request(`/api/v1/businesses/${businessId}/memory`, accessToken);
+}
+export async function deleteBusinessMemory(accessToken: string, businessId: string, memoryId: string): Promise<void> {
+  await request<void>(`/api/v1/businesses/${businessId}/memory/${memoryId}`, accessToken, { method: 'DELETE' });
 }
 export async function logout(accessToken: string): Promise<void> { await request('/api/v1/session/logout', accessToken, { method: 'POST' }); }

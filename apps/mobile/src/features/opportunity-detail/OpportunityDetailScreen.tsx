@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { getOpportunityDetail, type OpportunityDetail } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
 import { ActionDecisionPanel } from '@/features/action-decisions/ActionDecisionPanel';
+import { OutcomeCapturePanel } from '@/features/outcomes/OutcomeCapturePanel';
 import { tokens } from '@/theme/tokens';
 
 type State = 'loading' | 'ready' | 'missing' | 'error';
@@ -39,6 +40,7 @@ export function OpportunityDetailScreen({ opportunityId }: { opportunityId: stri
       {detail.isExpired ? <Text accessibilityLiveRegion="polite" style={styles.warning}>This Opportunity has expired and is no longer actionable.</Text> : null}
 
       <ActionDecisionPanel opportunityId={opportunityId} />
+      <OutcomeCapturePanel opportunityId={opportunityId} />
 
       <View style={styles.card}><Text style={styles.cardTitle}>Reason</Text><Text style={styles.body}>{detail.reason}</Text></View>
       <View style={styles.card}><Text style={styles.cardTitle}>Why now</Text><Text style={styles.body}>{detail.whyNow}</Text></View>
