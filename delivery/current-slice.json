@@ -2,8 +2,8 @@
   "schemaVersion": 2,
   "sliceId": "VS-08",
   "title": "Outcome Capture and Business Memory",
-  "status": "active",
-  "lifecycle": "testing",
+  "status": "completed",
+  "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-11", "FR-14"],
@@ -46,7 +46,8 @@
       "Outcome capture creates a transparent product-domain Business Memory projection with stable keys and explicit source metadata.",
       "Outcome-derived Business Memory is inspectable and deletable without mutating historical Action or Opportunity records.",
       "Mobile Outcome capture is integrated into Opportunity Detail and Business Memory is surfaced in the existing Settings screen; PES navigation and framework structure are unchanged.",
-      "Migration and policy tests are implemented; runtime remains disabled outside development/test and deployment is not authorized."
+      "CI #131, Security baseline #123 and Product intake #108 passed on the certified implementation SHA.",
+      "Runtime remains disabled outside development/test and deployment is not authorized."
     ]
   },
   "approvals": [
@@ -69,7 +70,15 @@
       "at": "2026-08-07T15:38:00+02:00",
       "rationale": "Authorization covers implementation and testing. Certification, merge, release, deployment and production enablement remain separately gated."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-08@1.0",
+      "commitSha": "f0ff647bae5cf140d40fe66404a35e54d2d4a4bd",
+      "by": "ksazid",
+      "at": "2026-08-07T17:05:00+02:00",
+      "rationale": "Product Owner authorized merge after CI #131, Security baseline #123 and Product intake #108 passed on the exact VS-08 implementation SHA."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
@@ -78,12 +87,24 @@
     "discovery": 100,
     "decisions": 100,
     "implementation": 100,
-    "testing": 20,
-    "certification": 0,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
-  "certification": {"status": "not-started", "commitSha": null, "evidence": []},
+  "certification": {
+    "status": "passed",
+    "commitSha": "f0ff647bae5cf140d40fe66404a35e54d2d4a4bd",
+    "evidence": [
+      "https://github.com/ksazid/project-atlas/actions/runs/31185257222",
+      "https://github.com/ksazid/project-atlas/actions/runs/31185256529",
+      "https://github.com/ksazid/project-atlas/actions/runs/31185256567",
+      "tests/api/OutcomePolicyTests.cs",
+      "apps/api/Migrations/20260807155500_OutcomesAndBusinessMemory.cs",
+      "apps/mobile/src/features/outcomes/OutcomeCapturePanel.tsx",
+      "apps/mobile/src/features/business-memory/BusinessMemoryPanel.tsx"
+    ]
+  },
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
@@ -91,10 +112,9 @@
     "specification": "docs/slices/VS-08.md",
     "implementationPr": "https://github.com/ksazid/project-atlas/pull/13",
     "evidence": [
-      "tests/api/OutcomePolicyTests.cs",
-      "apps/api/Migrations/20260807155500_OutcomesAndBusinessMemory.cs",
-      "apps/mobile/src/features/outcomes/OutcomeCapturePanel.tsx",
-      "apps/mobile/src/features/business-memory/BusinessMemoryPanel.tsx"
+      "https://github.com/ksazid/project-atlas/actions/runs/31185257222",
+      "https://github.com/ksazid/project-atlas/actions/runs/31185256529",
+      "https://github.com/ksazid/project-atlas/actions/runs/31185256567"
     ]
   },
   "maxAttempts": 3
