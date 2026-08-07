@@ -19,6 +19,13 @@ export type TodayFocusOpportunity = {
 };
 export type TodayFocus = { state: 'ready'; opportunity: TodayFocusOpportunity } | { state: 'insufficient-context'; message: string };
 export type OpportunityDecision = 'apply' | 'skip' | 'not-relevant';
+export type OpportunityEvidenceItem = { category: string; label: string; value: string; source: string };
+export type OpportunityDetail = {
+  id: string; title: string; status: string; goalAlignment: string; goalTitle?: string | null; reason: string; whyNow: string;
+  confidence: string; expectedImpact: string; effort: string; evidence: OpportunityEvidenceItem[]; assumptions: string[];
+  limitations: string[]; sourceCategories: string[]; actionSummary: string; executionKitAvailable: boolean;
+  createdAt: string; expiresAt: string; isExpired: boolean; knowledgePackKey: string; knowledgePackVersion: string; version: number;
+};
 
 async function request<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${env.apiUrl}${path}`, { ...init, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, ...init?.headers } });
@@ -60,6 +67,9 @@ export function getKnowledgePack(accessToken: string, businessId: string): Promi
 }
 export function getTodayFocus(accessToken: string, businessId: string): Promise<TodayFocus> {
   return request(`/api/v1/businesses/${businessId}/today-focus`, accessToken);
+}
+export function getOpportunityDetail(accessToken: string, businessId: string, opportunityId: string): Promise<OpportunityDetail> {
+  return request(`/api/v1/businesses/${businessId}/opportunities/${opportunityId}`, accessToken);
 }
 export function decideOpportunity(accessToken: string, businessId: string, opportunity: TodayFocusOpportunity, decision: OpportunityDecision, reason?: string): Promise<TodayFocusOpportunity> {
   return request(`/api/v1/businesses/${businessId}/opportunities/${opportunity.id}/decision`, accessToken, {
