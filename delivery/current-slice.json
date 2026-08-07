@@ -43,6 +43,7 @@
       "Adds owner-controlled outcome capture after an Action reaches an eligible state.",
       "Outcomes support usefulness, owner-reported result, time spent, optional notes, measurable results, follow-up date and evidence classification.",
       "Adds transparent structured Business Memory derived only from product-relevant profile, goals, pack, Opportunity/Action history, rejection reasons, preferences and outcomes.",
+      "Initial Outcome and Business Memory domain contracts, validation policy and business-isolated endpoint design are implemented; EF integration, migration, tests and mobile remain in progress.",
       "Business Memory remains business-isolated, inspectable and deletable where applicable; no hidden autonomous learning or external action is introduced.",
       "PES navigation, routing, authentication, state management, design system and framework structure remain unchanged.",
       "Runtime remains disabled outside development/test; deployment and production enablement are not authorized."
@@ -76,7 +77,7 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 10,
+    "implementation": 30,
     "testing": 0,
     "certification": 0,
     "release": 0,
@@ -88,8 +89,8 @@
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
     "specification": "docs/slices/VS-08.md",
-    "implementationPr": null,
-    "evidence": []
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/13",
+    "evidence": ["apps/api/Outcomes.cs"]
   },
   "maxAttempts": 3
 }
