@@ -16,8 +16,11 @@
     "areas": ["frontend","api","authorization","customer-flow","analytics"],
     "notes": [
       "Adds a business-isolated Weekly Review derived from authoritative History, Action, Execution Kit and Outcome records.",
-      "Review content must distinguish recorded facts from summaries and must not infer causal ROI or fabricate activity.",
-      "Review is a read-oriented projection for the owner; it does not mutate historical records or Business Memory automatically.",
+      "Review content distinguishes recorded facts from summaries and does not infer causal ROI or fabricate activity.",
+      "Weekly Review uses a deterministic seven-day window and exposes explicit period boundaries.",
+      "Completed Actions report recorded Outcomes when present and explicitly report missing Outcomes when absent.",
+      "Execution Kit usage is summarized from recorded asset usage within the review period.",
+      "Review remains read-only and does not mutate History or Business Memory automatically.",
       "Mobile integration must use existing PES routing and shell conventions without framework restructuring.",
       "Runtime remains disabled outside development/test; release, deployment and production enablement are not authorized."
     ]
@@ -31,11 +34,11 @@
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":5,"testing":0,"certification":0,"release":0,"validation":0},
+  "progress": {"discovery":100,"decisions":100,"implementation":35,"testing":5,"certification":0,"release":0,"validation":0},
   "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-  "links": {"specification":"docs/slices/VS-10.md","implementationPr":null,"evidence":[]},
+  "links": {"specification":"docs/slices/VS-10.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/15","evidence":["apps/api/WeeklyReview.cs","tests/api/WeeklyReviewPolicyTests.cs"]},
   "maxAttempts": 3
 }
