@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-07",
-  "title": "Action Status and Feedback",
+  "sliceId": "VS-08",
+  "title": "Outcome Capture and Business Memory",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "implementing",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
-  "requirements": ["FR-10"],
+  "requirements": ["FR-11", "FR-14"],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -16,7 +16,7 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-06@a53ca139f7e640c5918039afedf6d9b8379c3fd9"
+    "VS-07@1e757e8b9e3b8d90ca21df71f35bde0b300c8c48"
   ],
   "blockers": [],
   "allowedPaths": [
@@ -38,14 +38,14 @@
     "**/Uploads/**"
   ],
   "impact": {
-    "areas": ["frontend", "api", "database", "authorization", "customer-flow", "operations-support"],
+    "areas": ["frontend", "api", "database", "authorization", "sensitive-data", "customer-flow", "analytics", "legal-privacy"],
     "notes": [
-      "Adds governed owner decisions for Applied, Completed, Skipped, Not Relevant and Rejected.",
-      "Structured reasons are required where relevant and every transition is business-isolated and auditable.",
-      "Append-only decision persistence, transition policy, APIs, migration, policy tests and mobile integration are implemented.",
-      "Opportunity Detail and Execution Kit expose the same governed Action Decision state without changing PES navigation or framework structure.",
-      "The VS-04 decision endpoint remains available for backward compatibility while VS-07 uses the richer append-only decision API.",
-      "Runtime remains disabled outside development/test; release and production enablement are not authorized."
+      "Adds owner-controlled outcome capture after an Action reaches an eligible state.",
+      "Outcomes support usefulness, owner-reported result, time spent, optional notes, measurable results, follow-up date and evidence classification.",
+      "Adds transparent structured Business Memory derived only from product-relevant profile, goals, pack, Opportunity/Action history, rejection reasons, preferences and outcomes.",
+      "Business Memory remains business-isolated, inspectable and deletable where applicable; no hidden autonomous learning or external action is introduced.",
+      "PES navigation, routing, authentication, state management, design system and framework structure remain unchanged.",
+      "Runtime remains disabled outside development/test; deployment and production enablement are not authorized."
     ]
   },
   "approvals": [
@@ -53,30 +53,22 @@
       "type": "scope",
       "status": "approved",
       "version": "ATLAS-PRD-001@1.0",
-      "commitSha": "a53ca139f7e640c5918039afedf6d9b8379c3fd9",
+      "commitSha": "1e757e8b9e3b8d90ca21df71f35bde0b300c8c48",
       "by": "ksazid",
-      "at": "2026-08-07T13:43:00+02:00",
-      "rationale": "Product Owner instructed pausing deployment work and starting the next approved slice; the PRD maps VS-07 to FR-10 Action decisions."
+      "at": "2026-08-07T15:38:00+02:00",
+      "rationale": "Product Owner authorized closing VS-07, merging it and starting the next approved slice. The approved PRD maps VS-08 to Outcome Capture and Business Memory."
     },
     {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-07@1.0",
-      "commitSha": "a53ca139f7e640c5918039afedf6d9b8379c3fd9",
-      "by": "ksazid",
-      "at": "2026-08-07T13:43:00+02:00",
-      "rationale": "Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
-    },
-    {
-      "type": "certification",
-      "status": "approved",
-      "version": "VS-07@1.0",
-      "commitSha": "cd463ca3a77e9e2fa39a74b91b9fcfefe1502d05",
+      "version": "VS-08@1.0",
+      "commitSha": "1e757e8b9e3b8d90ca21df71f35bde0b300c8c48",
       "by": "ksazid",
       "at": "2026-08-07T15:38:00+02:00",
-      "rationale": "CI #114, Security baseline #107 and Product intake #92 passed on the implementation head; Product Owner authorized close-out and merge."
+      "rationale": "Authorization covers implementation and testing. Certification, merge, release, deployment and production enablement remain separately gated."
     },
+    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
@@ -84,28 +76,20 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 100,
-    "testing": 100,
-    "certification": 100,
+    "implementation": 10,
+    "testing": 0,
+    "certification": 0,
     "release": 0,
     "validation": 0
   },
-  "certification": {
-    "status": "passed",
-    "commitSha": "cd463ca3a77e9e2fa39a74b91b9fcfefe1502d05",
-    "evidence": ["CI #114", "Security baseline #107", "Product intake #92"]
-  },
+  "certification": {"status": "not-started", "commitSha": null, "evidence": []},
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
-    "specification": "docs/slices/VS-07.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/12",
-    "evidence": [
-      "tests/api/ActionDecisionPolicyTests.cs",
-      "apps/api/Migrations/20260807135000_ActionDecisions.cs",
-      "apps/mobile/src/features/action-decisions/ActionDecisionPanel.tsx"
-    ]
+    "specification": "docs/slices/VS-08.md",
+    "implementationPr": null,
+    "evidence": []
   },
   "maxAttempts": 3
 }
