@@ -113,7 +113,7 @@
   },
   "links": {
     "specification": "docs/slices/VS-05.md",
-    "implementationPr": null,
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/9",
     "evidence": [
       "docs/slices/VS-05.md",
       "product/PRD.md"
