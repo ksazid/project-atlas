@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace Atlas.Api;
@@ -78,6 +79,31 @@ public sealed record TodayFocusResponse(
         value.ExpiresAt, value.KnowledgePackKey, value.KnowledgePackVersion, value.ConcurrencyVersion);
 }
 
+public sealed record OpportunityEvidenceItem(string Category, string Label, string Value, string Source);
+public sealed record OpportunityDetailResponse(
+    Guid Id,
+    string Title,
+    string Status,
+    string GoalAlignment,
+    string? GoalTitle,
+    string Reason,
+    string WhyNow,
+    string Confidence,
+    string ExpectedImpact,
+    string Effort,
+    IReadOnlyList<OpportunityEvidenceItem> Evidence,
+    IReadOnlyList<string> Assumptions,
+    IReadOnlyList<string> Limitations,
+    IReadOnlyList<string> SourceCategories,
+    string ActionSummary,
+    bool ExecutionKitAvailable,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset ExpiresAt,
+    bool IsExpired,
+    string KnowledgePackKey,
+    string KnowledgePackVersion,
+    uint Version);
+
 public static class OpportunityPolicy
 {
     public static bool IsEligible(BusinessProfile? profile, IReadOnlyCollection<BusinessGoal> goals, BusinessKnowledgeAssignment? assignment) =>
@@ -88,6 +114,49 @@ public static class OpportunityPolicy
 
     public static bool CanDecide(Opportunity value, DateTimeOffset now) =>
         value.Status == OpportunityStatuses.Available && value.ExpiresAt > now;
+
+    public static OpportunityDetailResponse Detail(Opportunity value, BusinessGoal? goal, DateTimeOffset now)
+    {
+        var evidence = new List<OpportunityEvidenceItem>();
+        try
+        {
+            using var document = JsonDocument.Parse(value.EvidenceJson);
+            var root = document.RootElement;
+            if (root.TryGetProperty("profile", out var profile)) evidence.Add(new("business-profile", "Business Profile", profile.GetString() ?? "confirmed", "owner-confirmed"));
+            if (root.TryGetProperty("goal", out var goalValue)) evidence.Add(new("business-goal", "Priority goal", goalValue.GetString() ?? goal?.Title ?? "Selected goal", "owner-selected"));
+            if (root.TryGetProperty("PackKey", out var packKey)) evidence.Add(new("knowledge-pack", "Knowledge Pack", $"{packKey.GetString()} v{value.KnowledgePackVersion}", "published-pack"));
+        }
+        catch (JsonException)
+        {
+            evidence.Add(new("summary", "Evidence summary", value.EvidenceSummary, "recorded-evidence"));
+        }
+
+        if (evidence.Count == 0) evidence.Add(new("summary", "Evidence summary", value.EvidenceSummary, "recorded-evidence"));
+        var expired = value.ExpiresAt <= now;
+        return new OpportunityDetailResponse(
+            value.Id,
+            value.Title,
+            StatusFor(value, now),
+            goal is null ? "This Opportunity references a goal that is no longer available." : $"Aligned to priority #{goal.Priority}: {goal.Title}",
+            goal?.Title,
+            value.WhyItMatters,
+            value.WhyNow,
+            value.Confidence,
+            value.ExpectedImpact,
+            value.Effort,
+            evidence,
+            ["The owner-confirmed profile and selected goal remain accurate.", "The recorded Knowledge Pack version is applicable to this Business."],
+            ["Expected impact is directional, not guaranteed.", "Atlas has not measured an outcome yet.", "External action still requires owner review."],
+            evidence.Select(x => x.Category).Distinct().ToArray(),
+            $"Review and apply the proposed action: {value.Title}",
+            false,
+            value.CreatedAt,
+            value.ExpiresAt,
+            expired,
+            value.KnowledgePackKey,
+            value.KnowledgePackVersion,
+            value.ConcurrencyVersion);
+    }
 }
 
 public static class OpportunityEndpoints
@@ -111,27 +180,21 @@ public static class OpportunityEndpoints
         if (!OpportunityPolicy.IsEligible(profile, goals, assignment)) return null;
 
         var primaryGoal = goals[0];
-        var business = await db.Businesses.SingleAsync(x => x.Id == businessId, ct);
         var now = DateTimeOffset.UtcNow;
         var focus = new Opportunity
         {
-            Id = Guid.NewGuid(),
-            BusinessId = businessId,
+            Id = Guid.NewGuid(), BusinessId = businessId,
             Title = $"Review one practical action for {primaryGoal.Title}",
             WhyItMatters = $"This supports your highest-priority goal: {primaryGoal.Title}.",
             WhyNow = "Your profile, goal and active Knowledge Pack provide enough confirmed context for a focused review.",
             ExpectedImpact = "Clarify one measurable next action without committing to an unsupported result.",
-            Effort = "Low",
-            Confidence = "Medium",
+            Effort = "Low", Confidence = "Medium",
             EvidenceSummary = $"Confirmed business profile; priority goal #{primaryGoal.Priority}; active {assignment!.PackKey} Knowledge Pack v{assignment.ExactVersion}.",
-            EvidenceJson = System.Text.Json.JsonSerializer.Serialize(new { profile = "owner-confirmed", goalId = primaryGoal.Id, goal = primaryGoal.Title, assignment.PackKey, assignment.ExactVersion }),
+            EvidenceJson = JsonSerializer.Serialize(new { profile = "owner-confirmed", goalId = primaryGoal.Id, goal = primaryGoal.Title, assignment.PackKey, assignment.ExactVersion }),
             Status = OpportunityStatuses.Available,
-            KnowledgePackKey = assignment.PackKey,
-            KnowledgePackVersion = assignment.ExactVersion,
-            KnowledgePackVersionId = assignment.KnowledgePackVersionId,
-            GoalId = primaryGoal.Id,
-            CreatedAt = now,
-            ExpiresAt = now.AddDays(1)
+            KnowledgePackKey = assignment.PackKey, KnowledgePackVersion = assignment.ExactVersion,
+            KnowledgePackVersionId = assignment.KnowledgePackVersionId, GoalId = primaryGoal.Id,
+            CreatedAt = now, ExpiresAt = now.AddDays(1)
         };
         db.Set<Opportunity>().Add(focus);
         db.AuditRecords.Add(AuditRecord.Create(account.Id, businessId, $"opportunity.created:{focus.Id}"));
@@ -147,11 +210,8 @@ public static class OpportunityEndpoints
             if (account is null) return Results.NotFound();
 
             var now = DateTimeOffset.UtcNow;
-            var current = await db.Set<Opportunity>()
-                .Where(x => x.BusinessId == businessId && x.Status == OpportunityStatuses.Available)
-                .OrderByDescending(x => x.CreatedAt)
-                .FirstOrDefaultAsync(ct);
-
+            var current = await db.Set<Opportunity>().Where(x => x.BusinessId == businessId && x.Status == OpportunityStatuses.Available)
+                .OrderByDescending(x => x.CreatedAt).FirstOrDefaultAsync(ct);
             if (current is not null && current.ExpiresAt <= now)
             {
                 current.Status = OpportunityStatuses.Expired;
@@ -162,8 +222,16 @@ public static class OpportunityEndpoints
             current ??= await CreateDeterministicFocus(businessId, account, db, ct);
             if (current is null)
                 return Results.Ok(new { state = "insufficient-context", message = "Confirm your Business Profile, choose at least one goal and keep an active Knowledge Pack to receive Today’s Focus." });
-
             return Results.Ok(new { state = "ready", opportunity = TodayFocusResponse.From(current) });
+        }).RequireAuthorization("BusinessOwner");
+
+        app.MapGet("/api/v1/businesses/{businessId:guid}/opportunities/{opportunityId:guid}", async (Guid businessId, Guid opportunityId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
+        {
+            if (await OwnerAccount(businessId, user, db, ct) is null) return Results.NotFound();
+            var opportunity = await db.Set<Opportunity>().SingleOrDefaultAsync(x => x.Id == opportunityId && x.BusinessId == businessId, ct);
+            if (opportunity is null) return Results.NotFound();
+            var goal = opportunity.GoalId is null ? null : await db.BusinessGoals.SingleOrDefaultAsync(x => x.Id == opportunity.GoalId && x.BusinessId == businessId, ct);
+            return Results.Ok(OpportunityPolicy.Detail(opportunity, goal, DateTimeOffset.UtcNow));
         }).RequireAuthorization("BusinessOwner");
 
         app.MapPost("/api/v1/businesses/{businessId:guid}/opportunities/{opportunityId:guid}/decision", async (Guid businessId, Guid opportunityId, OpportunityDecisionRequest request, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
