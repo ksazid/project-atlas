@@ -42,6 +42,7 @@
     "notes": [
       "Adds governed owner decisions for Applied, Completed, Skipped, Not Relevant and Rejected.",
       "Structured reasons are required where relevant and every transition is business-isolated and auditable.",
+      "Append-only decision persistence, transition policy, API endpoints and migration are implemented; mobile integration remains in progress.",
       "Extends the existing Opportunity and Execution Kit flow without changing PES navigation, routing or framework structure.",
       "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
@@ -74,8 +75,8 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 10,
-    "testing": 0,
+    "implementation": 55,
+    "testing": 15,
     "certification": 0,
     "release": 0,
     "validation": 0
@@ -86,8 +87,8 @@
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
     "specification": "docs/slices/VS-07.md",
-    "implementationPr": null,
-    "evidence": []
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/12",
+    "evidence": ["tests/api/ActionDecisionPolicyTests.cs", "apps/api/Migrations/20260807135000_ActionDecisions.cs"]
   },
   "maxAttempts": 3
 }
