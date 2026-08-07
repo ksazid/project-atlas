@@ -3,7 +3,7 @@
   "sliceId": "VS-04",
   "title": "Today's Focus",
   "status": "active",
-  "lifecycle": "testing",
+  "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-07"],
@@ -51,6 +51,7 @@
       "Introduces the primary current Opportunity and owner decision path on the existing mobile Home experience.",
       "Evidence and Atlas interpretation remain distinct, and eligibility is enforced by deterministic application policy.",
       "Historical Opportunities retain the exact Knowledge Pack key and version used.",
+      "CI #60, Security baseline #56 and Product intake #54 passed on the exact certified implementation SHA.",
       "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
   },
@@ -74,7 +75,15 @@
       "at": "2026-08-07T01:47:00+02:00",
       "rationale": "Product Owner explicitly instructed starting the next slice. Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-04@1.0",
+      "commitSha": "f3db51a63a427eb53082eb8a7ffb44e1c451b65a",
+      "by": "ksazid",
+      "at": "2026-08-07T02:03:00+02:00",
+      "rationale": "Product Owner approved merging VS-04 after CI #60, Security baseline #56 and Product intake #54 passed on the exact implementation SHA."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
@@ -83,15 +92,18 @@
     "discovery": 100,
     "decisions": 100,
     "implementation": 100,
-    "testing": 70,
-    "certification": 0,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
+    "status": "passed",
+    "commitSha": "f3db51a63a427eb53082eb8a7ffb44e1c451b65a",
     "evidence": [
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850583",
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850592",
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850601",
       "docs/slices/VS-04.md",
       "tests/api/OpportunityPolicyTests.cs",
       "apps/api/Migrations/20260807015000_TodaysFocus.cs",
@@ -116,9 +128,9 @@
     "specification": "docs/slices/VS-04.md",
     "implementationPr": "https://github.com/ksazid/project-atlas/pull/8",
     "evidence": [
-      "tests/api/OpportunityPolicyTests.cs",
-      "apps/api/Migrations/20260807015000_TodaysFocus.cs",
-      "apps/mobile/src/features/today-focus/TodayFocusScreen.tsx"
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850583",
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850592",
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850601"
     ]
   },
   "maxAttempts": 3
