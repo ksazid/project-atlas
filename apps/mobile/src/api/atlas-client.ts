@@ -26,6 +26,14 @@ export type OpportunityDetail = {
   limitations: string[]; sourceCategories: string[]; actionSummary: string; executionKitAvailable: boolean;
   createdAt: string; expiresAt: string; isExpired: boolean; knowledgePackKey: string; knowledgePackVersion: string; version: number;
 };
+export type ExecutionAsset = {
+  id: string; type: string; title: string; content: string; isEditable: boolean; isUsed: boolean;
+  copyCount: number; usefulnessRating?: number | null; version: number;
+};
+export type ExecutionKit = {
+  id: string; opportunityId: string; knowledgePackKey: string; knowledgePackVersion: string;
+  versionNumber: number; status: string; assets: ExecutionAsset[]; version: number;
+};
 
 async function request<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${env.apiUrl}${path}`, { ...init, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, ...init?.headers } });
@@ -74,6 +82,19 @@ export function getOpportunityDetail(accessToken: string, businessId: string, op
 export function decideOpportunity(accessToken: string, businessId: string, opportunity: TodayFocusOpportunity, decision: OpportunityDecision, reason?: string): Promise<TodayFocusOpportunity> {
   return request(`/api/v1/businesses/${businessId}/opportunities/${opportunity.id}/decision`, accessToken, {
     method: 'POST', body: JSON.stringify({ decision, reason, version: opportunity.version }),
+  });
+}
+export function getExecutionKit(accessToken: string, businessId: string, opportunityId: string): Promise<ExecutionKit> {
+  return request(`/api/v1/businesses/${businessId}/opportunities/${opportunityId}/execution-kit`, accessToken);
+}
+export function updateExecutionAsset(accessToken: string, businessId: string, kitId: string, asset: ExecutionAsset, content: string, isUsed: boolean, usefulnessRating?: number | null): Promise<ExecutionKit> {
+  return request(`/api/v1/businesses/${businessId}/execution-kits/${kitId}/assets/${asset.id}`, accessToken, {
+    method: 'PUT', body: JSON.stringify({ content, isUsed, usefulnessRating, version: asset.version }),
+  });
+}
+export function trackExecutionAssetCopy(accessToken: string, businessId: string, kitId: string, asset: ExecutionAsset): Promise<ExecutionKit> {
+  return request(`/api/v1/businesses/${businessId}/execution-kits/${kitId}/assets/${asset.id}/copied`, accessToken, {
+    method: 'POST', body: JSON.stringify({ version: asset.version }),
   });
 }
 export async function logout(accessToken: string): Promise<void> { await request('/api/v1/session/logout', accessToken, { method: 'POST' }); }
