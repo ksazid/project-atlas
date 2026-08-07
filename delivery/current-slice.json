@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-05",
-  "title": "Opportunity Detail",
+  "sliceId": "VS-06",
+  "title": "Execution Kit",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "ready-for-implementation",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
-  "requirements": ["FR-08"],
+  "requirements": ["FR-09"],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -16,7 +16,7 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-04@03e1f1ea4ede20339f4a1ff10c50085d719b903c"
+    "VS-05@020db33b7964d8c97fa81aa384dbf869624c0a50"
   ],
   "blockers": [],
   "allowedPaths": [
@@ -38,20 +38,11 @@
     "**/Uploads/**"
   ],
   "impact": {
-    "areas": [
-      "frontend",
-      "api",
-      "database",
-      "authorization",
-      "sensitive-data",
-      "customer-flow",
-      "legal-privacy"
-    ],
+    "areas": ["frontend", "api", "database", "authorization", "sensitive-data", "customer-flow", "legal-privacy"],
     "notes": [
-      "Adds the full evidence-backed Opportunity Detail experience reached from Today’s Focus.",
-      "Evidence and Atlas interpretation remain distinct in API contracts and mobile presentation.",
-      "The detail remains bound to the exact Business, Opportunity, goal and Knowledge Pack version.",
-      "CI #71, Security baseline #66 and Product intake #64 passed on the exact certified implementation SHA.",
+      "Adds versioned, owner-reviewed Execution Kits for eligible Opportunities.",
+      "Assets may be edited, copied, marked used and rated, but never published or sent autonomously.",
+      "Every Kit retains exact Business, Opportunity, Goal and Knowledge Pack provenance.",
       "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
   },
@@ -60,78 +51,47 @@
       "type": "scope",
       "status": "approved",
       "version": "ATLAS-PRD-001@1.0",
-      "commitSha": "03e1f1ea4ede20339f4a1ff10c50085d719b903c",
+      "commitSha": "020db33b7964d8c97fa81aa384dbf869624c0a50",
       "by": "ksazid",
-      "at": "2026-08-07T02:06:00+02:00",
-      "rationale": "Product Owner instructed starting the next approved slice; the approved PRD maps VS-05 to FR-08 Opportunity Detail."
+      "at": "2026-08-07T02:22:00+02:00",
+      "rationale": "Product Owner instructed merging the completed slice and working on the next approved slice; the PRD maps VS-06 to FR-09 Execution Kit."
     },
     {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-05@1.0",
-      "commitSha": "03e1f1ea4ede20339f4a1ff10c50085d719b903c",
+      "version": "VS-06@1.0",
+      "commitSha": "020db33b7964d8c97fa81aa384dbf869624c0a50",
       "by": "ksazid",
-      "at": "2026-08-07T02:06:00+02:00",
-      "rationale": "Product Owner explicitly instructed starting the next slice. Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
+      "at": "2026-08-07T02:22:00+02:00",
+      "rationale": "Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
     },
-    {
-      "type": "certification",
-      "status": "approved",
-      "version": "VS-05@1.0",
-      "commitSha": "e425fa67ed073a3cea481c0829a72c6aa48b2fd6",
-      "by": "ksazid",
-      "at": "2026-08-07T02:17:00+02:00",
-      "rationale": "Product Owner approved certification close-out and merge after CI #71, Security baseline #66 and Product intake #64 passed on the exact implementation SHA."
-    },
+    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
   "decisionIds": [],
   "progress": {
     "discovery": 100,
-    "decisions": 100,
-    "implementation": 100,
-    "testing": 100,
-    "certification": 100,
+    "decisions": 70,
+    "implementation": 0,
+    "testing": 0,
+    "certification": 0,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "passed",
-    "commitSha": "e425fa67ed073a3cea481c0829a72c6aa48b2fd6",
-    "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928257",
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928190",
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928185",
-      "docs/slices/VS-05.md",
-      "tests/api/OpportunityDetailPolicyTests.cs",
-      "apps/api/Opportunities.cs",
-      "apps/mobile/app/opportunities/[opportunityId].tsx"
-    ]
-  },
-  "release": {
-    "status": "not-authorized",
-    "releaseId": null
-  },
-  "rollback": {
-    "status": "not-applicable",
-    "rollbackId": null
-  },
-  "postRelease": {
     "status": "not-started",
-    "reviewAt": null,
-    "expectedOutcome": null,
-    "metrics": []
+    "commitSha": null,
+    "evidence": ["docs/slices/VS-06.md", "product/PRD.md", "product/TRD.md"]
   },
+  "release": {"status": "not-authorized", "releaseId": null},
+  "rollback": {"status": "not-applicable", "rollbackId": null},
+  "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
-    "specification": "docs/slices/VS-05.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/9",
-    "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928257",
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928190",
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928185"
-    ]
+    "specification": "docs/slices/VS-06.md",
+    "implementationPr": null,
+    "evidence": ["docs/slices/VS-06.md", "product/PRD.md"]
   },
   "maxAttempts": 3
 }
