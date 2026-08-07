@@ -20,6 +20,7 @@ const evidenceClasses: { value: OutcomeEvidenceClass; label: string }[] = [
 export function OutcomeCapturePanel({ opportunityId }: { opportunityId: string }) {
   const [eligible, setEligible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<Outcome | null>(null);
@@ -43,6 +44,7 @@ export function OutcomeCapturePanel({ opportunityId }: { opportunityId: string }
         if (!active) return;
         const canCapture = actionState.currentStatus === 'completed';
         setEligible(canCapture);
+        setError(null);
         if (canCapture) {
           try {
             const outcome = await getOutcome(session.accessToken, session.businessId, opportunityId);
@@ -68,7 +70,7 @@ export function OutcomeCapturePanel({ opportunityId }: { opportunityId: string }
       }
     });
     return () => { active = false; };
-  }, [opportunityId]);
+  }, [opportunityId, refreshKey]);
 
   const submit = async () => {
     const minutes = Number.parseInt(timeSpentMinutes || '0', 10);
@@ -105,7 +107,7 @@ export function OutcomeCapturePanel({ opportunityId }: { opportunityId: string }
   };
 
   if (loading) return <View style={styles.card}><Text accessibilityLiveRegion="polite">Loading Outcome capture…</Text></View>;
-  if (!eligible) return <View style={styles.card}><Text style={styles.cardTitle}>Outcome</Text><Text style={styles.body}>Complete the Action before recording what happened.</Text>{error ? <Text style={styles.error}>{error}</Text> : null}</View>;
+  if (!eligible) return <View style={styles.card}><Text style={styles.cardTitle}>Outcome</Text><Text style={styles.body}>Complete the Action before recording what happened.</Text>{error ? <Text style={styles.error}>{error}</Text> : null}<Pressable accessibilityRole="button" onPress={() => setRefreshKey((value) => value + 1)} style={styles.button}><Text style={styles.buttonText}>Check completed status</Text></Pressable></View>;
 
   return (
     <View style={styles.card}>
