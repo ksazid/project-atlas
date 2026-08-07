@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { decideOpportunity, getTodayFocus, type OpportunityDecision, type TodayFocus } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
 import { tokens } from '@/theme/tokens';
@@ -81,6 +82,7 @@ export function TodayFocusScreen() {
       <View style={styles.card}><Text style={styles.cardTitle}>Why now</Text><Text style={styles.body}>{opportunity?.whyNow}</Text></View>
       <View style={styles.card}><Text style={styles.cardTitle}>Evidence</Text><Text style={styles.body}>{opportunity?.evidenceSummary}</Text><Text style={styles.supporting}>Atlas interpretation is separate from the confirmed evidence above.</Text></View>
 
+      <Pressable accessibilityRole="button" onPress={() => opportunity && router.push(`/opportunities/${opportunity.id}`)} style={styles.detailButton}><Text style={styles.secondaryText}>View full details</Text></Pressable>
       <Text style={styles.supporting}>Expires {opportunity ? new Date(opportunity.expiresAt).toLocaleString() : ''} · {opportunity?.knowledgePackKey} v{opportunity?.knowledgePackVersion}</Text>
 
       <Pressable accessibilityRole="button" disabled={deciding} onPress={() => void decide('apply')} style={styles.primaryButton}><Text style={styles.primaryText}>{deciding ? 'Saving…' : 'Apply'}</Text></Pressable>
@@ -107,6 +109,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 19, fontWeight: '700' },
   primaryButton: { minHeight: 48, borderRadius: tokens.radius.md, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center', paddingHorizontal: tokens.spacing.md },
   primaryText: { color: '#fff', fontWeight: '700' },
+  detailButton: { minHeight: 48, borderWidth: 1, borderRadius: tokens.radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: tokens.spacing.md },
   secondaryRow: { flexDirection: 'row', gap: tokens.spacing.sm },
   secondaryButton: { flex: 1, minHeight: 48, borderWidth: 1, borderRadius: tokens.radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: tokens.spacing.sm },
   secondaryText: { fontWeight: '700' },
