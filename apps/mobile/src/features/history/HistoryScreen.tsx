@@ -67,7 +67,10 @@ export function HistoryScreen() {
           <Text style={styles.eyebrow}>BUSINESS HISTORY</Text>
           <Text accessibilityRole="header" style={styles.title}>What Atlas has shown and learned</Text>
         </View>
-        <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.backButton}><Text style={styles.buttonText}>Back</Text></Pressable>
+        <View style={styles.headerActions}>
+          <Pressable accessibilityRole="button" onPress={() => router.push('/weekly-review')} style={styles.backButton}><Text style={styles.buttonText}>Weekly review</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.backButton}><Text style={styles.buttonText}>Back</Text></Pressable>
+        </View>
       </View>
       <Text style={styles.body}>Chronological Opportunity, Action, Execution Kit and Outcome records. Learning summaries describe recorded evidence and owner feedback; they do not claim causation.</Text>
 
@@ -91,6 +94,7 @@ const styles = StyleSheet.create({
   container: { padding: tokens.spacing.lg, gap: tokens.spacing.md, paddingBottom: 40 },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: tokens.spacing.sm },
   headerText: { flex: 1, gap: 4 },
+  headerActions: { gap: tokens.spacing.sm, alignItems: 'stretch' },
   eyebrow: { fontSize: 13, fontWeight: '700', letterSpacing: 1.2 },
   title: { fontSize: tokens.typography.title, fontWeight: '700' },
   body: { fontSize: tokens.typography.body, lineHeight: 24 },
