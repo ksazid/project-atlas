@@ -1,14 +1,12 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-06",
-  "title": "Execution Kit",
+  "sliceId": "VS-07",
+  "title": "Action Status and Feedback",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "implementation",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
-  "requirements": [
-    "FR-09"
-  ],
+  "requirements": ["FR-10"],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -18,7 +16,7 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-05@020db33b7964d8c97fa81aa384dbf869624c0a50"
+    "VS-06@a53ca139f7e640c5918039afedf6d9b8379c3fd9"
   ],
   "blockers": [],
   "allowedPaths": [
@@ -40,20 +38,11 @@
     "**/Uploads/**"
   ],
   "impact": {
-    "areas": [
-      "frontend",
-      "api",
-      "database",
-      "authorization",
-      "sensitive-data",
-      "customer-flow",
-      "legal-privacy"
-    ],
+    "areas": ["frontend", "api", "database", "authorization", "customer-flow", "audit"],
     "notes": [
-      "Adds versioned, owner-reviewed Execution Kits for eligible Opportunities.",
-      "Assets may be edited, copied, marked used and rated, but never published or sent autonomously.",
-      "Every Kit retains exact Business, Opportunity, Goal and Knowledge Pack provenance.",
-      "CI #84, Security baseline #78 and Product intake #76 passed on the exact certified implementation SHA.",
+      "Adds governed owner decisions for Applied, Completed, Skipped, Not Relevant and Rejected.",
+      "Structured reasons are required where relevant and every transition is business-isolated and auditable.",
+      "Extends the existing Opportunity and Execution Kit flow without changing PES navigation, routing or framework structure.",
       "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
   },
@@ -62,102 +51,43 @@
       "type": "scope",
       "status": "approved",
       "version": "ATLAS-PRD-001@1.0",
-      "commitSha": "020db33b7964d8c97fa81aa384dbf869624c0a50",
+      "commitSha": "a53ca139f7e640c5918039afedf6d9b8379c3fd9",
       "by": "ksazid",
-      "at": "2026-08-07T02:22:00+02:00",
-      "rationale": "Product Owner instructed merging the completed slice and working on the next approved slice; the PRD maps VS-06 to FR-09 Execution Kit."
+      "at": "2026-08-07T13:43:00+02:00",
+      "rationale": "Product Owner instructed pausing deployment work and starting the next approved slice; the PRD maps VS-07 to FR-10 Action decisions."
     },
-    {
-      "type": "policy",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
-    },
+    {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-06@1.0",
-      "commitSha": "020db33b7964d8c97fa81aa384dbf869624c0a50",
+      "version": "VS-07@1.0",
+      "commitSha": "a53ca139f7e640c5918039afedf6d9b8379c3fd9",
       "by": "ksazid",
-      "at": "2026-08-07T02:22:00+02:00",
+      "at": "2026-08-07T13:43:00+02:00",
       "rationale": "Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
     },
-    {
-      "type": "certification",
-      "status": "approved",
-      "version": "VS-06@1.0",
-      "commitSha": "ad50fd993e532f2c08d427d5f7860f38ad921546",
-      "by": "ksazid",
-      "at": "2026-08-07T02:32:00+02:00",
-      "rationale": "Product Owner approved merging VS-06 after CI #84, Security baseline #78 and Product intake #76 passed on the exact implementation SHA."
-    },
-    {
-      "type": "release",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
-    },
-    {
-      "type": "production-enable",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
-    }
+    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
   "decisionIds": [],
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 100,
-    "testing": 100,
-    "certification": 100,
+    "implementation": 10,
+    "testing": 0,
+    "certification": 0,
     "release": 0,
     "validation": 0
   },
-  "certification": {
-    "status": "passed",
-    "commitSha": "ad50fd993e532f2c08d427d5f7860f38ad921546",
-    "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31134810612",
-      "https://github.com/ksazid/project-atlas/actions/runs/31134810614",
-      "https://github.com/ksazid/project-atlas/actions/runs/31134810633",
-      "docs/slices/VS-06.md",
-      "tests/api/ExecutionKitPolicyTests.cs",
-      "apps/api/Migrations/20260807023000_ExecutionKit.cs",
-      "apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx"
-    ]
-  },
-  "release": {
-    "status": "not-authorized",
-    "releaseId": null
-  },
-  "rollback": {
-    "status": "not-applicable",
-    "rollbackId": null
-  },
-  "postRelease": {
-    "status": "not-started",
-    "reviewAt": null,
-    "expectedOutcome": null,
-    "metrics": []
-  },
+  "certification": {"status": "not-started", "commitSha": null, "evidence": []},
+  "release": {"status": "not-authorized", "releaseId": null},
+  "rollback": {"status": "not-applicable", "rollbackId": null},
+  "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
-    "specification": "docs/slices/VS-06.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/10",
-    "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31134810612",
-      "https://github.com/ksazid/project-atlas/actions/runs/31134810614",
-      "https://github.com/ksazid/project-atlas/actions/runs/31134810633"
-    ]
+    "specification": "docs/slices/VS-07.md",
+    "implementationPr": null,
+    "evidence": []
   },
   "maxAttempts": 3
 }
