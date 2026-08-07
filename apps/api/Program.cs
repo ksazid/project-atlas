@@ -203,6 +203,7 @@ app.MapKnowledgePackEndpoints();
 app.MapOpportunityEndpoints();
 app.MapExecutionKitEndpoints();
 app.MapActionDecisionEndpoints();
+app.MapOutcomeEndpoints();
 
 app.MapPost("/api/v1/session/logout", (HttpContext context) =>
     Results.Ok(new { status = "signed_out", correlationId = context.TraceIdentifier })).RequireAuthorization();
