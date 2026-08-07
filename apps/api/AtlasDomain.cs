@@ -94,6 +94,7 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     public DbSet<KnowledgePackVersion> KnowledgePackVersions => Set<KnowledgePackVersion>(); public DbSet<KnowledgeSection> KnowledgeSections => Set<KnowledgeSection>();
     public DbSet<BusinessKnowledgeAssignment> BusinessKnowledgeAssignments => Set<BusinessKnowledgeAssignment>();
     public DbSet<ExecutionKit> ExecutionKits => Set<ExecutionKit>(); public DbSet<ExecutionAsset> ExecutionAssets => Set<ExecutionAsset>();
+    public DbSet<ActionDecisionRecord> ActionDecisionRecords => Set<ActionDecisionRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -122,5 +123,8 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<ExecutionKit>().HasIndex(x => new { x.BusinessId, x.OpportunityId }).IsUnique();
         modelBuilder.Entity<ExecutionAsset>().HasOne(x => x.ExecutionKit).WithMany(x => x.Assets).HasForeignKey(x => x.ExecutionKitId).OnDelete(DeleteBehavior.Cascade);
         modelBuilder.Entity<ExecutionAsset>().HasIndex(x => new { x.ExecutionKitId, x.Type, x.Title }).IsUnique();
+
+        modelBuilder.Entity<ActionDecisionRecord>().HasIndex(x => new { x.BusinessId, x.OpportunityId, x.DecidedAt });
+        modelBuilder.Entity<ActionDecisionRecord>().HasIndex(x => new { x.OpportunityId, x.DecidedAt });
     }
 }

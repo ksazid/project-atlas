@@ -26,6 +26,18 @@ export type OpportunityDetail = {
   limitations: string[]; sourceCategories: string[]; actionSummary: string; executionKitAvailable: boolean;
   createdAt: string; expiresAt: string; isExpired: boolean; knowledgePackKey: string; knowledgePackVersion: string; version: number;
 };
+export type ActionStatus = 'applied' | 'completed' | 'skipped' | 'not-relevant' | 'rejected';
+export type ActionReasonCode =
+  | 'timing-not-right'
+  | 'already-done'
+  | 'insufficient-capacity'
+  | 'not-a-priority'
+  | 'context-incorrect'
+  | 'recommendation-not-relevant'
+  | 'unsafe-or-inappropriate'
+  | 'other';
+export type ActionDecisionItem = { id: string; status: ActionStatus; reasonCode?: ActionReasonCode | null; ownerNote?: string | null; decidedAt: string };
+export type ActionDecisionState = { opportunityId: string; currentStatus: string; version: number; decisions: ActionDecisionItem[] };
 export type ExecutionAsset = {
   id: string; type: string; title: string; content: string; isEditable: boolean; isUsed: boolean;
   copyCount: number; usefulnessRating?: number | null; version: number;
@@ -82,6 +94,22 @@ export function getOpportunityDetail(accessToken: string, businessId: string, op
 export function decideOpportunity(accessToken: string, businessId: string, opportunity: TodayFocusOpportunity, decision: OpportunityDecision, reason?: string): Promise<TodayFocusOpportunity> {
   return request(`/api/v1/businesses/${businessId}/opportunities/${opportunity.id}/decision`, accessToken, {
     method: 'POST', body: JSON.stringify({ decision, reason, version: opportunity.version }),
+  });
+}
+export function getActionDecisionState(accessToken: string, businessId: string, opportunityId: string): Promise<ActionDecisionState> {
+  return request(`/api/v1/businesses/${businessId}/opportunities/${opportunityId}/action-decisions`, accessToken);
+}
+export function recordActionDecision(
+  accessToken: string,
+  businessId: string,
+  opportunityId: string,
+  state: ActionDecisionState,
+  status: ActionStatus,
+  reasonCode?: ActionReasonCode,
+  ownerNote?: string,
+): Promise<ActionDecisionState> {
+  return request(`/api/v1/businesses/${businessId}/opportunities/${opportunityId}/action-decisions`, accessToken, {
+    method: 'POST', body: JSON.stringify({ status, reasonCode, ownerNote, version: state.version }),
   });
 }
 export function getExecutionKit(accessToken: string, businessId: string, opportunityId: string): Promise<ExecutionKit> {
