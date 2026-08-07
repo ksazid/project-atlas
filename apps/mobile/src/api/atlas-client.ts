@@ -72,6 +72,22 @@ export type HistoryItem = {
 };
 export type HistoryResponse = { items: HistoryItem[]; count: number };
 export type HistoryFilters = { status?: string; category?: string; goalId?: string; from?: string; to?: string; limit?: number };
+export type WeeklyReviewCounts = {
+  opportunities: number; applied: number; completed: number; skipped: number; notRelevant: number; rejected: number;
+  outcomesRecorded: number; outcomesMissing: number; executionAssetsUsed: number;
+};
+export type WeeklyReviewOutcomeItem = {
+  opportunityId: string; opportunityTitle: string; status: string; goalTitle?: string | null; resultSummary: string;
+  evidenceClass: OutcomeEvidenceClass; usefulnessRating: number; knowledgePackKey: string; knowledgePackVersion: string; recordedAt: string;
+};
+export type WeeklyReviewOpenItem = {
+  opportunityId: string; opportunityTitle: string; status: string; goalTitle?: string | null;
+  knowledgePackKey: string; knowledgePackVersion: string; lastActivityAt: string;
+};
+export type WeeklyReview = {
+  periodStart: string; periodEnd: string; counts: WeeklyReviewCounts; outcomes: WeeklyReviewOutcomeItem[];
+  openItems: WeeklyReviewOpenItem[]; highlights: string[]; evidenceNote: string;
+};
 
 async function request<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${env.apiUrl}${path}`, { ...init, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, ...init?.headers } });
@@ -113,5 +129,9 @@ export function getHistory(accessToken: string, businessId: string, filters: His
   if (filters.limit) params.set('limit', String(filters.limit));
   const suffix = params.toString() ? `?${params.toString()}` : '';
   return request(`/api/v1/businesses/${businessId}/history${suffix}`, accessToken);
+}
+export function getWeeklyReview(accessToken: string, businessId: string, endingAt?: string): Promise<WeeklyReview> {
+  const suffix = endingAt ? `?endingAt=${encodeURIComponent(endingAt)}` : '';
+  return request(`/api/v1/businesses/${businessId}/weekly-review${suffix}`, accessToken);
 }
 export async function logout(accessToken: string): Promise<void> { await request('/api/v1/session/logout', accessToken, { method: 'POST' }); }
