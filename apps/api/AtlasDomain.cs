@@ -93,6 +93,7 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>(); public DbSet<KnowledgePack> KnowledgePacks => Set<KnowledgePack>();
     public DbSet<KnowledgePackVersion> KnowledgePackVersions => Set<KnowledgePackVersion>(); public DbSet<KnowledgeSection> KnowledgeSections => Set<KnowledgeSection>();
     public DbSet<BusinessKnowledgeAssignment> BusinessKnowledgeAssignments => Set<BusinessKnowledgeAssignment>();
+    public DbSet<ExecutionKit> ExecutionKits => Set<ExecutionKit>(); public DbSet<ExecutionAsset> ExecutionAssets => Set<ExecutionAsset>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -115,5 +116,11 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.KnowledgePack).WithMany().HasForeignKey(x => x.KnowledgePackId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.KnowledgePackVersion).WithMany().HasForeignKey(x => x.KnowledgePackVersionId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<BusinessKnowledgeAssignment>().HasIndex(x => x.BusinessId).IsUnique().HasFilter("\"IsCurrent\" = TRUE");
+
+        modelBuilder.Entity<ExecutionKit>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<ExecutionAsset>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<ExecutionKit>().HasIndex(x => new { x.BusinessId, x.OpportunityId }).IsUnique();
+        modelBuilder.Entity<ExecutionAsset>().HasOne(x => x.ExecutionKit).WithMany(x => x.Assets).HasForeignKey(x => x.ExecutionKitId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<ExecutionAsset>().HasIndex(x => new { x.ExecutionKitId, x.Type, x.Title }).IsUnique();
     }
 }
