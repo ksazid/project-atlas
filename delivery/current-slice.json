@@ -3,7 +3,7 @@
   "sliceId": "VS-07",
   "title": "Action Status and Feedback",
   "status": "active",
-  "lifecycle": "testing",
+  "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-10"],
@@ -68,7 +68,15 @@
       "at": "2026-08-07T13:43:00+02:00",
       "rationale": "Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-07@1.0",
+      "commitSha": "cd463ca3a77e9e2fa39a74b91b9fcfefe1502d05",
+      "by": "ksazid",
+      "at": "2026-08-07T15:38:00+02:00",
+      "rationale": "CI #114, Security baseline #107 and Product intake #92 passed on the implementation head; Product Owner authorized close-out and merge."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
@@ -77,12 +85,16 @@
     "discovery": 100,
     "decisions": 100,
     "implementation": 100,
-    "testing": 35,
-    "certification": 0,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
-  "certification": {"status": "not-started", "commitSha": null, "evidence": []},
+  "certification": {
+    "status": "passed",
+    "commitSha": "cd463ca3a77e9e2fa39a74b91b9fcfefe1502d05",
+    "evidence": ["CI #114", "Security baseline #107", "Product intake #92"]
+  },
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
