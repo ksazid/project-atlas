@@ -1,12 +1,14 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-05",
-  "title": "Opportunity Detail",
+  "sliceId": "VS-06",
+  "title": "Execution Kit",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
-  "requirements": ["FR-08"],
+  "requirements": [
+    "FR-09"
+  ],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -16,7 +18,7 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-04@03e1f1ea4ede20339f4a1ff10c50085d719b903c"
+    "VS-05@020db33b7964d8c97fa81aa384dbf869624c0a50"
   ],
   "blockers": [],
   "allowedPaths": [
@@ -48,10 +50,10 @@
       "legal-privacy"
     ],
     "notes": [
-      "Adds the full evidence-backed Opportunity Detail experience reached from Today’s Focus.",
-      "Evidence and Atlas interpretation remain distinct in API contracts and mobile presentation.",
-      "The detail remains bound to the exact Business, Opportunity, goal and Knowledge Pack version.",
-      "CI #71, Security baseline #66 and Product intake #64 passed on the exact certified implementation SHA.",
+      "Adds versioned, owner-reviewed Execution Kits for eligible Opportunities.",
+      "Assets may be edited, copied, marked used and rated, but never published or sent autonomously.",
+      "Every Kit retains exact Business, Opportunity, Goal and Knowledge Pack provenance.",
+      "CI #84, Security baseline #78 and Product intake #76 passed on the exact certified implementation SHA.",
       "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
   },
@@ -60,32 +62,56 @@
       "type": "scope",
       "status": "approved",
       "version": "ATLAS-PRD-001@1.0",
-      "commitSha": "03e1f1ea4ede20339f4a1ff10c50085d719b903c",
+      "commitSha": "020db33b7964d8c97fa81aa384dbf869624c0a50",
       "by": "ksazid",
-      "at": "2026-08-07T02:06:00+02:00",
-      "rationale": "Product Owner instructed starting the next approved slice; the approved PRD maps VS-05 to FR-08 Opportunity Detail."
+      "at": "2026-08-07T02:22:00+02:00",
+      "rationale": "Product Owner instructed merging the completed slice and working on the next approved slice; the PRD maps VS-06 to FR-09 Execution Kit."
     },
-    {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "policy",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    },
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-05@1.0",
-      "commitSha": "03e1f1ea4ede20339f4a1ff10c50085d719b903c",
+      "version": "VS-06@1.0",
+      "commitSha": "020db33b7964d8c97fa81aa384dbf869624c0a50",
       "by": "ksazid",
-      "at": "2026-08-07T02:06:00+02:00",
-      "rationale": "Product Owner explicitly instructed starting the next slice. Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
+      "at": "2026-08-07T02:22:00+02:00",
+      "rationale": "Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
     },
     {
       "type": "certification",
       "status": "approved",
-      "version": "VS-05@1.0",
-      "commitSha": "e425fa67ed073a3cea481c0829a72c6aa48b2fd6",
+      "version": "VS-06@1.0",
+      "commitSha": "ad50fd993e532f2c08d427d5f7860f38ad921546",
       "by": "ksazid",
-      "at": "2026-08-07T02:17:00+02:00",
-      "rationale": "Product Owner approved certification close-out and merge after CI #71, Security baseline #66 and Product intake #64 passed on the exact implementation SHA."
+      "at": "2026-08-07T02:32:00+02:00",
+      "rationale": "Product Owner approved merging VS-06 after CI #84, Security baseline #78 and Product intake #76 passed on the exact implementation SHA."
     },
-    {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
+    {
+      "type": "release",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    },
+    {
+      "type": "production-enable",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    }
   ],
   "decisionIds": [],
   "progress": {
@@ -99,15 +125,15 @@
   },
   "certification": {
     "status": "passed",
-    "commitSha": "e425fa67ed073a3cea481c0829a72c6aa48b2fd6",
+    "commitSha": "ad50fd993e532f2c08d427d5f7860f38ad921546",
     "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928257",
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928190",
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928185",
-      "docs/slices/VS-05.md",
-      "tests/api/OpportunityDetailPolicyTests.cs",
-      "apps/api/Opportunities.cs",
-      "apps/mobile/app/opportunities/[opportunityId].tsx"
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810612",
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810614",
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810633",
+      "docs/slices/VS-06.md",
+      "tests/api/ExecutionKitPolicyTests.cs",
+      "apps/api/Migrations/20260807023000_ExecutionKit.cs",
+      "apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx"
     ]
   },
   "release": {
@@ -125,12 +151,12 @@
     "metrics": []
   },
   "links": {
-    "specification": "docs/slices/VS-05.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/9",
+    "specification": "docs/slices/VS-06.md",
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/10",
     "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928257",
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928190",
-      "https://github.com/ksazid/project-atlas/actions/runs/31133928185"
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810612",
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810614",
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810633"
     ]
   },
   "maxAttempts": 3
