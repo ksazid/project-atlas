@@ -3,7 +3,7 @@
   "sliceId": "VS-08",
   "title": "Outcome Capture and Business Memory",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "testing",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-11", "FR-14"],
@@ -40,13 +40,13 @@
   "impact": {
     "areas": ["frontend", "api", "database", "authorization", "sensitive-data", "customer-flow", "analytics", "legal-privacy"],
     "notes": [
-      "Adds owner-controlled outcome capture after an Action reaches an eligible state.",
-      "Outcomes support usefulness, owner-reported result, time spent, optional notes, measurable results, follow-up date and evidence classification.",
-      "Adds transparent structured Business Memory derived only from product-relevant profile, goals, pack, Opportunity/Action history, rejection reasons, preferences and outcomes.",
-      "Initial Outcome and Business Memory domain contracts, validation policy and business-isolated endpoint design are implemented; EF integration, migration, tests and mobile remain in progress.",
-      "Business Memory remains business-isolated, inspectable and deletable where applicable; no hidden autonomous learning or external action is introduced.",
-      "PES navigation, routing, authentication, state management, design system and framework structure remain unchanged.",
-      "Runtime remains disabled outside development/test; deployment and production enablement are not authorized."
+      "Adds owner-controlled Outcome capture after an Action reaches Completed.",
+      "Outcomes support usefulness, owner-reported result, time spent, optional notes, measurable results, follow-up date and measured/owner-reported/estimated/unknown evidence classification.",
+      "Outcome persistence retains exact Opportunity, Goal and Knowledge Pack provenance and rejects stale writes with PostgreSQL row-version concurrency.",
+      "Outcome capture creates a transparent product-domain Business Memory projection with stable keys and explicit source metadata.",
+      "Outcome-derived Business Memory is inspectable and deletable without mutating historical Action or Opportunity records.",
+      "Mobile Outcome capture is integrated into Opportunity Detail and Business Memory is surfaced in the existing Settings screen; PES navigation and framework structure are unchanged.",
+      "Migration and policy tests are implemented; runtime remains disabled outside development/test and deployment is not authorized."
     ]
   },
   "approvals": [
@@ -77,8 +77,8 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 30,
-    "testing": 0,
+    "implementation": 100,
+    "testing": 20,
     "certification": 0,
     "release": 0,
     "validation": 0
@@ -90,7 +90,12 @@
   "links": {
     "specification": "docs/slices/VS-08.md",
     "implementationPr": "https://github.com/ksazid/project-atlas/pull/13",
-    "evidence": ["apps/api/Outcomes.cs"]
+    "evidence": [
+      "tests/api/OutcomePolicyTests.cs",
+      "apps/api/Migrations/20260807155500_OutcomesAndBusinessMemory.cs",
+      "apps/mobile/src/features/outcomes/OutcomeCapturePanel.tsx",
+      "apps/mobile/src/features/business-memory/BusinessMemoryPanel.tsx"
+    ]
   },
   "maxAttempts": 3
 }
