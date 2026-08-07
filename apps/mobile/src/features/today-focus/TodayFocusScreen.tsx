@@ -63,14 +63,16 @@ export function TodayFocusScreen() {
   if (state === 'error') return <View style={styles.center}><Text accessibilityRole="header" style={styles.title}>Today’s Focus unavailable</Text><Text style={styles.body}>Atlas could not load a safe recommendation. No action has been created.</Text><Pressable accessibilityRole="button" onPress={retry} style={styles.primaryButton}><Text style={styles.primaryText}>Try again</Text></Pressable></View>;
 
   if (focus?.state === 'insufficient-context') {
-    return <ScrollView contentContainerStyle={styles.center}><Text accessibilityRole="header" style={styles.title}>No suitable focus yet</Text><Text style={styles.body}>{focus.message}</Text><Text style={styles.supporting}>Atlas will not create filler recommendations when the available context is insufficient.</Text></ScrollView>;
+    return <ScrollView contentContainerStyle={styles.center}><Text accessibilityRole="header" style={styles.title}>No suitable focus yet</Text><Text style={styles.body}>{focus.message}</Text><Text style={styles.supporting}>Atlas will not create filler recommendations when the available context is insufficient.</Text><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.detailButton}><Text style={styles.secondaryText}>View Business History</Text></Pressable></ScrollView>;
   }
 
   const opportunity = focus?.state === 'ready' ? focus.opportunity : null;
   return (
     <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}>
-      <Text style={styles.eyebrow}>TODAY’S FOCUS</Text>
-      <Text accessibilityRole="header" style={styles.title}>{opportunity?.title}</Text>
+      <View style={styles.headerRow}>
+        <View style={styles.headerText}><Text style={styles.eyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.title}>{opportunity?.title}</Text></View>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.historyButton}><Text style={styles.secondaryText}>History</Text></Pressable>
+      </View>
       <Text style={styles.body}>{opportunity?.whyItMatters}</Text>
 
       <View style={styles.metrics}>
@@ -97,6 +99,8 @@ export function TodayFocusScreen() {
 const styles = StyleSheet.create({
   container: { padding: tokens.spacing.lg, gap: tokens.spacing.md, paddingBottom: 40 },
   center: { flex: 1, justifyContent: 'center', padding: tokens.spacing.lg, gap: tokens.spacing.md },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: tokens.spacing.sm },
+  headerText: { flex: 1, gap: 4 },
   eyebrow: { fontSize: 13, fontWeight: '700', letterSpacing: 1.2 },
   title: { fontSize: tokens.typography.title, fontWeight: '700' },
   body: { fontSize: tokens.typography.body, lineHeight: 24 },
@@ -110,6 +114,7 @@ const styles = StyleSheet.create({
   primaryButton: { minHeight: 48, borderRadius: tokens.radius.md, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center', paddingHorizontal: tokens.spacing.md },
   primaryText: { color: '#fff', fontWeight: '700' },
   detailButton: { minHeight: 48, borderWidth: 1, borderRadius: tokens.radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: tokens.spacing.md },
+  historyButton: { minHeight: 44, borderWidth: 1, borderRadius: tokens.radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: tokens.spacing.md },
   secondaryRow: { flexDirection: 'row', gap: tokens.spacing.sm },
   secondaryButton: { flex: 1, minHeight: 48, borderWidth: 1, borderRadius: tokens.radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: tokens.spacing.sm },
   secondaryText: { fontWeight: '700' },
