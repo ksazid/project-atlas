@@ -38,7 +38,7 @@
     "**/Uploads/**"
   ],
   "impact": {
-    "areas": ["frontend", "api", "database", "authorization", "customer-flow", "audit"],
+    "areas": ["frontend", "api", "database", "authorization", "customer-flow", "operations-support"],
     "notes": [
       "Adds governed owner decisions for Applied, Completed, Skipped, Not Relevant and Rejected.",
       "Structured reasons are required where relevant and every transition is business-isolated and auditable.",
