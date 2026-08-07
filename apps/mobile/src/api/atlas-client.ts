@@ -12,6 +12,13 @@ export type BusinessGoal = { id?: string; title: string; type: string; priority:
 export type BusinessContextEntry = { key: string; value: string; source: 'owner' | 'public'; ownerConfirmed: boolean };
 export type KnowledgeSection = { id: string; stableKey: string; category: string; title: string; content: string; metadataJson?: string | null; order: number; locale: string };
 export type KnowledgePack = { key: string; name: string; description: string; version: string; status: string; locale: string; sections: KnowledgeSection[]; assignedAt: string };
+export type TodayFocusOpportunity = {
+  id: string; title: string; whyItMatters: string; whyNow: string; expectedImpact: string; effort: string;
+  confidence: string; evidenceSummary: string; status: string; expiresAt: string; knowledgePackKey: string;
+  knowledgePackVersion: string; version: number;
+};
+export type TodayFocus = { state: 'ready'; opportunity: TodayFocusOpportunity } | { state: 'insufficient-context'; message: string };
+export type OpportunityDecision = 'apply' | 'skip' | 'not-relevant';
 
 async function request<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${env.apiUrl}${path}`, { ...init, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, ...init?.headers } });
@@ -50,5 +57,13 @@ export async function saveContext(accessToken: string, businessId: string, entri
 }
 export function getKnowledgePack(accessToken: string, businessId: string): Promise<KnowledgePack> {
   return request(`/api/v1/businesses/${businessId}/knowledge-pack`, accessToken);
+}
+export function getTodayFocus(accessToken: string, businessId: string): Promise<TodayFocus> {
+  return request(`/api/v1/businesses/${businessId}/today-focus`, accessToken);
+}
+export function decideOpportunity(accessToken: string, businessId: string, opportunity: TodayFocusOpportunity, decision: OpportunityDecision, reason?: string): Promise<TodayFocusOpportunity> {
+  return request(`/api/v1/businesses/${businessId}/opportunities/${opportunity.id}/decision`, accessToken, {
+    method: 'POST', body: JSON.stringify({ decision, reason, version: opportunity.version }),
+  });
 }
 export async function logout(accessToken: string): Promise<void> { await request('/api/v1/session/logout', accessToken, { method: 'POST' }); }

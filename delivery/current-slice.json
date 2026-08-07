@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-03",
-  "title": "Knowledge Pack Foundation",
+  "sliceId": "VS-04",
+  "title": "Today's Focus",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
-  "requirements": ["FR-06"],
+  "requirements": ["FR-07"],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -16,8 +16,7 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-01@9346e8dce871d90eab3e629ce921a3af254ba6fc",
-    "VS-02@9c080a4a8867076be95ddd672b646e7eb5f2a535"
+    "VS-03@4ae6d638df8eb23fd5c22aeb545b10a3569cf5f4"
   ],
   "blockers": [],
   "allowedPaths": [
@@ -49,9 +48,10 @@
       "legal-privacy"
     ],
     "notes": [
-      "Adds the modular Knowledge Pack business-domain foundation without restructuring PES Mobile.",
-      "Published versions are immutable and businesses retain explicit exact-version assignments.",
-      "CI, migration, API tests, mobile checks, security baseline and product intake passed for the certified SHA.",
+      "Introduces the primary current Opportunity and owner decision path on the existing mobile Home experience.",
+      "Evidence and Atlas interpretation remain distinct, and eligibility is enforced by deterministic application policy.",
+      "Historical Opportunities retain the exact Knowledge Pack key and version used.",
+      "CI #60, Security baseline #56 and Product intake #54 passed on the exact certified implementation SHA.",
       "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
   },
@@ -60,29 +60,29 @@
       "type": "scope",
       "status": "approved",
       "version": "ATLAS-PRD-001@1.0",
-      "commitSha": "9346e8dce871d90eab3e629ce921a3af254ba6fc",
+      "commitSha": "4ae6d638df8eb23fd5c22aeb545b10a3569cf5f4",
       "by": "ksazid",
-      "at": "2026-08-06T23:04:00+02:00",
-      "rationale": "Product Owner approved VS-03 as the Knowledge Pack Foundation for FR-06 using the locked modular versioned business-domain model."
+      "at": "2026-08-07T01:47:00+02:00",
+      "rationale": "Product Owner instructed starting the next approved slice after merging certified VS-03; the approved PRD maps VS-04 to FR-07 Today's Focus."
     },
     {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-03@1.0",
-      "commitSha": "47fe54ac1bc29c54c3de0938de8c33c7d9083db3",
+      "version": "VS-04@1.0",
+      "commitSha": "4ae6d638df8eb23fd5c22aeb545b10a3569cf5f4",
       "by": "ksazid",
-      "at": "2026-08-06T23:10:00+02:00",
-      "rationale": "Product Owner granted standing approval through runtime implementation and testing while keeping deployment, release and production enablement deferred."
+      "at": "2026-08-07T01:47:00+02:00",
+      "rationale": "Product Owner explicitly instructed starting the next slice. Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
     },
     {
       "type": "certification",
       "status": "approved",
-      "version": "VS-03@1.0",
-      "commitSha": "c2fad5f7a6e4fe517932ca6371de41fb132233e5",
+      "version": "VS-04@1.0",
+      "commitSha": "f3db51a63a427eb53082eb8a7ffb44e1c451b65a",
       "by": "ksazid",
-      "at": "2026-08-07T01:41:00+02:00",
-      "rationale": "Product Owner approved certification close-out after CI #47, Security baseline #44 and Product intake #42 passed on the exact certified SHA."
+      "at": "2026-08-07T02:03:00+02:00",
+      "rationale": "Product Owner approved merging VS-04 after CI #60, Security baseline #56 and Product intake #54 passed on the exact implementation SHA."
     },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
@@ -99,14 +99,15 @@
   },
   "certification": {
     "status": "passed",
-    "commitSha": "c2fad5f7a6e4fe517932ca6371de41fb132233e5",
+    "commitSha": "f3db51a63a427eb53082eb8a7ffb44e1c451b65a",
     "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31131783407",
-      "https://github.com/ksazid/project-atlas/actions/runs/31131784882",
-      "https://github.com/ksazid/project-atlas/actions/runs/31131785131",
-      "tests/api/KnowledgePackPolicyTests.cs",
-      "apps/api/Migrations/20260807001500_KnowledgePackFoundation.cs",
-      "apps/mobile/src/features/knowledge-pack/KnowledgePackScreen.tsx"
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850583",
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850592",
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850601",
+      "docs/slices/VS-04.md",
+      "tests/api/OpportunityPolicyTests.cs",
+      "apps/api/Migrations/20260807015000_TodaysFocus.cs",
+      "apps/mobile/src/features/today-focus/TodayFocusScreen.tsx"
     ]
   },
   "release": {
@@ -124,12 +125,12 @@
     "metrics": []
   },
   "links": {
-    "specification": "docs/slices/VS-03.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/7",
+    "specification": "docs/slices/VS-04.md",
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/8",
     "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31131783407",
-      "https://github.com/ksazid/project-atlas/actions/runs/31131784882",
-      "https://github.com/ksazid/project-atlas/actions/runs/31131785131"
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850583",
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850592",
+      "https://github.com/ksazid/project-atlas/actions/runs/31132850601"
     ]
   },
   "maxAttempts": 3
