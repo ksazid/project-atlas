@@ -1,121 +1,32 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-08",
-  "title": "Outcome Capture and Business Memory",
+  "sliceId": "VS-09",
+  "title": "History",
   "status": "completed",
   "lifecycle": "certified",
-  "riskLevel": "high",
+  "riskLevel": "medium",
   "implementationMode": "runtime-disabled",
-  "requirements": ["FR-11", "FR-14"],
-  "owners": {
-    "product": "ksazid",
-    "engineering": "ksazid",
-    "operations": "ksazid",
-    "security": "ksazid"
-  },
-  "dependencies": [
-    "ATLAS-PRD-001",
-    "ATLAS-TRD-001",
-    "VS-07@1e757e8b9e3b8d90ca21df71f35bde0b300c8c48"
-  ],
+  "requirements": ["FR-12"],
+  "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","VS-08@c4f69f27cd81d09fc18240872d295ed21e29a226"],
   "blockers": [],
-  "allowedPaths": [
-    "apps/mobile/**",
-    "apps/api/**",
-    "tests/**",
-    "delivery/**",
-    "docs/**",
-    "README.md",
-    "scripts/**",
-    ".github/workflows/ci.yml",
-    ".github/workflows/intake.yml",
-    ".github/workflows/security.yml"
-  ],
-  "protectedPaths": [
-    ".github/workflows/release.yml",
-    "infrastructure/**",
-    "**/Payments/**",
-    "**/Uploads/**"
-  ],
-  "impact": {
-    "areas": ["frontend", "api", "database", "authorization", "sensitive-data", "customer-flow", "analytics", "legal-privacy"],
-    "notes": [
-      "Adds owner-controlled Outcome capture after an Action reaches Completed.",
-      "Outcomes support usefulness, owner-reported result, time spent, optional notes, measurable results, follow-up date and measured/owner-reported/estimated/unknown evidence classification.",
-      "Outcome persistence retains exact Opportunity, Goal and Knowledge Pack provenance and rejects stale writes with PostgreSQL row-version concurrency.",
-      "Outcome capture creates a transparent product-domain Business Memory projection with stable keys and explicit source metadata.",
-      "Outcome-derived Business Memory is inspectable and deletable without mutating historical Action or Opportunity records.",
-      "Mobile Outcome capture is integrated into Opportunity Detail and Business Memory is surfaced in the existing Settings screen; PES navigation and framework structure are unchanged.",
-      "CI #131, Security baseline #123 and Product intake #108 passed on the certified implementation SHA.",
-      "Runtime remains disabled outside development/test and deployment is not authorized."
-    ]
-  },
+  "allowedPaths": ["apps/mobile/**","apps/api/**","tests/**","delivery/**","docs/**","README.md","scripts/**",".github/workflows/ci.yml",".github/workflows/intake.yml",".github/workflows/security.yml"],
+  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
+  "impact": {"areas":["frontend","api","authorization","customer-flow","analytics"],"notes":["Adds a chronological, business-isolated History view over authoritative Opportunities, Actions, Execution Kits and Outcomes without duplicate persistence.","Supports status, category, goal and date filters in the API; mobile exposes status and category filters.","History preserves exact Knowledge Pack provenance and factual learning summaries without causal attribution.","PES framework remains unchanged.","Runtime remains disabled outside development/test; no deployment authorized."]},
   "approvals": [
-    {
-      "type": "scope",
-      "status": "approved",
-      "version": "ATLAS-PRD-001@1.0",
-      "commitSha": "1e757e8b9e3b8d90ca21df71f35bde0b300c8c48",
-      "by": "ksazid",
-      "at": "2026-08-07T15:38:00+02:00",
-      "rationale": "Product Owner authorized closing VS-07, merging it and starting the next approved slice. The approved PRD maps VS-08 to Outcome Capture and Business Memory."
-    },
-    {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {
-      "type": "implementation",
-      "status": "approved",
-      "version": "VS-08@1.0",
-      "commitSha": "1e757e8b9e3b8d90ca21df71f35bde0b300c8c48",
-      "by": "ksazid",
-      "at": "2026-08-07T15:38:00+02:00",
-      "rationale": "Authorization covers implementation and testing. Certification, merge, release, deployment and production enablement remain separately gated."
-    },
-    {
-      "type": "certification",
-      "status": "approved",
-      "version": "VS-08@1.0",
-      "commitSha": "f0ff647bae5cf140d40fe66404a35e54d2d4a4bd",
-      "by": "ksazid",
-      "at": "2026-08-07T17:05:00+02:00",
-      "rationale": "Product Owner authorized merge after CI #131, Security baseline #123 and Product intake #108 passed on the exact VS-08 implementation SHA."
-    },
-    {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
+    {"type":"scope","status":"approved","version":"ATLAS-PRD-001@1.0","commitSha":"c4f69f27cd81d09fc18240872d295ed21e29a226","by":"ksazid","at":"2026-08-07T17:05:00+02:00","rationale":"Approved VS-09 scope."},
+    {"type":"policy","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"implementation","status":"approved","version":"VS-09@1.0","commitSha":"b29c3bde7aa3254f4e9e5854adacf45e23f14086","by":"ksazid","at":"2026-08-07T17:44:00+02:00","rationale":"Implementation complete and all implementation gates passed."},
+    {"type":"certification","status":"approved","version":"VS-09@1.0","commitSha":"b29c3bde7aa3254f4e9e5854adacf45e23f14086","by":"ksazid","at":"2026-08-07T17:44:00+02:00","rationale":"CI #143, Security #134 and Product Intake #119 passed on the implementation head; Product Owner authorized merge."},
+    {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {
-    "discovery": 100,
-    "decisions": 100,
-    "implementation": 100,
-    "testing": 100,
-    "certification": 100,
-    "release": 0,
-    "validation": 0
-  },
-  "certification": {
-    "status": "passed",
-    "commitSha": "f0ff647bae5cf140d40fe66404a35e54d2d4a4bd",
-    "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31185257222",
-      "https://github.com/ksazid/project-atlas/actions/runs/31185256529",
-      "https://github.com/ksazid/project-atlas/actions/runs/31185256567",
-      "tests/api/OutcomePolicyTests.cs",
-      "apps/api/Migrations/20260807155500_OutcomesAndBusinessMemory.cs",
-      "apps/mobile/src/features/outcomes/OutcomeCapturePanel.tsx",
-      "apps/mobile/src/features/business-memory/BusinessMemoryPanel.tsx"
-    ]
-  },
-  "release": {"status": "not-authorized", "releaseId": null},
-  "rollback": {"status": "not-applicable", "rollbackId": null},
-  "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
-  "links": {
-    "specification": "docs/slices/VS-08.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/13",
-    "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31185257222",
-      "https://github.com/ksazid/project-atlas/actions/runs/31185256529",
-      "https://github.com/ksazid/project-atlas/actions/runs/31185256567"
-    ]
-  },
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
+  "certification": {"status":"passed","commitSha":"b29c3bde7aa3254f4e9e5854adacf45e23f14086","evidence":["CI #143 passed","Security baseline #134 passed","Product intake #119 passed"]},
+  "release": {"status":"not-authorized","releaseId":null},
+  "rollback": {"status":"not-applicable","rollbackId":null},
+  "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
+  "links": {"specification":"docs/slices/VS-09.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/14","evidence":["tests/api/HistoryPolicyTests.cs","apps/api/History.cs","apps/mobile/src/features/history/HistoryScreen.tsx","apps/mobile/app/history.tsx"]},
   "maxAttempts": 3
 }
