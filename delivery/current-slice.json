@@ -41,8 +41,10 @@
     "areas": ["frontend", "api", "authorization", "customer-flow", "analytics"],
     "notes": [
       "Adds a chronological, business-isolated History view over existing Opportunities, Actions, Execution Kits, feedback and Outcomes.",
-      "History is read-oriented and must not mutate historical Opportunity, Action, Outcome or Knowledge Pack provenance.",
-      "Supports filters by status, category, goal and date without introducing new domain ownership or duplicate persistence.",
+      "History is implemented as a read-oriented projection over existing authoritative records; no duplicate History table or source of truth is introduced.",
+      "The initial API supports status, category, goal and date filtering with Business scoping applied before projection.",
+      "History preserves exact Knowledge Pack provenance and produces factual learning summaries without causal claims.",
+      "Deterministic filter, limit and safe evidence-category policy tests are included.",
       "PES navigation, routing, authentication, state management and framework structure remain unchanged.",
       "Runtime remains disabled outside development/test; release, deployment and production enablement are not authorized."
     ]
@@ -75,8 +77,8 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 5,
-    "testing": 0,
+    "implementation": 35,
+    "testing": 5,
     "certification": 0,
     "release": 0,
     "validation": 0
@@ -87,8 +89,11 @@
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
     "specification": "docs/slices/VS-09.md",
-    "implementationPr": null,
-    "evidence": []
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/14",
+    "evidence": [
+      "apps/api/History.cs",
+      "tests/api/HistoryPolicyTests.cs"
+    ]
   },
   "maxAttempts": 3
 }
