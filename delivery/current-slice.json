@@ -3,7 +3,7 @@
   "sliceId": "VS-11",
   "title": "Notifications",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "testing",
   "riskLevel": "medium",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-15"],
@@ -19,8 +19,9 @@
       "Notification records are business-isolated, deduplicated, auditable and derived only from authoritative Atlas records.",
       "Preferences cover Today Focus, Outcome follow-up and Weekly Review reminders with safe defaults.",
       "Read/unread state and deep-link targets are persisted; delivery does not imply action completion or outcome causation.",
+      "Mobile Notification Center supports unread state, mark-read/read-all, pull-to-refresh, safe deep links, preference controls and explicit external-delivery boundaries.",
       "No external push, SMS, email provider, paid service, production credential or production delivery is activated in VS-11.",
-      "PES framework, navigation architecture, authentication and state-management conventions remain unchanged.",
+      "PES framework, tab structure, authentication and state-management conventions remain unchanged.",
       "Runtime remains disabled outside development/test; release, deployment and production enablement are not authorized."
     ]
   },
@@ -33,11 +34,11 @@
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":5,"testing":0,"certification":0,"release":0,"validation":0},
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":20,"certification":0,"release":0,"validation":0},
   "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-  "links": {"specification":"docs/slices/VS-11.md","implementationPr":null,"evidence":[]},
+  "links": {"specification":"docs/slices/VS-11.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/16","evidence":["apps/api/Notifications.cs","apps/api/Migrations/20260807220000_Notifications.cs","apps/mobile/src/features/notifications/NotificationCenterScreen.tsx","apps/mobile/app/notifications.tsx"]},
   "maxAttempts": 3
 }
