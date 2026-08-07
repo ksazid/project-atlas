@@ -3,7 +3,7 @@
   "sliceId": "VS-10",
   "title": "Weekly Review",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "testing",
   "riskLevel": "medium",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-13"],
@@ -21,7 +21,7 @@
       "Completed Actions report recorded Outcomes when present and explicitly report missing Outcomes when absent.",
       "Execution Kit usage is summarized from recorded asset usage within the review period.",
       "Review remains read-only and does not mutate History or Business Memory automatically.",
-      "Mobile integration must use existing PES routing and shell conventions without framework restructuring.",
+      "Mobile Weekly Review is reachable from History, deep-links back to Opportunity Detail, supports refresh and safe loading/empty/error states, and uses the existing PES routing shell.",
       "Runtime remains disabled outside development/test; release, deployment and production enablement are not authorized."
     ]
   },
@@ -34,11 +34,11 @@
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":35,"testing":5,"certification":0,"release":0,"validation":0},
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":20,"certification":0,"release":0,"validation":0},
   "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-  "links": {"specification":"docs/slices/VS-10.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/15","evidence":["apps/api/WeeklyReview.cs","tests/api/WeeklyReviewPolicyTests.cs"]},
+  "links": {"specification":"docs/slices/VS-10.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/15","evidence":["apps/api/WeeklyReview.cs","tests/api/WeeklyReviewPolicyTests.cs","apps/mobile/src/features/weekly-review/WeeklyReviewScreen.tsx","apps/mobile/app/weekly-review.tsx"]},
   "maxAttempts": 3
 }
