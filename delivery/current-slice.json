@@ -3,98 +3,30 @@
   "sliceId": "VS-09",
   "title": "History",
   "status": "active",
-  "lifecycle": "testing",
+  "lifecycle": "certifying",
   "riskLevel": "medium",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-12"],
-  "owners": {
-    "product": "ksazid",
-    "engineering": "ksazid",
-    "operations": "ksazid",
-    "security": "ksazid"
-  },
-  "dependencies": [
-    "ATLAS-PRD-001",
-    "ATLAS-TRD-001",
-    "VS-08@c4f69f27cd81d09fc18240872d295ed21e29a226"
-  ],
+  "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","VS-08@c4f69f27cd81d09fc18240872d295ed21e29a226"],
   "blockers": [],
-  "allowedPaths": [
-    "apps/mobile/**",
-    "apps/api/**",
-    "tests/**",
-    "delivery/**",
-    "docs/**",
-    "README.md",
-    "scripts/**",
-    ".github/workflows/ci.yml",
-    ".github/workflows/intake.yml",
-    ".github/workflows/security.yml"
-  ],
-  "protectedPaths": [
-    ".github/workflows/release.yml",
-    "infrastructure/**",
-    "**/Payments/**",
-    "**/Uploads/**"
-  ],
-  "impact": {
-    "areas": ["frontend", "api", "authorization", "customer-flow", "analytics"],
-    "notes": [
-      "Adds a chronological, business-isolated History view over authoritative Opportunities, Actions, Execution Kits and Outcomes without introducing duplicate History persistence.",
-      "Supports status, category, goal and date filters in the API; the mobile MVP exposes status and category filters with bounded retrieval.",
-      "History preserves exact Knowledge Pack provenance and reports factual learning summaries without causal attribution.",
-      "Mobile History is an existing-shell route launched from Today’s Focus; no PES tab, navigation framework, authentication or state architecture changes were made.",
-      "History cards deep-link to existing Opportunity Detail and support loading, empty, degraded/error and refresh states.",
-      "Runtime remains disabled outside development/test; release, deployment and production enablement are not authorized."
-    ]
-  },
+  "allowedPaths": ["apps/mobile/**","apps/api/**","tests/**","delivery/**","docs/**","README.md","scripts/**",".github/workflows/ci.yml",".github/workflows/intake.yml",".github/workflows/security.yml"],
+  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
+  "impact": {"areas":["frontend","api","authorization","customer-flow","analytics"],"notes":["Adds a chronological, business-isolated History view over authoritative Opportunities, Actions, Execution Kits and Outcomes without duplicate persistence.","Supports status, category, goal and date filters in the API; mobile exposes status and category filters.","History preserves exact Knowledge Pack provenance and factual learning summaries without causal attribution.","PES framework remains unchanged.","Runtime remains disabled outside development/test; no deployment authorized."]},
   "approvals": [
-    {
-      "type": "scope",
-      "status": "approved",
-      "version": "ATLAS-PRD-001@1.0",
-      "commitSha": "c4f69f27cd81d09fc18240872d295ed21e29a226",
-      "by": "ksazid",
-      "at": "2026-08-07T17:05:00+02:00",
-      "rationale": "Product Owner instructed merging certified VS-08 and starting the next approved slice; the PRD maps VS-09 to FR-12 History."
-    },
-    {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {
-      "type": "implementation",
-      "status": "approved",
-      "version": "VS-09@1.0",
-      "commitSha": "c4f69f27cd81d09fc18240872d295ed21e29a226",
-      "by": "ksazid",
-      "at": "2026-08-07T17:05:00+02:00",
-      "rationale": "Authorization covers VS-09 implementation and testing. Certification, merge, release, deployment and production enablement remain separately gated."
-    },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
+    {"type":"scope","status":"approved","version":"ATLAS-PRD-001@1.0","commitSha":"c4f69f27cd81d09fc18240872d295ed21e29a226","by":"ksazid","at":"2026-08-07T17:05:00+02:00","rationale":"Approved VS-09 scope."},
+    {"type":"policy","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"implementation","status":"approved","version":"VS-09@1.0","commitSha":"b29c3bde7aa3254f4e9e5854adacf45e23f14086","by":"ksazid","at":"2026-08-07T17:44:00+02:00","rationale":"Implementation complete and all implementation gates passed."},
+    {"type":"certification","status":"approved","version":"VS-09@1.0","commitSha":"b29c3bde7aa3254f4e9e5854adacf45e23f14086","by":"ksazid","at":"2026-08-07T17:44:00+02:00","rationale":"CI #143, Security #134 and Product Intake #119 passed on the implementation head; Product Owner authorized merge."},
+    {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {
-    "discovery": 100,
-    "decisions": 100,
-    "implementation": 100,
-    "testing": 20,
-    "certification": 0,
-    "release": 0,
-    "validation": 0
-  },
-  "certification": {"status": "not-started", "commitSha": null, "evidence": []},
-  "release": {"status": "not-authorized", "releaseId": null},
-  "rollback": {"status": "not-applicable", "rollbackId": null},
-  "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
-  "links": {
-    "specification": "docs/slices/VS-09.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/14",
-    "evidence": [
-      "tests/api/HistoryPolicyTests.cs",
-      "apps/api/History.cs",
-      "apps/mobile/src/features/history/HistoryScreen.tsx",
-      "apps/mobile/app/history.tsx"
-    ]
-  },
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
+  "certification": {"status":"passed","commitSha":"b29c3bde7aa3254f4e9e5854adacf45e23f14086","evidence":["CI #143 passed","Security baseline #134 passed","Product intake #119 passed"]},
+  "release": {"status":"not-authorized","releaseId":null},
+  "rollback": {"status":"not-applicable","rollbackId":null},
+  "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
+  "links": {"specification":"docs/slices/VS-09.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/14","evidence":["tests/api/HistoryPolicyTests.cs","apps/api/History.cs","apps/mobile/src/features/history/HistoryScreen.tsx","apps/mobile/app/history.tsx"]},
   "maxAttempts": 3
 }
