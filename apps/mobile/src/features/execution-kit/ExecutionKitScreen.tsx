@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { router } from 'expo-router';
 import { getExecutionKit, trackExecutionAssetCopy, updateExecutionAsset, type ExecutionAsset, type ExecutionKit } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
+import { ActionDecisionPanel } from '@/features/action-decisions/ActionDecisionPanel';
 import { tokens } from '@/theme/tokens';
 
 type State = 'loading' | 'ready' | 'missing' | 'error';
@@ -69,6 +70,8 @@ export function ExecutionKitScreen({ opportunityId }: { opportunityId: string })
       <Text style={styles.eyebrow}>EXECUTION KIT</Text>
       <Text accessibilityRole="header" style={styles.title}>Review before acting</Text>
       <Text style={styles.body}>Edit supported assets, copy them into your own tools, mark what you used and rate usefulness. Atlas will not publish or send anything.</Text>
+
+      <ActionDecisionPanel opportunityId={opportunityId} />
 
       {kit.assets.map((asset) => (
         <View key={asset.id} style={styles.card}>
