@@ -55,7 +55,13 @@ export function OpportunityDetailScreen({ opportunityId }: { opportunityId: stri
       <View style={styles.card}><Text style={styles.cardTitle}>Assumptions</Text>{detail.assumptions.map((item) => <Text key={item} style={styles.body}>• {item}</Text>)}</View>
       <View style={styles.card}><Text style={styles.cardTitle}>Limitations</Text>{detail.limitations.map((item) => <Text key={item} style={styles.body}>• {item}</Text>)}</View>
 
-      <View style={styles.card}><Text style={styles.cardTitle}>Execution Kit</Text><Text style={styles.body}>Execution Kit preparation is not available in this slice. It will be introduced in VS-06.</Text></View>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Execution Kit</Text>
+        <Text style={styles.body}>Review editable assets and measurement guidance before taking action. Atlas will not publish, send or execute anything externally.</Text>
+        <Pressable accessibilityRole="button" disabled={!detail.executionKitAvailable || detail.isExpired} onPress={() => router.push(`/opportunities/${opportunityId}/execution-kit`)} style={styles.button}>
+          <Text style={styles.buttonText}>{detail.executionKitAvailable && !detail.isExpired ? 'Open Execution Kit' : 'Execution Kit unavailable'}</Text>
+        </Pressable>
+      </View>
       <Text style={styles.supporting}>Expires {new Date(detail.expiresAt).toLocaleString()} · {detail.knowledgePackKey} v{detail.knowledgePackVersion}</Text>
     </ScrollView>
   );
