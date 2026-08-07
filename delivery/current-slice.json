@@ -3,7 +3,7 @@
   "sliceId": "VS-05",
   "title": "Opportunity Detail",
   "status": "active",
-  "lifecycle": "ready-for-implementation",
+  "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-08"],
@@ -51,6 +51,7 @@
       "Adds the full evidence-backed Opportunity Detail experience reached from Today’s Focus.",
       "Evidence and Atlas interpretation remain distinct in API contracts and mobile presentation.",
       "The detail remains bound to the exact Business, Opportunity, goal and Knowledge Pack version.",
+      "CI #71, Security baseline #66 and Product intake #64 passed on the exact certified implementation SHA.",
       "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
   },
@@ -74,27 +75,39 @@
       "at": "2026-08-07T02:06:00+02:00",
       "rationale": "Product Owner explicitly instructed starting the next slice. Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-05@1.0",
+      "commitSha": "e425fa67ed073a3cea481c0829a72c6aa48b2fd6",
+      "by": "ksazid",
+      "at": "2026-08-07T02:17:00+02:00",
+      "rationale": "Product Owner approved certification close-out and merge after CI #71, Security baseline #66 and Product intake #64 passed on the exact implementation SHA."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
   "decisionIds": [],
   "progress": {
     "discovery": 100,
-    "decisions": 70,
-    "implementation": 0,
-    "testing": 0,
-    "certification": 0,
+    "decisions": 100,
+    "implementation": 100,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
+    "status": "passed",
+    "commitSha": "e425fa67ed073a3cea481c0829a72c6aa48b2fd6",
     "evidence": [
+      "https://github.com/ksazid/project-atlas/actions/runs/31133928257",
+      "https://github.com/ksazid/project-atlas/actions/runs/31133928190",
+      "https://github.com/ksazid/project-atlas/actions/runs/31133928185",
       "docs/slices/VS-05.md",
-      "product/PRD.md",
-      "product/TRD.md"
+      "tests/api/OpportunityDetailPolicyTests.cs",
+      "apps/api/Opportunities.cs",
+      "apps/mobile/app/opportunities/[opportunityId].tsx"
     ]
   },
   "release": {
@@ -115,8 +128,9 @@
     "specification": "docs/slices/VS-05.md",
     "implementationPr": "https://github.com/ksazid/project-atlas/pull/9",
     "evidence": [
-      "docs/slices/VS-05.md",
-      "product/PRD.md"
+      "https://github.com/ksazid/project-atlas/actions/runs/31133928257",
+      "https://github.com/ksazid/project-atlas/actions/runs/31133928190",
+      "https://github.com/ksazid/project-atlas/actions/runs/31133928185"
     ]
   },
   "maxAttempts": 3
