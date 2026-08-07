@@ -3,7 +3,7 @@
   "sliceId": "VS-06",
   "title": "Execution Kit",
   "status": "active",
-  "lifecycle": "ready-for-implementation",
+  "lifecycle": "testing",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
   "requirements": ["FR-09"],
@@ -73,9 +73,9 @@
   "decisionIds": [],
   "progress": {
     "discovery": 100,
-    "decisions": 70,
-    "implementation": 0,
-    "testing": 0,
+    "decisions": 100,
+    "implementation": 100,
+    "testing": 70,
     "certification": 0,
     "release": 0,
     "validation": 0
@@ -83,15 +83,24 @@
   "certification": {
     "status": "not-started",
     "commitSha": null,
-    "evidence": ["docs/slices/VS-06.md", "product/PRD.md", "product/TRD.md"]
+    "evidence": [
+      "docs/slices/VS-06.md",
+      "tests/api/ExecutionKitPolicyTests.cs",
+      "apps/api/Migrations/20260807023000_ExecutionKit.cs",
+      "apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx"
+    ]
   },
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
     "specification": "docs/slices/VS-06.md",
-    "implementationPr": null,
-    "evidence": ["docs/slices/VS-06.md", "product/PRD.md"]
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/10",
+    "evidence": [
+      "tests/api/ExecutionKitPolicyTests.cs",
+      "apps/api/Migrations/20260807023000_ExecutionKit.cs",
+      "apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx"
+    ]
   },
   "maxAttempts": 3
 }
