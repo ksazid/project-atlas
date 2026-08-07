@@ -43,21 +43,30 @@ export function ActionDecisionPanel({ opportunityId }: { opportunityId: string }
   const availableStatuses = useMemo(() => optionsFor(state?.currentStatus ?? ''), [state?.currentStatus]);
   const requiresReason = pendingStatus === 'skipped' || pendingStatus === 'not-relevant' || pendingStatus === 'rejected';
 
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const session = await loadSession();
-      if (!session?.businessId) throw new Error('Business unavailable');
-      setState(await getActionDecisionState(session.accessToken, session.businessId, opportunityId));
-    } catch {
-      setError('Action status could not be loaded safely.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    let active = true;
 
-  useEffect(() => { void load(); }, [opportunityId]);
+    void loadSession()
+      .then(async (session) => {
+        if (!session?.businessId) throw new Error('Business unavailable');
+        return getActionDecisionState(session.accessToken, session.businessId, opportunityId);
+      })
+      .then((next) => {
+        if (!active) return;
+        setState(next);
+        setError(null);
+      })
+      .catch(() => {
+        if (!active) return;
+        setState(null);
+        setError('Action status could not be loaded safely.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [opportunityId]);
 
   const submit = async () => {
     if (!pendingStatus || !state) return;
