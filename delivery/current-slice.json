@@ -3,10 +3,12 @@
   "sliceId": "VS-06",
   "title": "Execution Kit",
   "status": "active",
-  "lifecycle": "testing",
+  "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-disabled",
-  "requirements": ["FR-09"],
+  "requirements": [
+    "FR-09"
+  ],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -38,11 +40,20 @@
     "**/Uploads/**"
   ],
   "impact": {
-    "areas": ["frontend", "api", "database", "authorization", "sensitive-data", "customer-flow", "legal-privacy"],
+    "areas": [
+      "frontend",
+      "api",
+      "database",
+      "authorization",
+      "sensitive-data",
+      "customer-flow",
+      "legal-privacy"
+    ],
     "notes": [
       "Adds versioned, owner-reviewed Execution Kits for eligible Opportunities.",
       "Assets may be edited, copied, marked used and rated, but never published or sent autonomously.",
       "Every Kit retains exact Business, Opportunity, Goal and Knowledge Pack provenance.",
+      "CI #84, Security baseline #78 and Product intake #76 passed on the exact certified implementation SHA.",
       "Runtime remains disabled outside development/test; release and production enablement are not authorized."
     ]
   },
@@ -56,7 +67,15 @@
       "at": "2026-08-07T02:22:00+02:00",
       "rationale": "Product Owner instructed merging the completed slice and working on the next approved slice; the PRD maps VS-06 to FR-09 Execution Kit."
     },
-    {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "policy",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    },
     {
       "type": "implementation",
       "status": "approved",
@@ -66,40 +85,78 @@
       "at": "2026-08-07T02:22:00+02:00",
       "rationale": "Authorization covers implementation and testing only; merge, release, deployment and production enablement remain separate approvals."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-06@1.0",
+      "commitSha": "ad50fd993e532f2c08d427d5f7860f38ad921546",
+      "by": "ksazid",
+      "at": "2026-08-07T02:32:00+02:00",
+      "rationale": "Product Owner approved merging VS-06 after CI #84, Security baseline #78 and Product intake #76 passed on the exact implementation SHA."
+    },
+    {
+      "type": "release",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    },
+    {
+      "type": "production-enable",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    }
   ],
   "decisionIds": [],
   "progress": {
     "discovery": 100,
     "decisions": 100,
     "implementation": 100,
-    "testing": 70,
-    "certification": 0,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
+    "status": "passed",
+    "commitSha": "ad50fd993e532f2c08d427d5f7860f38ad921546",
     "evidence": [
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810612",
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810614",
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810633",
       "docs/slices/VS-06.md",
       "tests/api/ExecutionKitPolicyTests.cs",
       "apps/api/Migrations/20260807023000_ExecutionKit.cs",
       "apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx"
     ]
   },
-  "release": {"status": "not-authorized", "releaseId": null},
-  "rollback": {"status": "not-applicable", "rollbackId": null},
-  "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
+  "release": {
+    "status": "not-authorized",
+    "releaseId": null
+  },
+  "rollback": {
+    "status": "not-applicable",
+    "rollbackId": null
+  },
+  "postRelease": {
+    "status": "not-started",
+    "reviewAt": null,
+    "expectedOutcome": null,
+    "metrics": []
+  },
   "links": {
     "specification": "docs/slices/VS-06.md",
     "implementationPr": "https://github.com/ksazid/project-atlas/pull/10",
     "evidence": [
-      "tests/api/ExecutionKitPolicyTests.cs",
-      "apps/api/Migrations/20260807023000_ExecutionKit.cs",
-      "apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx"
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810612",
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810614",
+      "https://github.com/ksazid/project-atlas/actions/runs/31134810633"
     ]
   },
   "maxAttempts": 3
