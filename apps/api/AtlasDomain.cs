@@ -96,6 +96,7 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     public DbSet<ExecutionKit> ExecutionKits => Set<ExecutionKit>(); public DbSet<ExecutionAsset> ExecutionAssets => Set<ExecutionAsset>();
     public DbSet<ActionDecisionRecord> ActionDecisionRecords => Set<ActionDecisionRecord>();
     public DbSet<Outcome> Outcomes => Set<Outcome>(); public DbSet<BusinessMemoryItem> BusinessMemoryItems => Set<BusinessMemoryItem>();
+    public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>(); public DbSet<NotificationRecord> NotificationRecords => Set<NotificationRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -139,5 +140,16 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<BusinessMemoryItem>().Property(x => x.Value).HasMaxLength(2000);
         modelBuilder.Entity<BusinessMemoryItem>().HasIndex(x => new { x.BusinessId, x.StableKey }).IsUnique();
         modelBuilder.Entity<BusinessMemoryItem>().HasIndex(x => new { x.BusinessId, x.Category, x.UpdatedAt });
+
+        modelBuilder.Entity<NotificationPreference>().HasKey(x => x.BusinessId);
+        modelBuilder.Entity<NotificationPreference>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<NotificationRecord>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<NotificationRecord>().Property(x => x.StableKey).HasMaxLength(240);
+        modelBuilder.Entity<NotificationRecord>().Property(x => x.Category).HasMaxLength(80);
+        modelBuilder.Entity<NotificationRecord>().Property(x => x.Title).HasMaxLength(240);
+        modelBuilder.Entity<NotificationRecord>().Property(x => x.Body).HasMaxLength(1000);
+        modelBuilder.Entity<NotificationRecord>().Property(x => x.DeepLink).HasMaxLength(500);
+        modelBuilder.Entity<NotificationRecord>().HasIndex(x => new { x.BusinessId, x.StableKey }).IsUnique();
+        modelBuilder.Entity<NotificationRecord>().HasIndex(x => new { x.BusinessId, x.ReadAt, x.CreatedAt });
     }
 }
