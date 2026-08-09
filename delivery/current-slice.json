@@ -1,12 +1,14 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-15",
-  "title": "VS-15 — Context Visual Migration",
+  "sliceId": "VS-16",
+  "title": "VS-16 — URL-First Business Discovery & Owner Confirmation",
   "status": "active",
   "lifecycle": "certified",
-  "riskLevel": "medium",
+  "riskLevel": "high",
   "implementationMode": "runtime-enabled",
   "requirements": [
+    "FR-02",
+    "FR-03",
     "FR-05"
   ],
   "owners": {
@@ -18,13 +20,16 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-02@9c080a4a8867076be95ddd672b646e7eb5f2a535",
-    "VS-13@0788b03b02ad86753de6da4eb27ad355b520dbc7",
-    "VS-14@54b8b216b5a42c54da22aaaa02695708cda33428"
+    "ATLAS-DESIGN-001",
+    "CATEGORY-INTELLIGENCE-FOUNDATION",
+    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
+    "MVP-ACCEPTANCE@3d95e885f0f22e9aa3045ed2a0aef713cbc69eb1"
   ],
   "blockers": [],
   "allowedPaths": [
+    "apps/api/**",
     "apps/mobile/**",
+    "tests/api/**",
     "tests/mobile/**",
     "delivery/**",
     "docs/**"
@@ -38,54 +43,61 @@
   "impact": {
     "areas": [
       "frontend",
-      "customer-flow"
+      "api",
+      "database",
+      "authentication",
+      "authorization",
+      "customer-flow",
+      "sensitive-data"
     ],
     "notes": [
-      "Migrates the existing authenticated Business Context experience to the approved Atlas visual system while preserving the existing Context API boundary, authentication, Business isolation, persistence behavior, and PES Mobile architecture.",
-      "The Product Owner approved the standing Atlas visual migration sequence and instructed the bounded migration to repeat for VS-15 Context, then instructed the implementation blocker to be fixed and work to continue through the governed close-out.",
-      "Public Context remains subject to the existing owner-confirmation API rule; VS-15 exposes that rule in the UI rather than changing it.",
-      "Implementation head a46b9f28ec1e1d360c153adf8e90c40bbe0caca2 passed CI #223, Security baseline #208 and Product intake #192.",
-      "CI #223 includes authentic Expo Web runtime verification in Google Chrome at 390×844 and 768×1024, covering loading, recoverable failure, retry, provenance confirmation, draft-safe save failure, saving/success, authenticated Business boundary, no horizontal overflow, and 44px interactive targets.",
-      "Authentic native iOS keyboard, dynamic-type, VoiceOver and physical-device validation remain release-level evidence and are not represented as passed.",
-      "No API, domain, migration, auth, navigation, dependency, release, or production change is authorized."
+      "Implements the first bounded Category Intelligence Foundation slice: URL-first public Business discovery and owner confirmation.",
+      "Ordinary HTTPS public business websites, Wolt and Bolt Food are supported through a provider-neutral Public Business Snapshot; private connectors remain excluded.",
+      "Generic public URL fetching is an SSRF boundary: HTTPS only, no URL credentials/nonstandard ports, private/local/reserved targets and redirects are rejected, connection-time public-IP validation is enforced, proxy routing is disabled, and HTML reads are bounded.",
+      "Public observations retain provider/source URL/observed timestamp/confidence/evidence class and remain non-authoritative until owner confirmation; no fabricated business facts are permitted.",
+      "Initial Business creation from discovery is account-isolated and one-time, retaining provenance and assigning the existing Generic Business Knowledge Pack.",
+      "The approved post-onboarding visual retrofit covers Today/Home, Business/Profile, Goals and Context while preserving their existing functional/API/navigation boundaries.",
+      "Implementation head c8a3fa82dda624f555f63e47c598501bad86cfc7 passed CI run 31338865481, Security baseline run 31338865479 and Product Intake run 31338865478.",
+      "CI run 31338865481 includes authentic Expo Web verification at 390×844 and 768×1024 for URL-first discovery/confirmation plus the existing VS-15 Context regression journey; evidence is retained in artifact 9045216751 (sha256:0723f15429aa017e577ceb03121f445dd8c114669ce4e7481b3d00c0d64f6ef1).",
+      "No release, deployment or production enablement is authorized."
     ]
   },
   "approvals": [
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-15@1.0",
+      "version": "VS-16@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-09T17:18:00+02:00",
-      "rationale": "Product Owner approved the planned Atlas visual migration sequence and explicitly instructed that the migration repeat for VS-15 Context."
+      "at": "2026-08-09T21:12:00+02:00",
+      "rationale": "Product Owner approved the recommended VS-16 scope including ordinary public business websites plus Wolt/Bolt and instructed implementation to proceed."
     },
     {
       "type": "policy",
-      "status": "pending",
-      "version": null,
+      "status": "not-required",
+      "version": "VS-16@1.0",
       "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
+      "by": "ksazid",
+      "at": "2026-08-09T21:12:00+02:00",
+      "rationale": "VS-16 introduces no policy waiver or exception; it applies existing privacy/security requirements and adds stricter SSRF controls."
     },
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-15@1.0",
+      "version": "VS-16@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-09T17:18:00+02:00",
-      "rationale": "Product Owner approved implementation planning and coding for the bounded visual migration sequence; VS-15 remains limited to FR-05 and the written Context Visual Migration specification. Release and production remain unauthorized."
+      "at": "2026-08-09T21:12:00+02:00",
+      "rationale": "Product Owner instructed the approved VS-16 slice to proceed through implementation and completion. Release and production remain unauthorized."
     },
     {
       "type": "certification",
       "status": "approved",
-      "version": "VS-15@1.0",
-      "commitSha": "a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
+      "version": "VS-16@1.0",
+      "commitSha": "c8a3fa82dda624f555f63e47c598501bad86cfc7",
       "by": "ksazid",
-      "at": "2026-08-09T20:05:00+02:00",
-      "rationale": "Product Owner instructed the VS-15 blocker to be fixed and implementation to continue. The resulting implementation head passed the complete deterministic gate set plus authentic Expo Web runtime verification; release and production remain unauthorized."
+      "at": "2026-08-10T00:18:00+02:00",
+      "rationale": "Product Owner instructed the governed work to continue. Implementation head c8a3fa82dda624f555f63e47c598501bad86cfc7 passed exact-head CI, Security baseline and Product Intake, including authentic Expo Web discovery/confirmation and Context regression runtime evidence. Release and production remain unauthorized."
     },
     {
       "type": "release",
@@ -107,7 +119,7 @@
     }
   ],
   "decisionIds": [
-    "DEC-03"
+    "DEC-04"
   ],
   "progress": {
     "discovery": 100,
@@ -120,15 +132,18 @@
   },
   "certification": {
     "status": "passed",
-    "commitSha": "a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
+    "commitSha": "c8a3fa82dda624f555f63e47c598501bad86cfc7",
     "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31327837113",
-      "https://github.com/ksazid/project-atlas/actions/runs/31327837125",
-      "https://github.com/ksazid/project-atlas/actions/runs/31327837108",
-      "docs/evidence/VS-15-RUNTIME-2026-08-09.md",
-      "tests/mobile/context-model.test.mjs",
-      "tests/mobile/context-runtime.test.mjs",
-      "CI #223 artifact 9042066098 digest sha256:9bf31f2279766823cf03dfa48ead202ce07ed67d591886dcb904a6b2f5cb6d1a"
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865481",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865479",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865478",
+      "docs/evidence/VS-16-RUNTIME-2026-08-10.md",
+      "tests/api/BusinessDiscoveryPolicyTests.cs",
+      "tests/api/BusinessDiscoveryPersistenceTests.cs",
+      "tests/mobile/business-discovery-model.test.mjs",
+      "tests/mobile/business-discovery-runtime.test.mjs",
+      "tests/mobile/v2-visual-consistency.test.mjs",
+      "CI artifact 9045216751 digest sha256:0723f15429aa017e577ceb03121f445dd8c114669ce4e7481b3d00c0d64f6ef1"
     ]
   },
   "release": {
@@ -146,17 +161,18 @@
     "metrics": []
   },
   "links": {
-    "specification": "docs/slices/VS-15.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/21",
+    "specification": "docs/slices/VS-16.md",
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/22",
     "evidence": [
-      "docs/superpowers/specs/2026-08-09-vs-15-context-design.md",
-      "docs/superpowers/plans/2026-08-09-vs-15-context.md",
-      "docs/evidence/VS-15-RUNTIME-2026-08-09.md",
-      "tests/mobile/context-model.test.mjs",
-      "tests/mobile/context-runtime.test.mjs",
-      "https://github.com/ksazid/project-atlas/actions/runs/31327837113",
-      "https://github.com/ksazid/project-atlas/actions/runs/31327837125",
-      "https://github.com/ksazid/project-atlas/actions/runs/31327837108"
+      "docs/superpowers/specs/2026-08-09-vs-16-business-discovery-design.md",
+      "docs/superpowers/plans/2026-08-09-vs-16-business-discovery.md",
+      "docs/superpowers/specs/2026-08-09-atlas-v2-visual-consistency-retrofit-design.md",
+      "docs/superpowers/plans/2026-08-09-atlas-v2-visual-consistency-retrofit.md",
+      "docs/evidence/VS-16-RUNTIME-2026-08-10.md",
+      "tests/mobile/business-discovery-runtime.test.mjs",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865481",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865479",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865478"
     ]
   },
   "maxAttempts": 3

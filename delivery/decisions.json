@@ -48,6 +48,22 @@
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-09T17:18:00+02:00",
       "rationale": "The Product Owner approved the planned bounded migration sequence and instructed that existing navigation be preserved; repeating the migration for Context must not become a navigation or architecture rewrite."
+    },
+    {
+      "id": "DEC-04",
+      "sliceId": "VS-16",
+      "status": "approved",
+      "question": "Which public sources should the first Category Intelligence discovery slice support?",
+      "options": [
+        "Keep Wolt/Bolt public pages only",
+        "Support ordinary HTTPS business websites plus Wolt/Bolt through a provider-neutral safe public snapshot",
+        "Add private provider/POS connectors now"
+      ],
+      "decision": "Support ordinary HTTPS public business websites plus Wolt and Bolt Food public pages through a provider-neutral Public Business Snapshot, with conservative extraction, owner confirmation and SSRF-safe fetching. Private connectors remain out of scope.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-09T21:12:00+02:00",
+      "rationale": "The Product Owner explicitly approved the recommended VS-16 scope including normal public business websites plus Wolt/Bolt and instructed implementation to proceed through completion."
     }
   ]
 }

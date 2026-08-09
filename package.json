@@ -37,7 +37,7 @@
     "mobile:ios": "npm run ios --workspace @pes/mobile",
     "mobile:typecheck": "npm run typecheck --workspace @pes/mobile",
     "mobile:lint": "npm run lint --workspace @pes/mobile",
-    "mobile:test": "node --test tests/mobile/*.test.mjs",
+    "mobile:test": "node --test --test-concurrency=1 tests/mobile/*.test.mjs",
     "mobile:doctor": "npm run doctor --workspace @pes/mobile",
     "mobile:validate": "npm run mobile:dependencies && npm run mobile:typecheck && npm run mobile:lint && npm run mobile:test",
     "mobile:dependencies": "node scripts/mobile-dependencies.mjs",

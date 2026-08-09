@@ -12,7 +12,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const mobileRoot = path.join(root, 'apps/mobile');
 const sessionWebPath = path.join(mobileRoot, 'src/auth/session.web.ts');
-const artifactDir = path.join(root, 'dashboard/runtime-vs15');
+const artifactDir = path.join(root, 'dashboard/runtime-vs16');
 const runRuntime = process.env.CI === 'true' && process.env.GITHUB_ACTIONS === 'true';
 
 const sessionWebShim = `const ACCESS_TOKEN_KEY = 'atlas.access-token';
@@ -59,26 +59,29 @@ async function closeServer(server) {
 }
 
 function createApiFixture() {
-  const state = {
-    failGet: true,
-    failPut: false,
-    delayGetMs: 650,
-    delayPutMs: 0,
-    putCount: 0,
-    requests: [],
-    entries: [
-      { key: 'customers', value: 'Local commuters and nearby office teams', source: 'public', ownerConfirmed: false },
-      { key: 'busyperiods', value: 'Weekday mornings', source: 'owner', ownerConfirmed: true },
-      { key: 'constraints', value: 'Two-person morning team', source: 'owner', ownerConfirmed: true },
-      { key: 'currentpriorities', value: 'Reduce morning queue time', source: 'owner', ownerConfirmed: true },
-      { key: 'seasonalnotes', value: 'Summer footfall rises', source: 'public', ownerConfirmed: false }
-    ]
-  };
+  const state = { requests: [], discoveryCount: 0, createCount: 0, createBody: null };
+  const facts = [
+    ['name', 'Harbour Coffee', 'high'],
+    ['category', 'restaurant-cafe', 'high'],
+    ['subcategory', 'cafe', 'high'],
+    ['primaryLocation', '1 Republic Street, Valletta, MT', 'high'],
+    ['country', 'MT', 'high'],
+    ['description', 'Independent coffee shop and bakery', 'medium'],
+  ].map(([key, value, confidence]) => ({
+    key,
+    value,
+    source: 'website',
+    sourceUrl: 'https://harbour.example',
+    observedAt: '2026-08-09T20:00:00Z',
+    confidence,
+    evidenceClass: 'public-observed',
+    ownerConfirmed: false,
+  }));
 
   const server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'authorization,content-type');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
     res.setHeader('Content-Type', 'application/json');
     if (req.method === 'OPTIONS') {
       res.statusCode = 204;
@@ -87,47 +90,36 @@ function createApiFixture() {
     }
 
     const url = new URL(req.url ?? '/', 'http://runtime.invalid');
-    state.requests.push({ method: req.method, path: url.pathname, authorization: req.headers.authorization ?? null });
-    const prefix = '/api/v1/businesses/dev-business/context';
-    if (!url.pathname.startsWith(prefix)) {
-      res.statusCode = 404;
-      res.end(JSON.stringify({ message: 'Not found.' }));
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    const parsedBody = body ? JSON.parse(body) : null;
+    state.requests.push({ method: req.method, path: url.pathname, authorization: req.headers.authorization ?? null, body: parsedBody });
+
+    if (req.method === 'POST' && url.pathname === '/api/v1/business-discovery') {
+      state.discoveryCount += 1;
+      assert.equal(parsedBody?.url, 'https://harbour.example');
+      await delay(250);
+      res.end(JSON.stringify({
+        snapshotId: 'runtime-snapshot',
+        provider: 'website',
+        sourceUrl: 'https://harbour.example',
+        observedAt: '2026-08-09T20:00:00Z',
+        facts,
+      }));
       return;
     }
 
-    if (req.method === 'GET' && url.pathname === prefix) {
-      if (state.delayGetMs) await delay(state.delayGetMs);
-      if (state.failGet) {
-        res.statusCode = 503;
-        res.end(JSON.stringify({ message: 'Runtime fixture unavailable.' }));
-        return;
-      }
-      res.end(JSON.stringify(state.entries));
+    if (req.method === 'POST' && url.pathname === '/api/v1/businesses/from-discovery') {
+      state.createCount += 1;
+      state.createBody = parsedBody;
+      await delay(250);
+      res.statusCode = 201;
+      res.end(JSON.stringify({ id: 'runtime-business' }));
       return;
     }
 
-    if (req.method === 'PUT' && url.pathname.startsWith(`${prefix}/`)) {
-      if (state.delayPutMs) await delay(state.delayPutMs);
-      if (state.failPut) {
-        res.statusCode = 503;
-        res.end(JSON.stringify({ message: 'Runtime fixture save failed.' }));
-        return;
-      }
-      let body = '';
-      for await (const chunk of req) body += chunk;
-      const input = JSON.parse(body);
-      const key = decodeURIComponent(url.pathname.slice(prefix.length + 1)).trim().toLowerCase();
-      const next = { key, value: String(input.value ?? '').trim(), source: input.source, ownerConfirmed: Boolean(input.ownerConfirmed) };
-      const index = state.entries.findIndex(entry => entry.key.trim().toLowerCase() === key);
-      if (index >= 0) state.entries[index] = next;
-      else state.entries.push(next);
-      state.putCount += 1;
-      res.end(JSON.stringify(next));
-      return;
-    }
-
-    res.statusCode = 405;
-    res.end(JSON.stringify({ message: 'Method not allowed.' }));
+    res.statusCode = 404;
+    res.end(JSON.stringify({ message: 'Not found.' }));
   });
   return { server, state };
 }
@@ -162,7 +154,7 @@ function createStaticServer(exportRoot) {
 }
 
 async function runExpoExport(outputDir, apiUrl) {
-  const child = spawn('npx', ['expo', 'export', '--clear', '--platform', 'web', '--output-dir', outputDir], {
+  const child = spawn('npx', ['expo', 'export', '--platform', 'web', '--output-dir', outputDir], {
     cwd: mobileRoot,
     env: {
       ...process.env,
@@ -258,7 +250,7 @@ class CdpClient {
 }
 
 async function launchChrome(binary, appOrigin, userDataDir) {
-  const debugPort = 19000 + (process.pid % 1000);
+  const debugPort = 20000 + (process.pid % 1000);
   const child = spawn(binary, [
     '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--disable-background-networking',
     '--disable-default-apps', '--disable-extensions', '--no-first-run', '--no-default-browser-check',
@@ -304,13 +296,18 @@ function prHeadSha() {
   }
 }
 
-test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip: !runRuntime, timeout: 180000 }, async t => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'atlas-vs15-runtime-'));
+test('VS-16 URL-first discovery completes in authentic Expo Web runtime', { skip: !runRuntime, timeout: 180000 }, async t => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'atlas-vs16-runtime-'));
   const exportRoot = path.join(tempRoot, 'web');
   const chromeProfile = path.join(tempRoot, 'chrome');
   fs.mkdirSync(artifactDir, { recursive: true });
-  assert.equal(fs.existsSync(sessionWebPath), false, 'Tracked session.web.ts would invalidate the temporary runtime boundary.');
-  fs.writeFileSync(sessionWebPath, sessionWebShim);
+
+  // VS-15 uses the same temporary web-session seam. Give it the first setup turn
+  // when the full suite runs in parallel, then safely reuse the identical shim.
+  await delay(500);
+  const ownsSessionShim = !fs.existsSync(sessionWebPath);
+  if (ownsSessionShim) fs.writeFileSync(sessionWebPath, sessionWebShim);
+  else assert.equal(fs.readFileSync(sessionWebPath, 'utf8'), sessionWebShim, 'Existing session.web.ts is not the expected temporary runtime shim.');
 
   const fixture = createApiFixture();
   const apiPort = await listen(fixture.server);
@@ -324,7 +321,7 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
     if (chrome?.child && !chrome.child.killed) chrome.child.kill('SIGKILL');
     await closeServer(staticServer);
     await closeServer(fixture.server);
-    if (fs.existsSync(sessionWebPath)) fs.unlinkSync(sessionWebPath);
+    if (ownsSessionShim && fs.existsSync(sessionWebPath)) fs.unlinkSync(sessionWebPath);
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
@@ -343,107 +340,84 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
   await cdp.send('Network.setBlockedURLs', { urls: ['*upload.wikimedia.org*'] });
   await cdp.setViewport(390, 844, 2);
   await cdp.navigate(`${appOrigin}/`);
-  await cdp.evaluate(`localStorage.setItem('atlas.access-token','runtime-token'); localStorage.setItem('atlas.business-id','dev-business'); true`);
+  await cdp.evaluate(`localStorage.setItem('atlas.access-token','runtime-token'); localStorage.removeItem('atlas.business-id'); true`);
+  await cdp.navigate(`${appOrigin}/create-business`);
+  await cdp.waitFor('document.body.innerText.includes("Discovering your")', 'discovery entry screen', 10000);
+  assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, '390px discovery layout has horizontal overflow.');
 
-  fixture.state.failGet = true;
-  await cdp.navigate(`${appOrigin}/context`);
-  await cdp.waitFor('document.body.innerText.includes("Loading your business context")', 'Context loading state', 5000);
-  await cdp.waitFor('document.body.innerText.includes("Context is unavailable")', 'Context recoverable load error', 10000);
-  const retryHeight = await cdp.evaluate(`document.querySelector('[aria-label="Try loading business context again"]')?.getBoundingClientRect().height ?? 0`);
-  assert.ok(retryHeight >= 44, `Retry action must be at least 44px high, got ${retryHeight}`);
-  const errorScreenshot = path.join(artifactDir, 'context-390x844-load-error.png');
-  await cdp.screenshot(errorScreenshot);
+  await setInputByLabel(cdp, 'Business page URL', 'https://harbour.example');
+  await cdp.waitFor(`document.querySelector('[aria-label="Business page URL"]')?.value === 'https://harbour.example'`, 'business URL input', 3000);
+  await clickByLabel(cdp, 'Discover my business');
+  await cdp.waitFor('document.body.innerText.includes("We found your business!")', 'discovery confirmation', 10000);
+  assert.equal(fixture.state.discoveryCount, 1, 'Discovery API should be called once.');
+  const confirmText = await cdp.evaluate('document.body.innerText');
+  assert.match(confirmText, /Harbour Coffee/);
+  assert.match(confirmText, /Restaurant Cafe|Restaurant Café/);
+  assert.match(confirmText, /A few details are still needed/);
+  assert.match(confirmText, /Timezone/);
+  assert.match(confirmText, /Currency/);
+  assert.doesNotMatch(confirmText, /12,847|4\.6|6:00 AM|10:00 PM/);
+  const confirmScreenshot = path.join(artifactDir, 'discovery-390x844-confirm.png');
+  await cdp.screenshot(confirmScreenshot);
 
-  fixture.state.failGet = false;
-  fixture.state.delayGetMs = 450;
-  const getCountBeforeRetry = fixture.state.requests.filter(request => request.method === 'GET' && request.path.endsWith('/context')).length;
-  await clickByLabel(cdp, 'Try loading business context again');
-  const retryRequestDeadline = Date.now() + 1500;
-  while (Date.now() < retryRequestDeadline && fixture.state.requests.filter(request => request.method === 'GET' && request.path.endsWith('/context')).length <= getCountBeforeRetry) await delay(25);
-  const getCountAfterRetry = fixture.state.requests.filter(request => request.method === 'GET' && request.path.endsWith('/context')).length;
-  assert.ok(getCountAfterRetry > getCountBeforeRetry, `Retry click did not reach the Context GET boundary. GET count remained ${getCountAfterRetry}.`);
-  await cdp.waitFor('document.body.innerText.includes("Loading your business context")', 'Context retry loading state', 3000);
-  await cdp.waitFor('document.body.innerText.includes("Help Atlas understand how your business works.")', 'Context ready state', 10000);
-  assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, '390px Context layout has horizontal overflow.');
-  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Busy periods context"]')?.value`), 'Weekday mornings');
-  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Current priorities context"]')?.value`), 'Reduce morning queue time');
-  assert.equal(await cdp.evaluate('document.body.innerText.includes("ADDITIONAL SAVED CONTEXT")'), true, 'Unknown saved Context entry is not visible.');
-  const readyScreenshot = path.join(artifactDir, 'context-390x844-ready.png');
-  await cdp.screenshot(readyScreenshot);
+  const confirmActionHeight = await cdp.evaluate(`document.querySelector('[aria-label="Complete missing details"]')?.getBoundingClientRect().height ?? 0`);
+  assert.ok(confirmActionHeight >= 44, `Complete-details action must be at least 44px high, got ${confirmActionHeight}`);
+  await clickByLabel(cdp, 'Complete missing details');
+  await cdp.waitFor('document.body.innerText.includes("Fill only what Atlas still needs.")', 'missing details screen', 5000);
+  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Business name"]')?.value`), 'Harbour Coffee');
+  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Country"]')?.value`), 'MT');
+  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Timezone"]')?.value`), '', 'Timezone must not be silently inferred.');
+  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Currency"]')?.value`), '', 'Currency must not be silently inferred.');
+  await setInputByLabel(cdp, 'Timezone', 'Europe/Malta');
+  await setInputByLabel(cdp, 'Currency', 'EUR');
+  await cdp.waitFor(`document.querySelector('[aria-label="Timezone"]')?.value === 'Europe/Malta' && document.querySelector('[aria-label="Currency"]')?.value === 'EUR'`, 'owner-provided missing fields', 3000);
+  const missingScreenshot = path.join(artifactDir, 'discovery-390x844-missing-details.png');
+  await cdp.screenshot(missingScreenshot);
 
-  const initialPutCount = fixture.state.putCount;
-  await clickByLabel(cdp, 'Save business context');
-  await cdp.waitFor('document.body.innerText.includes("Confirm the public Customers context before saving.")', 'public provenance validation', 3000);
-  assert.equal(fixture.state.putCount, initialPutCount, 'Unconfirmed public context reached the PUT boundary.');
-
-  const uncheckedCount = await cdp.evaluate(`document.querySelectorAll('[role="checkbox"][aria-checked="false"]').length`);
-  assert.equal(uncheckedCount, 2, 'Expected both public Context entries to require owner confirmation.');
-  await cdp.evaluate(`Array.from(document.querySelectorAll('[role="checkbox"][aria-checked="false"]')).forEach(element => element.click()); true`);
-  await cdp.waitFor(`document.querySelectorAll('[role="checkbox"][aria-checked="false"]').length === 0`, 'owner confirmation controls', 3000);
-
-  await setInputByLabel(cdp, 'Customers context', 'Draft customer groups');
-  await cdp.waitFor(`document.querySelector('[aria-label="Customers context"]')?.value === 'Draft customer groups'`, 'customer draft update', 3000);
-  fixture.state.failPut = true;
-  fixture.state.delayPutMs = 250;
-  await clickByLabel(cdp, 'Save business context');
-  await cdp.waitFor('document.body.innerText.includes("Could not save context. Your changes are still here.")', 'draft-safe save failure', 7000);
-  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Customers context"]')?.value`), 'Draft customer groups', 'Save failure discarded the Context draft.');
-  await cdp.evaluate(`document.querySelector('[aria-label="Save business context"]')?.scrollIntoView({ block: 'center' }); true`);
-  const failureScreenshot = path.join(artifactDir, 'context-390x844-save-failure.png');
-  await cdp.screenshot(failureScreenshot);
-
-  fixture.state.failPut = false;
-  fixture.state.delayPutMs = 500;
-  await clickByLabel(cdp, 'Save business context');
-  await cdp.waitFor(`document.querySelector('[aria-label="Saving business context"]')?.getAttribute('aria-busy') === 'true'`, 'saving busy state', 3000);
-  assert.equal(await cdp.evaluate('document.body.innerText.includes("Saving…")'), true, 'Visible saving state is missing.');
-  await cdp.evaluate(`document.querySelector('[aria-label="Saving business context"]')?.scrollIntoView({ block: 'center' }); true`);
-  const savingScreenshot = path.join(artifactDir, 'context-390x844-saving.png');
-  await cdp.screenshot(savingScreenshot);
-  await cdp.waitFor('document.body.innerText.includes("Context saved.")', 'Context save success', 12000);
-  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Customers context"]')?.value`), 'Draft customer groups');
-  const savedScreenshot = path.join(artifactDir, 'context-390x844-save-success.png');
-  await cdp.screenshot(savedScreenshot);
-
-  const authenticatedRequests = fixture.state.requests.filter(request => request.path.startsWith('/api/v1/businesses/dev-business/context'));
-  assert.ok(authenticatedRequests.length >= 3, 'Runtime did not exercise the Context API boundary.');
-  assert.equal(authenticatedRequests.every(request => request.authorization === 'Bearer runtime-token'), true, 'Runtime Context request escaped the seeded authentication boundary.');
-
+  await clickByLabel(cdp, 'Review details');
+  await cdp.waitFor('document.body.innerText.includes("We found your business!") && document.body.innerText.includes("Confirm and continue")', 'completed confirmation', 5000);
   await cdp.setViewport(768, 1024, 1);
-  await cdp.evaluate('window.scrollTo(0, 0); true');
-  await delay(150);
-  assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, '768px Context layout has horizontal overflow.');
-  const tabletScreenshot = path.join(artifactDir, 'context-768x1024-ready.png');
+  assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, '768px confirmation layout has horizontal overflow.');
+  const tabletScreenshot = path.join(artifactDir, 'discovery-768x1024-confirm.png');
   await cdp.screenshot(tabletScreenshot);
+  await cdp.setViewport(390, 844, 2);
 
-  const interactiveHeights = await cdp.evaluate(`Array.from(document.querySelectorAll('[role="button"], [role="checkbox"]')).map(element => ({ label: element.getAttribute('aria-label'), height: element.getBoundingClientRect().height, disabled: element.getAttribute('aria-disabled') === 'true' }))`);
-  const undersized = interactiveHeights.filter(item => !item.disabled && item.height > 0 && item.height < 44);
-  assert.deepEqual(undersized, [], `Interactive Context targets below 44px: ${JSON.stringify(undersized)}`);
+  await clickByLabel(cdp, 'Confirm and continue');
+  await cdp.waitFor(`localStorage.getItem('atlas.business-id') === 'runtime-business'`, 'created business session', 10000);
+  assert.equal(fixture.state.createCount, 1, 'Business creation should consume discovery once.');
+  assert.equal(fixture.state.createBody?.snapshotId, 'runtime-snapshot');
+  assert.equal(fixture.state.createBody?.name, 'Harbour Coffee');
+  assert.equal(fixture.state.createBody?.country, 'MT');
+  assert.equal(fixture.state.createBody?.timezone, 'Europe/Malta');
+  assert.equal(fixture.state.createBody?.currency, 'EUR');
+  assert.equal(fixture.state.createBody?.ownerConfirmed, true);
+  assert.equal(fixture.state.createBody?.phone, '', 'Missing phone must remain unknown.');
+  assert.equal(fixture.state.createBody?.businessHours, '', 'Missing hours must remain unknown.');
 
-  const screenshots = [errorScreenshot, readyScreenshot, failureScreenshot, savingScreenshot, savedScreenshot, tabletScreenshot];
+  const authenticatedRequests = fixture.state.requests.filter(request => request.path.startsWith('/api/v1/business'));
+  assert.equal(authenticatedRequests.length >= 2, true, 'Runtime did not exercise discovery and create API boundaries.');
+  assert.equal(authenticatedRequests.every(request => request.authorization === 'Bearer runtime-token'), true, 'Runtime request escaped seeded authentication boundary.');
+
+  const screenshots = [confirmScreenshot, missingScreenshot, tabletScreenshot];
   const summary = {
     headSha: prHeadSha(),
     workflowSha: process.env.GITHUB_SHA ?? null,
-    route: '/context',
+    route: '/create-business',
     browser: chromeBinary,
     viewports: ['390x844@2x', '768x1024@1x'],
     assertions: {
-      loading: true,
-      recoverableLoadError: true,
-      retry: true,
-      normalizedServerKeysVisible: true,
-      unknownServerEntryPreserved: true,
-      publicOwnerConfirmation: true,
-      validationBlocksUnconfirmedSave: true,
-      saveFailurePreservesDraft: true,
-      savingBusyState: true,
-      saveSuccess: true,
-      authenticatedBusinessBoundary: true,
+      urlFirstDiscovery: true,
+      realObservedFactsOnly: true,
+      missingTimezoneCurrencyRemainUnknown: true,
+      ownerCompletesOnlyMissingFields: true,
+      exactSnapshotConsumed: true,
+      ownerConfirmationPersisted: true,
+      authenticatedApiBoundary: true,
       noHorizontalOverflow: true,
-      minimumInteractiveTargetPx: 44
+      minimumPrimaryTargetPx: 44,
     },
-    requestCount: authenticatedRequests.length,
-    putCount: fixture.state.putCount,
+    discoveryCount: fixture.state.discoveryCount,
+    createCount: fixture.state.createCount,
     screenshots: screenshots.map(file => ({ file: path.basename(file), sha256: sha256(file) }))
   };
   fs.writeFileSync(path.join(artifactDir, 'runtime-summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
