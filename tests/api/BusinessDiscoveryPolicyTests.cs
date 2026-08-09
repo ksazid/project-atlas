@@ -12,6 +12,9 @@ public sealed class BusinessDiscoveryPolicyTests
     [InlineData("https://example.com:8443")]
     [InlineData("https://localhost")]
     [InlineData("https://localhost.localdomain")]
+    [InlineData("https://printer.local")]
+    [InlineData("https://service.internal")]
+    [InlineData("https://fixture.test")]
     [InlineData("https://127.0.0.1")]
     [InlineData("https://10.0.0.8")]
     [InlineData("https://172.16.0.8")]
@@ -58,6 +61,16 @@ public sealed class BusinessDiscoveryPolicyTests
     public void UrlPolicy_ClassifiesResolvedAddresses(string value, bool expected)
     {
         Assert.Equal(expected, PublicBusinessUrlPolicy.IsPublicAddress(IPAddress.Parse(value)));
+    }
+
+    [Fact]
+    public void HttpHandler_DisablesRedirectsAndProxyRouting()
+    {
+        using var handler = PublicBusinessHttpHandlerFactory.Create();
+
+        Assert.False(handler.AllowAutoRedirect);
+        Assert.False(handler.UseProxy);
+        Assert.NotNull(handler.ConnectCallback);
     }
 
     [Fact]
