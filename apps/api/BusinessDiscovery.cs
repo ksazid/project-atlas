@@ -117,7 +117,7 @@ public sealed partial class BusinessDiscoveryService(HttpClient client)
     [GeneratedRegex("<meta[^>]+name=[\"']description[\"'][^>]+content=[\"']([^\"']+)[\"']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, 500)]
     private static partial Regex MetaDescriptionRegex();
 
-    [GeneratedRegex("[\"']streetAddress[\"']\s*:\s*[\"']([^\"']+)[\"']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, 500)]
+    [GeneratedRegex("[\"']streetAddress[\"']\\s*:\\s*[\"']([^\"']+)[\"']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, 500)]
     private static partial Regex StreetAddressRegex();
 }
 
