@@ -68,3 +68,12 @@ test('approved discovery screen contains no fabricated Starbucks demo facts', ()
   assert.doesNotMatch(source, /12,847|4\.6\s*⭐|\+1 \(415\)|6:00 AM – 10:00 PM/);
   assert.doesNotMatch(source, /reviews,\s*social profiles/i);
 });
+
+test('discovery screen respects reduced motion and exposes explicit action semantics', () => {
+  const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
+  assert.match(source, /AccessibilityInfo/);
+  assert.match(source, /isReduceMotionEnabled/);
+  for (const label of ['Discover my business', 'Set up manually instead', 'Complete missing details', 'Confirm and continue', 'Edit details', 'Review details', 'Create business']) {
+    assert.match(source, new RegExp(`accessibilityLabel=["'{][^\\n]*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'), `Missing explicit accessibility label for ${label}`);
+  }
+});
