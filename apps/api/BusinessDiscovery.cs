@@ -58,7 +58,7 @@ public static class BusinessCategoryTaxonomy
     }
 
     public static bool IsKnownCategory(string key) =>
-        Generic.Key.Equals(key, StringComparison.OrdinalIgnoreCase) || Categories.Any(x => x.Key.Equals(category.Key, StringComparison.OrdinalIgnoreCase));
+        Generic.Key.Equals(key, StringComparison.OrdinalIgnoreCase) || Categories.Any(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
 
     public static bool IsKnownSubcategory(string categoryKey, string? subcategoryKey)
     {
