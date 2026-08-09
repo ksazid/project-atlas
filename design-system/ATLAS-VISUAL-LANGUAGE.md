@@ -4,7 +4,9 @@ Status: **APPROVED / LOCKED**
 
 Approved visual reference: the four-screen Atlas onboarding composition explicitly approved by the Product Owner in chat: **Welcome → Sign In → Discover → Confirm**. The reference uses a light/airy white canvas, Atlas green identity, soft mint intelligence effects, modern iconography, subtle illustrations, and connected progress states.
 
-This reference supersedes the earlier purple/dark interpretation. Future screens must preserve this exact visual soul rather than introducing a new theme per slice.
+This reference supersedes the earlier purple/dark interpretation. The Starbucks getdesign palette, warm neutrals, hierarchy, spacing, cards, forms, buttons and depth are Atlas's primary visual grammar. Atlas remains the brand identity; the current test mark is prototype-only and rendered solely by `BrandMark`.
+
+Screen-level Starbucks URLs or labels, fabricated business data, copied retail identity, and reintroduction of the prior generic light-green theme are prohibited. Secondary skills may improve usability, accessibility, polish and motion only; they cannot override the primary visual grammar.
 
 ## Core character
 
@@ -12,8 +14,8 @@ Atlas should feel intelligent, optimistic, premium, modern, friendly, focused, a
 
 ## Visual DNA
 
-- White / near-white application canvas with generous whitespace.
-- Atlas green is the primary brand and action accent; use fresh medium/deep greens for CTAs, progress and important emphasis.
+- Warm neutral application canvas with generous whitespace.
+- Atlas green is the primary brand and action accent; use deep, medium and supporting greens for CTAs, progress and important emphasis.
 - Soft mint/green atmospheric gradients and glows may support AI/intelligence moments without overpowering content.
 - Blue and other soft supporting colours may appear in illustrations/data-source icons, but green remains dominant.
 - White elevated cards with very subtle grey/green borders and soft shadows.
@@ -73,14 +75,14 @@ Use simple, modern and consistent icons for navigation, security, source, locati
 
 ## Product rules
 
-1. This approved light-green reference is authoritative across Atlas.
-2. Do not revert to the previous purple/dark intelligence theme.
+1. The Starbucks getdesign grammar is authoritative across Atlas; the approved onboarding composition applies it to Atlas's own product identity.
+2. Do not revert to the previous purple/dark intelligence theme or the prior generic light-green theme.
 3. One primary action per screen.
 4. Ask only what Atlas cannot infer reliably.
 5. Prefer discovery + confirmation over manual entry.
 6. Never invent data, providers, authentication methods or discovered facts merely to match the reference image.
 7. Dashboard, category, opportunity, execution, outcome, review, settings and notification screens must extend this visual language.
-8. Design skills may improve hierarchy, accessibility, motion, responsiveness and polish, but may not replace this identity.
+8. Secondary skills may improve usability, accessibility, motion and polish, but may not override this primary visual grammar.
 9. PES Mobile architecture and business logic remain structurally independent of the visual language.
 10. When a visual decision is ambiguous, match the approved reference before introducing a new pattern.
 

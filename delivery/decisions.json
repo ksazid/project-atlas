@@ -1,1 +1,21 @@
-{"schemaVersion":1,"decisions":[]}
+{
+  "schemaVersion": 1,
+  "decisions": [
+    {
+      "id": "DEC-01",
+      "sliceId": "VS-13",
+      "status": "approved",
+      "question": "How should Atlas use the Starbucks design experiment while preparing for its final identity?",
+      "options": [
+        "Keep screen-level trademark assets",
+        "Use Starbucks visual grammar with one replaceable BrandMark boundary",
+        "Retain the previous Atlas light-green system"
+      ],
+      "decision": "Use Starbucks visual grammar as Atlas's primary design authority and centralize the temporary test mark in one replaceable BrandMark component.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-09T12:54:00+02:00",
+      "rationale": "The Product Owner approved the visual-system migration, confirmed that the current mark is temporary, and required a one-change replacement boundary."
+    }
+  ]
+}

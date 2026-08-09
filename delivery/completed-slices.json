@@ -117,6 +117,50 @@
         ]
       },
       "maxAttempts": 3
+    },
+    {
+      "schemaVersion": 2,
+      "sliceId": "VS-11",
+      "title": "Notifications",
+      "status": "completed",
+      "lifecycle": "certified",
+      "riskLevel": "medium",
+      "implementationMode": "runtime-disabled",
+      "requirements": ["FR-15"],
+      "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
+      "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","VS-10@e9be1f4489d734abd3f427db4f23c8ad4bc80c54"],
+      "blockers": [],
+      "allowedPaths": ["apps/mobile/**","apps/api/**","tests/**","delivery/**","docs/**","README.md","scripts/**",".github/workflows/ci.yml",".github/workflows/intake.yml",".github/workflows/security.yml"],
+      "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
+      "impact": {
+        "areas": ["frontend","api","authorization","customer-flow","analytics"],
+        "notes": [
+          "Adds owner-controlled in-app notifications for meaningful Atlas events and follow-ups.",
+          "Notification records are business-isolated, deduplicated, auditable and derived only from authoritative Atlas records.",
+          "Preferences cover Today Focus, Outcome follow-up and Weekly Review reminders with safe defaults.",
+          "Read/unread state and deep-link targets are persisted; delivery does not imply action completion or outcome causation.",
+          "Mobile Notification Center supports unread state, mark-read/read-all, pull-to-refresh, safe deep links, preference controls and explicit external-delivery boundaries.",
+          "No external push, SMS, email provider, paid service, production credential or production delivery is activated in VS-11.",
+          "PES framework, tab structure, authentication and state-management conventions remain unchanged.",
+          "Runtime remains disabled outside development/test; release, deployment and production enablement are not authorized."
+        ]
+      },
+      "approvals": [
+        {"type":"scope","status":"approved","version":"ATLAS-PRD-001@1.0","commitSha":"e9be1f4489d734abd3f427db4f23c8ad4bc80c54","by":"ksazid","at":"2026-08-07T19:59:00+02:00","rationale":"Product Owner instructed starting VS-11 after certified VS-10 merge."},
+        {"type":"policy","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+        {"type":"implementation","status":"approved","version":"VS-11@1.0","commitSha":"b7030ff3c17b4c440709125f1ca442b00e38d664","by":"ksazid","at":"2026-08-08T08:21:00+02:00","rationale":"VS-11 implementation completed and CI #168, Security baseline #157 and Product intake #142 passed on the exact implementation head."},
+        {"type":"certification","status":"approved","version":"VS-11@1.0","commitSha":"b7030ff3c17b4c440709125f1ca442b00e38d664","by":"ksazid","at":"2026-08-08T08:21:00+02:00","rationale":"Product Owner instructed proceeding to the next close-out step after all VS-11 implementation gates passed."},
+        {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+        {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
+      ],
+      "decisionIds": [],
+      "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
+      "certification": {"status":"passed","commitSha":"b7030ff3c17b4c440709125f1ca442b00e38d664","evidence":["CI #168 passed","Security baseline #157 passed","Product intake #142 passed"]},
+      "release": {"status":"not-authorized","releaseId":null},
+      "rollback": {"status":"not-applicable","rollbackId":null},
+      "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
+      "links": {"specification":"docs/slices/VS-11.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/16","evidence":["apps/api/Notifications.cs","apps/api/Migrations/20260807220000_Notifications.cs","apps/mobile/src/features/notifications/NotificationCenterScreen.tsx","apps/mobile/app/notifications.tsx"]},
+      "maxAttempts": 3
     }
   ]
 }

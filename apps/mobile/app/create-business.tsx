@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { createBusiness } from '@/api/atlas-client';
 import { BusinessDiscovery, discoverBusiness } from '@/api/business-discovery';
 import { loadSession, saveSession } from '@/auth/session';
+import { BrandMark } from '@/components/BrandMark';
 
 type FormState={name:string;category:string;country:string;timezone:string;currency:string;primaryLocation:string;operatingStatus:string};
 const emptyForm:FormState={name:'',category:'',country:'',timezone:'',currency:'',primaryLocation:'',operatingStatus:'Open'};
 const GREEN='#00754A';
-const LOGO='https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/512px-Starbucks_Corporation_Logo_2011.svg.png';
 
 export default function CreateBusinessScreen(){
  const[stage,setStage]=useState<'discover'|'confirm'|'manual'>('discover');const[url,setUrl]=useState('');const[discovery,setDiscovery]=useState<BusinessDiscovery|null>(null);const[form,setForm]=useState<FormState>(emptyForm);const[busy,setBusy]=useState(false);const[error,setError]=useState<string|null>(null);const pulse=useRef(new Animated.Value(0)).current;
@@ -38,7 +38,7 @@ export default function CreateBusinessScreen(){
    <Back/><View style={s.confetti}><Text style={s.confettiText}>◆   ◇        ◆       ◇</Text></View><View style={s.success}><Text style={s.successText}>✓</Text></View>
    <Text style={s.eyebrow}>CONFIRM</Text><Text style={s.title}>We found your business!</Text><Text style={s.body}>Review the details and confirm if everything looks right.</Text>
 
-   <View style={s.businessCard}><Image source={{uri:LOGO}} style={s.businessLogo}/><View style={s.businessCopy}><View style={s.nameRow}><Text numberOfLines={1} style={s.businessName}>{form.name||'Starbucks'}</Text><View style={s.verified}><Text style={s.verifiedText}>Verified ●</Text></View></View><View style={s.categoryPill}><Text style={s.categoryPillText}>{humanize(form.category)||'Coffee Shop'}</Text></View>{starbucksDemo?<Text style={s.rating}>4.6 ⭐  (12,847 reviews)</Text>:<Text style={s.rating}>Public profile connected</Text>}<Text style={s.site}>⊕  {discovery?providerLabel(discovery.provider):'starbucks.com'}</Text></View></View>
+   <View style={s.businessCard}><BrandMark size={76} style={s.businessLogo}/><View style={s.businessCopy}><View style={s.nameRow}><Text numberOfLines={1} style={s.businessName}>{form.name||'Starbucks'}</Text><View style={s.verified}><Text style={s.verifiedText}>Verified ●</Text></View></View><View style={s.categoryPill}><Text style={s.categoryPillText}>{humanize(form.category)||'Coffee Shop'}</Text></View>{starbucksDemo?<Text style={s.rating}>4.6 ⭐  (12,847 reviews)</Text>:<Text style={s.rating}>Public profile connected</Text>}<Text style={s.site}>⊕  {discovery?providerLabel(discovery.provider):'starbucks.com'}</Text></View></View>
 
    <View style={s.photoRow}><Photo label="STORE" tone="#294B3C"/><Photo label="COFFEE" tone="#C59A72"/><Photo label="FOOD" tone="#A76839"/></View>
 

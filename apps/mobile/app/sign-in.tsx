@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { authorizeWithProvider } from '@/auth/provider';
 import { saveSession } from '@/auth/session';
+import { BrandMark } from '@/components/BrandMark';
 
 const GREEN='#00754A';
-const LOGO='https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/512px-Starbucks_Corporation_Logo_2011.svg.png';
 
 export default function SignInScreen(){
  const[busy,setBusy]=useState(false);const[error,setError]=useState<string|null>(null);const[loginHint,setLoginHint]=useState('');
  async function signIn(){setBusy(true);setError(null);try{const accessToken=await authorizeWithProvider(loginHint);await saveSession({accessToken});router.replace('/create-business')}catch(reason){const code=reason instanceof Error?reason.message:'sign_in_failed';setError(code==='sign_in_cancelled'?'Sign-in was cancelled.':code==='identity_provider_unavailable'?'Sign-in is temporarily unavailable.':'We could not sign you in securely.')}finally{setBusy(false)}}
  return <View style={s.container}>
    <View style={s.mintGlowA}/><View style={s.mintGlowB}/>
-   <Image source={{uri:LOGO}} style={s.logo} accessibilityLabel="Starbucks logo"/>
+   <BrandMark size={72} style={s.logo}/>
    <Text accessibilityRole="header" style={s.title}>Welcome back 👋</Text>
-   <Text style={s.subtitle}>Sign in to continue to Starbucks AI</Text>
+   <Text style={s.subtitle}>Sign in to continue to Atlas</Text>
 
    <Text style={s.label}>Email or phone</Text>
    <View style={s.inputShell}><Text style={s.icon}>✉</Text><TextInput accessibilityLabel="Email or phone" autoCapitalize="none" autoCorrect={false} value={loginHint} onChangeText={setLoginHint} placeholder="you@company.com" placeholderTextColor="#83908A" style={s.input}/></View>
