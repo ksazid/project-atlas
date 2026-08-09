@@ -1,44 +1,172 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-11",
-  "title": "Notifications",
-  "status": "completed",
-  "lifecycle": "certified",
+  "sliceId": "VS-13",
+  "title": "VS-13 — Business Profile Visual Migration",
+  "status": "active",
+  "lifecycle": "certification",
   "riskLevel": "medium",
-  "implementationMode": "runtime-disabled",
-  "requirements": ["FR-15"],
-  "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","VS-10@e9be1f4489d734abd3f427db4f23c8ad4bc80c54"],
+  "implementationMode": "runtime-enabled",
+  "requirements": [
+    "FR-03"
+  ],
+  "owners": {
+    "product": "ksazid",
+    "engineering": "ksazid",
+    "operations": "ksazid",
+    "security": "ksazid"
+  },
+  "dependencies": [
+    "ATLAS-PRD-001",
+    "ATLAS-TRD-001",
+    "VS-02@9c080a4a8867076be95ddd672b646e7eb5f2a535"
+  ],
   "blockers": [],
-  "allowedPaths": ["apps/mobile/**","apps/api/**","tests/**","delivery/**","docs/**","README.md","scripts/**",".github/workflows/ci.yml",".github/workflows/intake.yml",".github/workflows/security.yml"],
-  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
+  "allowedPaths": [
+    ".agents/**",
+    "apps/mobile/**",
+    "tests/mobile/**",
+    "delivery/**",
+    "docs/**",
+    "product/DESIGN.md",
+    "design-system/**"
+  ],
+  "protectedPaths": [
+    ".github/workflows/release.yml",
+    "infrastructure/**",
+    "**/Payments/**",
+    "**/Uploads/**"
+  ],
   "impact": {
-    "areas": ["frontend","api","authorization","customer-flow","analytics"],
+    "areas": [
+      "frontend",
+      "customer-flow"
+    ],
     "notes": [
-      "Adds owner-controlled in-app notifications for meaningful Atlas events and follow-ups.",
-      "Notification records are business-isolated, deduplicated, auditable and derived only from authoritative Atlas records.",
-      "Preferences cover Today Focus, Outcome follow-up and Weekly Review reminders with safe defaults.",
-      "Read/unread state and deep-link targets are persisted; delivery does not imply action completion or outcome causation.",
-      "Mobile Notification Center supports unread state, mark-read/read-all, pull-to-refresh, safe deep links, preference controls and explicit external-delivery boundaries.",
-      "No external push, SMS, email provider, paid service, production credential or production delivery is activated in VS-11.",
-      "PES framework, tab structure, authentication and state-management conventions remain unchanged.",
-      "Runtime remains disabled outside development/test; release, deployment and production enablement are not authorized."
+      "Migrates the existing authenticated Business/Profile experience to the approved Atlas visual system.",
+      "Consolidates the temporary test mark behind one replaceable presentation boundary without changing API, domain, authentication, navigation, release or production behavior.",
+      "The user mandated restoration of the official Superpowers workflow as a prerequisite before VS-13 activation; .agents/** is allowed only for that tracked prerequisite and does not expand runtime product scope."
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"ATLAS-PRD-001@1.0","commitSha":"e9be1f4489d734abd3f427db4f23c8ad4bc80c54","by":"ksazid","at":"2026-08-07T19:59:00+02:00","rationale":"Product Owner instructed starting VS-11 after certified VS-10 merge."},
-    {"type":"policy","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
-    {"type":"implementation","status":"approved","version":"VS-11@1.0","commitSha":"b7030ff3c17b4c440709125f1ca442b00e38d664","by":"ksazid","at":"2026-08-08T08:21:00+02:00","rationale":"VS-11 implementation completed and CI #168, Security baseline #157 and Product intake #142 passed on the exact implementation head."},
-    {"type":"certification","status":"approved","version":"VS-11@1.0","commitSha":"b7030ff3c17b4c440709125f1ca442b00e38d664","by":"ksazid","at":"2026-08-08T08:21:00+02:00","rationale":"Product Owner instructed proceeding to the next close-out step after all VS-11 implementation gates passed."},
-    {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
-    {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
+    {
+      "type": "scope",
+      "status": "approved",
+      "version": "VS-13@1.0",
+      "commitSha": null,
+      "by": "ksazid",
+      "at": "2026-08-09T12:54:00+02:00",
+      "rationale": "Product Owner approved the written VS-13 Business Profile Visual Migration specification."
+    },
+    {
+      "type": "policy",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    },
+    {
+      "type": "implementation",
+      "status": "approved",
+      "version": "VS-13@1.0",
+      "commitSha": null,
+      "by": "ksazid",
+      "at": "2026-08-09T12:54:00+02:00",
+      "rationale": "Product Owner approved runtime implementation bound to the written VS-13 Business Profile Visual Migration specification."
+    },
+    {
+      "type": "certification",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    },
+    {
+      "type": "release",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    },
+    {
+      "type": "production-enable",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    }
   ],
-  "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
-  "certification": {"status":"passed","commitSha":"b7030ff3c17b4c440709125f1ca442b00e38d664","evidence":["CI #168 passed","Security baseline #157 passed","Product intake #142 passed"]},
-  "release": {"status":"not-authorized","releaseId":null},
-  "rollback": {"status":"not-applicable","rollbackId":null},
-  "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-  "links": {"specification":"docs/slices/VS-11.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/16","evidence":["apps/api/Notifications.cs","apps/api/Migrations/20260807220000_Notifications.cs","apps/mobile/src/features/notifications/NotificationCenterScreen.tsx","apps/mobile/app/notifications.tsx"]},
+  "decisionIds": [
+    "DEC-01"
+  ],
+  "progress": {
+    "discovery": 100,
+    "decisions": 100,
+    "implementation": 100,
+    "testing": 100,
+    "certification": 0,
+    "release": 0,
+    "validation": 0
+  },
+  "certification": {
+    "status": "running",
+    "commitSha": null,
+    "evidence": [
+      "Final-review implementation SHA e54c9e1f695002e32472dd9992fd09c9efa8c7df passed focused deterministic and authentic Expo Web recovery/saving checks; this subsequent governance-evidence commit still requires preflight and remote exact-head gates before certification may pass.",
+      "npm run planning:validate",
+      "npm run governance:validate",
+      "npm run slice:validate",
+      "npm run dashboard:check",
+      "npm run platform:validate",
+      "npm run mobile:validate",
+      "npm run preflight",
+      "tests/mobile/profile-model.test.mjs",
+      "docs/evidence/VS-13-RUNTIME-2026-08-09.md",
+      "apps/mobile/src/auth/session-routing.ts",
+      "apps/mobile/src/features/profile/profile-model.ts",
+      "Native iOS keyboard, dynamic-type, and physical-device validation remain pending and are not represented as passed by this local evidence."
+    ]
+  },
+  "release": {
+    "status": "not-authorized",
+    "releaseId": null
+  },
+  "rollback": {
+    "status": "not-applicable",
+    "rollbackId": null
+  },
+  "postRelease": {
+    "status": "not-started",
+    "reviewAt": null,
+    "expectedOutcome": null,
+    "metrics": []
+  },
+  "links": {
+    "specification": "docs/slices/VS-13.md",
+    "implementationPr": null,
+    "evidence": [
+      "docs/evidence/VS-13-RUNTIME-2026-08-09.md",
+      "docs/evidence/vs-13/profile-390x844-diagnostic.png",
+      "docs/evidence/vs-13/profile-390x844-opening-hours-focused.png",
+      "docs/evidence/vs-13/profile-390x844-ready.png",
+      "docs/evidence/vs-13/profile-390x844-save-reachable.png",
+      "docs/evidence/vs-13/profile-768x1024-ready.png",
+      "docs/evidence/vs-13/sign-in-390x844.png",
+      "docs/evidence/vs-13/welcome-390x844.png",
+      "apps/mobile/app/(tabs)/profile.tsx",
+      "apps/mobile/app/(tabs)/index.tsx",
+      "apps/mobile/app/index.tsx",
+      "apps/mobile/src/auth/session-routing.ts",
+      "apps/mobile/src/features/profile/profile-model.ts",
+      "tests/mobile/profile-model.test.mjs"
+    ]
+  },
   "maxAttempts": 3
 }

@@ -1,26 +1,22 @@
 ---
 title: Atlas Design Baseline
 document_id: ATLAS-DESIGN-001
-version: 1.1
+version: 1.2
 status: Approved
 owner: Product Design
-last_updated: 2026-08-06
+last_updated: 2026-08-09
 depends_on:
   - ATLAS-PRD-001
 source: Innovation-Lab/ventures/atlas/artifacts/DESIGN.md
 ---
 
-# Atlas Design Baseline v1.1
+# Atlas Design Baseline v1.2
 
 ## Frozen direction
 
-Atlas uses a calm, action-first, mobile-first product language:
+Atlas uses a calm, action-first, mobile-first product language. Its primary visual grammar is the Starbucks getdesign palette, warm neutrals, hierarchy, spacing, cards, forms, buttons and depth. Atlas retains its own brand identity: the current test mark is prototype-only and rendered solely by `BrandMark`.
 
-- **70% Niva AI Family Assistant** — calm AI-first home, whitespace, card hierarchy and low cognitive load;
-- **20% Senso** — polished detail views, progress presentation, Weekly Review and purposeful micro-interactions;
-- **10% Apple/Emil principles** — native navigation discipline, spacing, sheets, motion, haptics and interaction feedback.
-
-These references guide principles, not copying. Atlas must retain its own identity and must not imitate a specific Apple application or reproduce third-party artwork, branding or layouts.
+The experience remains calm and low-cognitive-load, with polished progressive detail, disciplined native navigation, and purposeful feedback. These are product experience constraints, not visual-authority sources or prescribed screen treatments. Secondary skills may improve usability, accessibility, polish and motion only; they cannot override the primary visual grammar. Atlas must retain its own identity and must not imitate or reproduce third-party artwork, branding or layouts.
 
 ## Design objective
 
@@ -111,7 +107,7 @@ All components use shared design tokens.
 - Generous whitespace without reducing information clarity.
 - Premium polish without decorative clutter.
 
-Final brand colours may evolve through an approved design decision without changing the experience hierarchy.
+Do not use screen-level Starbucks URLs or labels, fabricated business data, copied retail identity, or reintroduce the prior generic light-green theme. Final brand colours may evolve through an approved design decision without changing the experience hierarchy.
 
 ## Confidence, impact and effort
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { loadSession } from '@/auth/session';
+import { getSessionDestination } from '@/auth/session-routing';
 
 export default function Index() {
   const [destination, setDestination] = useState<'/welcome' | '/create-business' | '/(tabs)' | null>(null);
@@ -11,7 +12,7 @@ export default function Index() {
     loadSession()
       .then((session) => {
         if (!active) return;
-        setDestination(!session ? '/welcome' : session.businessId ? '/(tabs)' : '/create-business');
+        setDestination(getSessionDestination(session));
       })
       .catch(() => active && setDestination('/welcome'));
     return () => { active = false; };

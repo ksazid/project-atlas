@@ -1,26 +1,25 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { BrandMark } from '@/components/BrandMark';
 
 const DARK = '#003B2F';
-const GREEN = '#00A862';
-const LOGO = 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/512px-Starbucks_Corporation_Logo_2011.svg.png';
 
 export default function WelcomeScreen() {
   return (
     <ScrollView contentContainerStyle={s.container} showsVerticalScrollIndicator={false}>
       <View style={[s.leaf,s.leafTopA]}/><View style={[s.leaf,s.leafTopB]}/><View style={[s.leaf,s.leafLeftA]}/><View style={[s.leaf,s.leafLeftB]}/><View style={[s.leaf,s.leafRightA]}/><View style={[s.leaf,s.leafRightB]}/>
 
-      <Image source={{uri:LOGO}} style={s.logo} accessibilityLabel="Starbucks logo"/>
+      <BrandMark size={78} style={s.logo}/>
 
       <Text accessibilityRole="header" style={s.title}>Work smarter.{`\n`}<Text style={s.accent}>Grow faster.</Text></Text>
       <Text style={s.subtitle}>Your AI co-pilot for finding{`\n`}insights and growing your{`\n`}business.</Text>
 
-      <View style={s.hero} accessibilityLabel="Starbucks cup hero illustration">
+      <View style={s.hero} accessibilityLabel="Atlas hero illustration">
         <View style={s.platformGlow}/><View style={s.platform}/><View style={s.platformTop}/>
         <View style={s.cupShadow}/>
         <View style={s.cup}>
           <View style={s.lidBack}/><View style={s.lid}/><View style={s.lidLip}/>
-          <Image source={{uri:LOGO}} style={s.cupLogo}/>
+          <BrandMark decorative size={78} style={s.cupLogo}/>
         </View>
       </View>
 

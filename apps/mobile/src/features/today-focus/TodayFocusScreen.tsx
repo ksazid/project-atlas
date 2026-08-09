@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, T
 import { router } from 'expo-router';
 import { decideOpportunity, getTodayFocus, type OpportunityDecision, type TodayFocus } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
+import { BrandMark } from '@/components/BrandMark';
 
 type ScreenState = 'loading' | 'ready' | 'empty' | 'error';
 
@@ -88,7 +89,7 @@ export function TodayFocusScreen() {
       refreshControl={<RefreshControl tintColor={GREEN} refreshing={refreshing} onRefresh={() => void load(true)} />}
     >
       <View style={styles.topRow}>
-        <View style={styles.brandMark}><Text style={styles.brandMarkText}>S</Text></View>
+        <BrandMark size={46} />
         <Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.historyButton}><Text style={styles.historyText}>History</Text></Pressable>
       </View>
 
@@ -147,8 +148,6 @@ function StateShell({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   container: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 64, paddingBottom: 42, backgroundColor: '#FFF' },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 34 },
-  brandMark: { width: 46, height: 46, borderRadius: 23, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center' },
-  brandMarkText: { color: '#FFF', fontFamily: 'Georgia', fontSize: 22, fontWeight: '800' },
   historyButton: { minHeight: 42, paddingHorizontal: 16, borderRadius: 21, borderWidth: 1, borderColor: '#DCE4DF', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
   historyText: { fontSize: 12, fontWeight: '800', color: GREEN },
   eyebrow: { fontSize: 11, letterSpacing: 1.1, fontWeight: '900', color: GREEN, marginBottom: 9 },

@@ -1,6 +1,6 @@
-# Atlas Secondary Design Reference — getdesign Starbucks
+# Atlas Primary Visual Grammar — getdesign Starbucks
 
-Status: **REFERENCE ONLY — NOT AUTHORITATIVE**
+Status: **APPROVED PRIMARY VISUAL GRAMMAR**
 
 Source command requested by Product Owner:
 
@@ -10,13 +10,13 @@ npx getdesign@latest add starbucks
 
 Source catalog: https://getdesign.md/starbucks/design-md
 
-## Authority order
+## Authority and identity
 
-1. **Approved Atlas four-screen reference** — Welcome → Sign In → Discover → Confirm.
-2. `design-system/ATLAS-VISUAL-LANGUAGE.md`.
-3. This Starbucks-derived reference, used only to improve polish.
+This Starbucks getdesign reference is Atlas's primary visual grammar: palette, warm neutrals, hierarchy, spacing, cards, forms, buttons and depth. Atlas remains the brand identity; the current test mark is prototype-only and rendered solely by `BrandMark`.
 
-This reference must never replace Atlas branding, screen composition, information architecture, or approved onboarding layout.
+Screen-level Starbucks URLs or labels, fabricated business data, copied retail identity, and reintroduction of the prior generic light-green theme are prohibited. Secondary skills may improve usability, accessibility, polish and motion only; they cannot override the primary visual grammar.
+
+The approved Atlas four-screen reference — Welcome → Sign In → Discover → Confirm — remains the product composition reference. This visual grammar must never replace Atlas branding, screen composition, information architecture, or approved onboarding layout.
 
 ## Useful patterns to borrow
 
@@ -27,7 +27,7 @@ This reference must never replace Atlas branding, screen composition, informatio
 - Mid supporting green: `#2B5148`
 - Mint validation/support: `#D4E9E2`
 
-Atlas may translate these into its existing approved green family rather than copying them literally when a closer reference-screen value exists.
+Atlas may translate these visual values into its own identity rather than copying Starbucks branding or proprietary retail identity.
 
 ### Warm surfaces
 - Primary warm canvas: `#F2F0EB`
@@ -99,5 +99,7 @@ Do **not** claim sales, repeat orders, table bookings, profitability, customer c
 
 - Do not copy Starbucks trademarks, logos, retail imagery or proprietary brand identity.
 - Do not make Atlas look like Starbucks.
+- Do not introduce screen-level Starbucks URLs or labels.
 - Do not override the approved Atlas screenshot.
-- Do not fabricate restaurant data to fill visual slots.
+- Do not fabricate business or restaurant data to fill visual slots.
+- Do not reintroduce the prior generic light-green theme.
