@@ -6,9 +6,11 @@ import { loadSession } from '@/auth/session';
 import { getSessionDestination } from '@/auth/session-routing';
 import { TodayFocusScreen } from '@/features/today-focus/TodayFocusScreen';
 
+type Destination = ReturnType<typeof getSessionDestination>;
+
 export default function HomeScreen() {
   const { sessionEntry } = useLocalSearchParams<{ sessionEntry?: string }>();
-  const [destination, setDestination] = useState<'/welcome' | '/create-business' | '/(tabs)' | null>(null);
+  const [destination, setDestination] = useState<Destination | null>(null);
 
   useEffect(() => {
     if (sessionEntry !== '1') return;
