@@ -1,13 +1,13 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-13",
-  "title": "VS-13 — Business Profile Visual Migration",
+  "sliceId": "VS-14",
+  "title": "VS-14 — Goals Visual Migration",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "certification",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
-    "FR-03"
+    "FR-04"
   ],
   "owners": {
     "product": "ksazid",
@@ -18,17 +18,15 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-02@9c080a4a8867076be95ddd672b646e7eb5f2a535"
+    "VS-02@9c080a4a8867076be95ddd672b646e7eb5f2a535",
+    "VS-13@0788b03b02ad86753de6da4eb27ad355b520dbc7"
   ],
   "blockers": [],
   "allowedPaths": [
-    ".agents/**",
     "apps/mobile/**",
     "tests/mobile/**",
     "delivery/**",
-    "docs/**",
-    "product/DESIGN.md",
-    "design-system/**"
+    "docs/**"
   ],
   "protectedPaths": [
     ".github/workflows/release.yml",
@@ -42,20 +40,20 @@
       "customer-flow"
     ],
     "notes": [
-      "Migrates the existing authenticated Business/Profile experience to the approved Atlas visual system.",
-      "Consolidates the temporary test mark behind one replaceable presentation boundary without changing API, domain, authentication, navigation, release or production behavior.",
-      "The user mandated restoration of the official Superpowers workflow as a prerequisite before VS-13 activation; .agents/** is allowed only for that tracked prerequisite and does not expand runtime product scope."
+      "Migrates the existing authenticated Goals experience to the approved Atlas visual system while preserving the existing Business API boundary, goal persistence, Business isolation, and PES Mobile architecture.",
+      "The Product Owner approved the standing five-slice visual migration sequence; VS-14 is limited to the written Goals Visual Migration design and FR-04.",
+      "No API, domain, migration, auth, navigation, dependency, release, or production change is authorized."
     ]
   },
   "approvals": [
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-13@1.0",
+      "version": "VS-14@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-09T12:54:00+02:00",
-      "rationale": "Product Owner approved the written VS-13 Business Profile Visual Migration specification."
+      "at": "2026-08-09T15:30:00+02:00",
+      "rationale": "Product Owner approved the standing five-slice Atlas visual migration sequence, including the written VS-14 Goals Visual Migration specification."
     },
     {
       "type": "policy",
@@ -69,20 +67,20 @@
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-13@1.0",
+      "version": "VS-14@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-09T12:54:00+02:00",
-      "rationale": "Product Owner approved runtime implementation bound to the written VS-13 Business Profile Visual Migration specification."
+      "at": "2026-08-09T15:30:00+02:00",
+      "rationale": "Product Owner approved runtime implementation and testing for the bounded written VS-14 Goals Visual Migration specification; release and production remain unauthorized."
     },
     {
       "type": "certification",
-      "status": "approved",
-      "version": "VS-13@1.0",
-      "commitSha": "6cfe2be5520fc2938e13c82a04524a967e03bbde",
-      "by": "ksazid",
-      "at": "2026-08-09T15:18:46+02:00",
-      "rationale": "Product Owner instructed certification and merge after the exact PR head passed CI #214, Security baseline #201 and Product intake #185; release and production remain unauthorized."
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
     },
     {
       "type": "release",
@@ -104,37 +102,32 @@
     }
   ],
   "decisionIds": [
-    "DEC-01"
+    "DEC-02"
   ],
   "progress": {
     "discovery": 100,
     "decisions": 100,
     "implementation": 100,
     "testing": 100,
-    "certification": 100,
+    "certification": 0,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "passed",
-    "commitSha": "6cfe2be5520fc2938e13c82a04524a967e03bbde",
+    "status": "running",
+    "commitSha": "f7db805b0788050dc9d66830294a4745a53a7843",
     "evidence": [
-      "Remote PR head 6cfe2be5520fc2938e13c82a04524a967e03bbde has tree e91285bd544099dd3f80d92df04c389f8f9deb0f, exactly matching locally reviewed head 0303eadf9c26e47eab3a5060a7c988a9554e3b71.",
-      "https://github.com/ksazid/project-atlas/actions/runs/31315368737",
-      "https://github.com/ksazid/project-atlas/actions/runs/31315368747",
-      "https://github.com/ksazid/project-atlas/actions/runs/31315368728",
+      "Local implementation/test head f7db805b0788050dc9d66830294a4745a53a7843 passed planning, governance, slice, dashboard, platform, Expo-isolated mobile validation, and preflight on 2026-08-09.",
       "npm run planning:validate",
       "npm run governance:validate",
       "npm run slice:validate",
       "npm run dashboard:check",
       "npm run platform:validate",
-      "npm run mobile:validate",
-      "npm run preflight",
-      "tests/mobile/profile-model.test.mjs",
-      "docs/evidence/VS-13-RUNTIME-2026-08-09.md",
-      "apps/mobile/src/auth/session-routing.ts",
-      "apps/mobile/src/features/profile/profile-model.ts",
-      "Native iOS keyboard, dynamic-type, and physical-device validation remain pending and are not represented as passed by this local evidence."
+      "EXPO_NO_TELEMETRY=1 __UNSAFE_EXPO_HOME_DIRECTORY=/tmp/atlas-vs14-expo npm run mobile:validate",
+      "EXPO_NO_TELEMETRY=1 __UNSAFE_EXPO_HOME_DIRECTORY=/tmp/atlas-vs14-expo npm run preflight",
+      "tests/mobile/goals-model.test.mjs",
+      "docs/evidence/VS-14-RUNTIME-2026-08-09.md",
+      "Native iOS keyboard, dynamic-type, screen-reader traversal, physical-device, and native automation validation remain pending and are not represented as passed by this local evidence."
     ]
   },
   "release": {
@@ -152,26 +145,15 @@
     "metrics": []
   },
   "links": {
-    "specification": "docs/slices/VS-13.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/19",
+    "specification": "docs/slices/VS-14.md",
+    "implementationPr": null,
     "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31315368737",
-      "https://github.com/ksazid/project-atlas/actions/runs/31315368747",
-      "https://github.com/ksazid/project-atlas/actions/runs/31315368728",
-      "docs/evidence/VS-13-RUNTIME-2026-08-09.md",
-      "docs/evidence/vs-13/profile-390x844-diagnostic.png",
-      "docs/evidence/vs-13/profile-390x844-opening-hours-focused.png",
-      "docs/evidence/vs-13/profile-390x844-ready.png",
-      "docs/evidence/vs-13/profile-390x844-save-reachable.png",
-      "docs/evidence/vs-13/profile-768x1024-ready.png",
-      "docs/evidence/vs-13/sign-in-390x844.png",
-      "docs/evidence/vs-13/welcome-390x844.png",
-      "apps/mobile/app/(tabs)/profile.tsx",
-      "apps/mobile/app/(tabs)/index.tsx",
-      "apps/mobile/app/index.tsx",
-      "apps/mobile/src/auth/session-routing.ts",
-      "apps/mobile/src/features/profile/profile-model.ts",
-      "tests/mobile/profile-model.test.mjs"
+      "docs/evidence/VS-14-RUNTIME-2026-08-09.md",
+      "docs/evidence/vs-14/goals-390x844-ready.png",
+      "docs/evidence/vs-14/goals-390x844-custom-validation.png",
+      "docs/evidence/vs-14/goals-390x844-save-failure.png",
+      "docs/evidence/vs-14/goals-390x844-save-success.png",
+      "docs/evidence/vs-14/goals-768x1024-ready.png"
     ]
   },
   "maxAttempts": 3
