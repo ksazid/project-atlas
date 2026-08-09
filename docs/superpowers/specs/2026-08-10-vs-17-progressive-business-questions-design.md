@@ -1,6 +1,6 @@
 # VS-17 — Progressive Business Questions
 
-Status: Approved design candidate
+Status: Written for Product Owner review
 Date: 2026-08-10
 Product authority: ATLAS-PRD-001, ATLAS-TRD-001, ATLAS-DESIGN-001, Category Intelligence Foundation locked direction
 Depends on: VS-16 merged to `main` at `4febc069a796ebcc7cdc871629695ab7631bb71c`
@@ -9,9 +9,9 @@ Depends on: VS-16 merged to `main` at `4febc069a796ebcc7cdc871629695ab7631bb71c`
 
 VS-17 adds a lightweight, resumable intelligence-enrichment step immediately after Business creation:
 
-URL discovery/manual setup → owner confirms Business → Business is created → Atlas asks 3–5 highest-value missing questions → owner answers or skips → owner reaches Today/first-value handoff.
+URL discovery/manual setup → owner confirms Business → Business is created → Atlas asks up to 3–5 highest-value missing questions → owner answers or skips → owner reaches Today/first-value handoff.
 
-The questions improve Business Context without becoming a new onboarding blocker. Every question is skippable. A skipped answer remains unknown and reduces evidence coverage/confidence until Atlas has a justified reason to ask again later.
+The questions improve Business Context without becoming a new onboarding blocker. Every question is skippable. A skipped answer remains unknown and reduces evidence coverage/confidence until Atlas has a justified reason to ask again later. The combined fast-onboarding journey should continue to target roughly 60–90 seconds when VS-16 enrichment succeeds and the owner uses tap-first answers.
 
 VS-17 does not implement Knowledge Pack Schema v2, Restaurant/Cafe opportunity recipes, category-specific metrics or the first category-aware Opportunity. Those remain later slices.
 
@@ -23,7 +23,7 @@ VS-17 does not implement Knowledge Pack Schema v2, Restaurant/Cafe opportunity r
 4. UI is tap-first and one-question-at-a-time, using single/multi-select controls where possible and short free text only when necessary.
 5. Business is created before VS-17 begins, so answers persist directly against a real Business and onboarding can resume safely.
 6. All eight initial category families receive lightweight category-specific question overrides on top of a shared generic core.
-7. A skipped question is suppressed for its current catalogue/version and may reappear later only when the missing answer becomes materially valuable to a recommendation or data-coverage decision.
+7. A skipped question is recorded against its exact catalogue/version and remains suppressed throughout onboarding across later catalogue versions with the same stable question key unless a future explicitly approved material-value re-ask policy activates it.
 
 ## Approaches considered
 
@@ -61,10 +61,12 @@ This preserves predictable UX, testability, provenance and global/category exten
 - resumable progress after app interruption;
 - answered values persisted as owner-confirmed Business Context;
 - skipped/completed question status persisted separately from Business facts;
-- reopening a skipped question later only through an explicit material-value policy;
+- suppression of skipped stable question keys across normal catalogue upgrades;
+- reopening a skipped question later only through a separately approved material-value re-ask policy;
 - generic fallback for unsupported/unknown categories;
 - accessibility, reduced motion, offline/error/retry and small-screen behavior;
-- authentic Expo Web runtime evidence for the hero flow.
+- authentic Expo Web runtime evidence for the hero flow;
+- preserve the roughly 60–90 second fast-onboarding target where discovery succeeds.
 
 ### Out of scope
 
@@ -77,6 +79,7 @@ This preserves predictable UX, testability, provenance and global/category exten
 - mandatory completion of optional questions;
 - changing VS-16 Business creation/provenance semantics;
 - navigation redesign;
+- recommendation-triggered re-asking of skipped questions;
 - release, deployment or production enablement.
 
 ## Initial category families
@@ -105,7 +108,7 @@ The server owns the catalogue definition. A catalogue has:
 
 Each question definition contains:
 
-- `questionKey` — immutable stable identifier;
+- `questionKey` — immutable stable identifier across catalogue versions when the semantic question remains the same;
 - `targetContextKey` — canonical Business Context key written when answered;
 - `appliesToCategories[]` — generic or one/more canonical category keys;
 - optional `appliesToSubcategories[]` for future compatibility, unused unless explicitly populated;
@@ -116,10 +119,10 @@ Each question definition contains:
 - `options[]` for bounded choice types;
 - `maxSelections` where relevant;
 - `maxLength` for text;
-- `materialityTags[]` — later policy hooks such as demand, capacity, customer, channel, constraint;
+- `materialityTags[]` — future policy hooks such as demand, capacity, customer, channel, constraint;
 - `suppressWhenKnown` — normally true.
 
-Published catalogue versions are immutable. A new wording/option/eligibility change creates a new catalogue version rather than mutating history.
+Published catalogue versions are immutable. A new wording/option/eligibility change creates a new catalogue version rather than mutating history. Semantic identity is carried by the stable `questionKey`, so ordinary version changes do not reset skip/answer suppression.
 
 ## Question content principles
 
@@ -145,16 +148,16 @@ Category overrides may replace wording/options or add higher-priority questions.
 
 ## Deterministic selection algorithm
 
-For a Business and catalogue version:
+For a Business and current catalogue version:
 
 1. load canonical Business fields, Profile, Business Context and retained public/discovery provenance;
-2. load onboarding progress for the current catalogue/version;
+2. load onboarding question progress across the catalogue lineage by stable `questionKey`, retaining exact source version metadata;
 3. resolve canonical category/subcategory;
 4. form candidate set from generic questions plus matching category overrides;
 5. suppress a question when its target context key already has a trustworthy owner-confirmed or accepted canonical value;
-6. suppress questions already answered for that catalogue lineage where their target context remains present;
-7. suppress questions skipped in the current catalogue/version during onboarding;
-8. rank remaining candidates by deterministic priority, category specificity and stable question key tie-break;
+6. suppress questions already answered where their target context remains present;
+7. suppress questions previously skipped with the same stable `questionKey` unless a future separately approved material-value re-ask policy explicitly activates them;
+8. rank remaining candidates by deterministic priority, category specificity and stable question-key tie-break;
 9. return at most five and at least three when that many useful candidates exist;
 10. if fewer than three useful unknowns remain, return only the useful questions—never create filler.
 
@@ -206,6 +209,8 @@ Recommended entity: `BusinessQuestionProgress`:
 
 Unique key: `(BusinessId, CatalogueKey, CatalogueVersion, QuestionKey)`.
 
+Selection queries progress by stable `QuestionKey` across the catalogue lineage. The exact version remains retained for audit/history, while semantic skip/answer suppression survives an ordinary catalogue version upgrade.
+
 Answered progress references the Business Context key conceptually rather than duplicating the value.
 
 ## Skip and re-ask policy
@@ -218,16 +223,17 @@ Answered progress references the Business Context key conceptually rather than d
 - never blocks completion;
 - is not treated as negative feedback or a refusal to share data globally.
 
-During the same onboarding run/version, skipped questions remain suppressed.
+A stable skipped `questionKey` remains suppressed during onboarding even when a later catalogue version is published. A version change by itself is never sufficient reason to re-ask.
 
-A later product surface may re-surface a skipped question only if:
+A future product surface may re-surface a skipped question only if:
 
+- a separately approved material-value re-ask policy is implemented;
 - the current intelligence/opportunity/data-coverage workflow explicitly declares that context materially valuable;
 - the owner has not subsequently answered equivalent context;
 - the UI explains why the answer would help;
 - skipping remains available unless a future separately approved requirement makes the data mandatory.
 
-VS-17 records the metadata needed for this future behavior but does not implement recommendation-triggered re-asking beyond basic resume semantics.
+VS-17 records the metadata needed for this future behavior but does not implement recommendation-triggered re-asking.
 
 ## API design
 
@@ -319,7 +325,7 @@ Because Business exists before VS-17:
 
 - answered/skipped progress is server-persisted after each question;
 - reopening the app requests the current eligible set again;
-- completed/skipped questions for the current version remain suppressed;
+- answered/skipped stable question keys remain suppressed across normal catalogue upgrades;
 - the owner resumes at the next useful question;
 - local draft for the current unsaved text/multi-select question may be preserved in component state but is not considered saved until server confirmation;
 - a failed save/skip preserves the current answer selection and exposes retry.
@@ -370,7 +376,7 @@ Business created by VS-16/manual flow
   → authenticated Business id
   → server loads catalogue v1
   + canonical Business/Profile/Context/provenance
-  + question progress
+  + question progress across catalogue lineage
   → deterministic eligibility/ranking
   → 0–5 selected questions
   → mobile one-question flow
@@ -390,7 +396,8 @@ Business created by VS-16/manual flow
 - category override precedence is deterministic;
 - already-known target context suppresses question;
 - unconfirmed raw public observation does not incorrectly suppress owner-context question;
-- skipped current-version question is suppressed;
+- skipped stable question key remains suppressed across ordinary catalogue version upgrade;
+- version change alone cannot re-ask a skipped question;
 - answered question is suppressed when target context remains present;
 - deterministic priority/tie-break returns max five;
 - fewer than three useful candidates returns fewer rather than filler;
@@ -403,7 +410,7 @@ Business created by VS-16/manual flow
 - answer writes owner-confirmed Business Context and one progress record atomically;
 - skip creates no fake/empty context value;
 - retry/duplicate answer/skip has stable behavior;
-- progress resumes across requests;
+- progress resumes across requests and catalogue version upgrade;
 - clean PostgreSQL migration;
 - existing `/context` API remains compatible.
 
@@ -418,6 +425,7 @@ Business created by VS-16/manual flow
 - failure preserves current draft;
 - Continue for now works during optional-service/offline failure;
 - completion routes to existing owner journey;
+- realistic tap-first flow remains consistent with the 60–90 second fast-onboarding target;
 - phone/tablet no-overflow and >=44pt targets;
 - accessibility selected/progress/error states;
 - reduced-motion behavior;
@@ -441,8 +449,10 @@ VS-17 is complete only when:
 - every question is skippable;
 - answered facts are stored only in canonical Business Context as owner-confirmed values;
 - answered/skipped catalogue progress is separately versioned/persisted;
-- current-version skips do not nag during onboarding;
+- stable skipped question keys do not nag during onboarding or ordinary catalogue upgrades;
+- no re-ask occurs without a future separately approved material-value policy;
 - one-question-at-a-time tap-first mobile flow is resumable and accessible;
+- fast onboarding remains designed around the roughly 60–90 second target when discovery succeeds;
 - optional enrichment failure cannot trap the owner from reaching the existing product;
 - no AI-generated onboarding questions, Knowledge Pack v2 logic or category Opportunity generation leaks into scope;
 - deterministic tests, clean migration, API tests, mobile/runtime evidence, Security, Product Intake and CI pass at exact implementation SHA;
