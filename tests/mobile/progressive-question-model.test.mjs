@@ -95,3 +95,16 @@ test('successful Business creation hands off to progressive questions instead of
   const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
   assert.match(source, /saveSession\(\{ \.\.\.session, businessId: business\.id \}\)[\s\S]{0,180}router\.replace\(['"]\/progressive-questions['"]\)/);
 });
+
+test('progressive question screen preserves the approved optional one-question Atlas experience', () => {
+  const source = readFileSync('apps/mobile/app/progressive-questions.tsx', 'utf8');
+
+  assert.match(source, /A LITTLE MORE CONTEXT/);
+  assert.match(source, /Skip for now/);
+  assert.match(source, /Continue for now/);
+  assert.match(source, /That[’']s enough to get started\./);
+  assert.match(source, /accessibilityRole="header"/);
+  assert.match(source, /accessibilityState=\{\{[^}]*selected:/s);
+  assert.match(source, /minHeight:\s*44/);
+  assert.doesNotMatch(source, /starbucks/i);
+});
