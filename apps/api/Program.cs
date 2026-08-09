@@ -10,7 +10,11 @@ builder.Services.AddOpenApi();
 builder.Services.AddHttpClient<BusinessDiscoveryService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(8);
-}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+}).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    AllowAutoRedirect = false,
+    ConnectCallback = PublicBusinessHttpConnector.ConnectAsync
+});
 builder.Services.AddDbContext<AtlasDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Atlas") ??
         "Host=localhost;Port=5432;Database=atlas;Username=postgres;Password=postgres"));
