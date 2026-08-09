@@ -276,8 +276,16 @@ async function launchChrome(binary, appOrigin, userDataDir) {
 }
 
 async function clickByLabel(cdp, label) {
-  const clicked = await cdp.evaluate(`(() => { const element = document.querySelector('[aria-label=${JSON.stringify(label)}]'); if (!element) return false; element.click(); return true; })()`);
-  assert.equal(clicked, true, `Could not find interactive element labelled ${label}`);
+  const rect = await cdp.evaluate(`(() => {
+    const element = document.querySelector('[aria-label=${JSON.stringify(label)}]');
+    if (!element) return null;
+    const box = element.getBoundingClientRect();
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2, width: box.width, height: box.height };
+  })()`);
+  assert.ok(rect && rect.width > 0 && rect.height > 0, `Could not find visible interactive element labelled ${label}`);
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: rect.x, y: rect.y });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: rect.x, y: rect.y, button: 'left', clickCount: 1 });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: rect.x, y: rect.y, button: 'left', clickCount: 1 });
 }
 
 async function setInputByLabel(cdp, label, value) {
