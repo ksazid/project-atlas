@@ -73,7 +73,9 @@ test('discovery screen respects reduced motion and exposes explicit action seman
   const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
   assert.match(source, /AccessibilityInfo/);
   assert.match(source, /isReduceMotionEnabled/);
-  for (const label of ['Discover my business', 'Set up manually instead', 'Complete missing details', 'Confirm and continue', 'Edit details', 'Review details', 'Create business']) {
+  for (const label of ['Discover my business', 'Set up manually instead', 'Edit details', 'Review details', 'Create business']) {
     assert.match(source, new RegExp(`accessibilityLabel=["'{][^\\n]*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'), `Missing explicit accessibility label for ${label}`);
   }
+  assert.match(source, /const confirmLabel = missing\.length > 0 \? 'Complete missing details' : 'Confirm and continue'/);
+  assert.match(source, /accessibilityLabel=\{confirmLabel\}/);
 });
