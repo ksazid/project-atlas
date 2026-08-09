@@ -3,7 +3,7 @@
   "sliceId": "VS-16",
   "title": "VS-16 — URL-First Business Discovery & Owner Confirmation",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "high",
   "implementationMode": "runtime-enabled",
   "requirements": [
@@ -53,9 +53,12 @@
     "notes": [
       "Implements the first bounded Category Intelligence Foundation slice: URL-first public Business discovery and owner confirmation.",
       "Ordinary HTTPS public business websites, Wolt and Bolt Food are supported through a provider-neutral Public Business Snapshot; private connectors remain excluded.",
-      "Generic public URL fetching is an SSRF boundary and must reject local/private/reserved targets and redirects.",
-      "Public observations remain non-authoritative until owner confirmation; no fabricated business facts are permitted.",
-      "The existing BrandMark boundary, manual Business creation path, authentication, Business isolation and modular-monolith architecture are preserved.",
+      "Generic public URL fetching is an SSRF boundary: HTTPS only, no URL credentials/nonstandard ports, private/local/reserved targets and redirects are rejected, connection-time public-IP validation is enforced, proxy routing is disabled, and HTML reads are bounded.",
+      "Public observations retain provider/source URL/observed timestamp/confidence/evidence class and remain non-authoritative until owner confirmation; no fabricated business facts are permitted.",
+      "Initial Business creation from discovery is account-isolated and one-time, retaining provenance and assigning the existing Generic Business Knowledge Pack.",
+      "The approved post-onboarding visual retrofit covers Today/Home, Business/Profile, Goals and Context while preserving their existing functional/API/navigation boundaries.",
+      "Implementation head c8a3fa82dda624f555f63e47c598501bad86cfc7 passed CI run 31338865481, Security baseline run 31338865479 and Product Intake run 31338865478.",
+      "CI run 31338865481 includes authentic Expo Web verification at 390×844 and 768×1024 for URL-first discovery/confirmation plus the existing VS-15 Context regression journey; evidence is retained in artifact 9045216751 (sha256:0723f15429aa017e577ceb03121f445dd8c114669ce4e7481b3d00c0d64f6ef1).",
       "No release, deployment or production enablement is authorized."
     ]
   },
@@ -89,12 +92,12 @@
     },
     {
       "type": "certification",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
+      "status": "approved",
+      "version": "VS-16@1.0",
+      "commitSha": "c8a3fa82dda624f555f63e47c598501bad86cfc7",
+      "by": "ksazid",
+      "at": "2026-08-10T00:18:00+02:00",
+      "rationale": "Product Owner instructed the governed work to continue. Implementation head c8a3fa82dda624f555f63e47c598501bad86cfc7 passed exact-head CI, Security baseline and Product Intake, including authentic Expo Web discovery/confirmation and Context regression runtime evidence. Release and production remain unauthorized."
     },
     {
       "type": "release",
@@ -121,16 +124,27 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 5,
-    "testing": 0,
-    "certification": 0,
+    "implementation": 100,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
-    "evidence": []
+    "status": "passed",
+    "commitSha": "c8a3fa82dda624f555f63e47c598501bad86cfc7",
+    "evidence": [
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865481",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865479",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865478",
+      "docs/evidence/VS-16-RUNTIME-2026-08-10.md",
+      "tests/api/BusinessDiscoveryPolicyTests.cs",
+      "tests/api/BusinessDiscoveryPersistenceTests.cs",
+      "tests/mobile/business-discovery-model.test.mjs",
+      "tests/mobile/business-discovery-runtime.test.mjs",
+      "tests/mobile/v2-visual-consistency.test.mjs",
+      "CI artifact 9045216751 digest sha256:0723f15429aa017e577ceb03121f445dd8c114669ce4e7481b3d00c0d64f6ef1"
+    ]
   },
   "release": {
     "status": "not-authorized",
@@ -148,10 +162,17 @@
   },
   "links": {
     "specification": "docs/slices/VS-16.md",
-    "implementationPr": null,
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/22",
     "evidence": [
       "docs/superpowers/specs/2026-08-09-vs-16-business-discovery-design.md",
-      "docs/superpowers/plans/2026-08-09-vs-16-business-discovery.md"
+      "docs/superpowers/plans/2026-08-09-vs-16-business-discovery.md",
+      "docs/superpowers/specs/2026-08-09-atlas-v2-visual-consistency-retrofit-design.md",
+      "docs/superpowers/plans/2026-08-09-atlas-v2-visual-consistency-retrofit.md",
+      "docs/evidence/VS-16-RUNTIME-2026-08-10.md",
+      "tests/mobile/business-discovery-runtime.test.mjs",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865481",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865479",
+      "https://github.com/ksazid/project-atlas/actions/runs/31338865478"
     ]
   },
   "maxAttempts": 3
