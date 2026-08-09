@@ -97,6 +97,9 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     public DbSet<ActionDecisionRecord> ActionDecisionRecords => Set<ActionDecisionRecord>();
     public DbSet<Outcome> Outcomes => Set<Outcome>(); public DbSet<BusinessMemoryItem> BusinessMemoryItems => Set<BusinessMemoryItem>();
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>(); public DbSet<NotificationRecord> NotificationRecords => Set<NotificationRecord>();
+    public DbSet<BusinessDiscoverySnapshot> BusinessDiscoverySnapshots => Set<BusinessDiscoverySnapshot>();
+    public DbSet<BusinessDiscoveryFact> BusinessDiscoveryFacts => Set<BusinessDiscoveryFact>();
+    public DbSet<BusinessProfileField> BusinessProfileFields => Set<BusinessProfileField>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -108,6 +111,26 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<BusinessMembership>().HasIndex(x => new { x.BusinessId, x.UserAccountId, x.Role }).IsUnique();
         modelBuilder.Entity<BusinessMembership>().HasOne(x => x.UserAccount).WithMany().HasForeignKey(x => x.UserAccountId);
         modelBuilder.Entity<AuditRecord>().HasIndex(x => new { x.BusinessId, x.OccurredAt });
+
+        modelBuilder.Entity<BusinessDiscoverySnapshot>().Property(x => x.Provider).HasMaxLength(80);
+        modelBuilder.Entity<BusinessDiscoverySnapshot>().Property(x => x.SourceUrl).HasMaxLength(2000);
+        modelBuilder.Entity<BusinessDiscoverySnapshot>().HasIndex(x => new { x.UserAccountId, x.CreatedAt });
+        modelBuilder.Entity<BusinessDiscoverySnapshot>().HasIndex(x => x.BusinessId);
+        modelBuilder.Entity<BusinessDiscoveryFact>().Property(x => x.Key).HasMaxLength(80);
+        modelBuilder.Entity<BusinessDiscoveryFact>().Property(x => x.Value).HasMaxLength(4000);
+        modelBuilder.Entity<BusinessDiscoveryFact>().Property(x => x.Source).HasMaxLength(80);
+        modelBuilder.Entity<BusinessDiscoveryFact>().Property(x => x.SourceUrl).HasMaxLength(2000);
+        modelBuilder.Entity<BusinessDiscoveryFact>().Property(x => x.Confidence).HasMaxLength(20);
+        modelBuilder.Entity<BusinessDiscoveryFact>().Property(x => x.EvidenceClass).HasMaxLength(40);
+        modelBuilder.Entity<BusinessDiscoveryFact>().HasIndex(x => new { x.SnapshotId, x.Key }).IsUnique();
+        modelBuilder.Entity<BusinessDiscoveryFact>().HasOne(x => x.Snapshot).WithMany(x => x.Facts).HasForeignKey(x => x.SnapshotId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<BusinessProfileField>().Property(x => x.Key).HasMaxLength(80);
+        modelBuilder.Entity<BusinessProfileField>().Property(x => x.Value).HasMaxLength(4000);
+        modelBuilder.Entity<BusinessProfileField>().Property(x => x.Source).HasMaxLength(40);
+        modelBuilder.Entity<BusinessProfileField>().Property(x => x.SourceUrl).HasMaxLength(2000);
+        modelBuilder.Entity<BusinessProfileField>().Property(x => x.Confidence).HasMaxLength(20);
+        modelBuilder.Entity<BusinessProfileField>().Property(x => x.EvidenceClass).HasMaxLength(40);
+        modelBuilder.Entity<BusinessProfileField>().HasIndex(x => new { x.BusinessId, x.Key }).IsUnique();
 
         modelBuilder.Entity<KnowledgePack>().Property(x => x.Version).IsRowVersion();
         modelBuilder.Entity<KnowledgePackVersion>().Property(x => x.ConcurrencyVersion).IsRowVersion();
