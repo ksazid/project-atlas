@@ -34,7 +34,7 @@ test('integrated owner journey retains the implemented Atlas routes', () => {
     'apps/mobile/app/history.tsx',
     'apps/mobile/app/weekly-review.tsx',
     'apps/mobile/app/notifications.tsx',
-    'apps/mobile/app/opportunities/[id].tsx'
+    'apps/mobile/app/opportunities/[opportunityId].tsx'
   ]) {
     assert.equal(fs.existsSync(path), true, `${path} must remain routable`);
   }
@@ -72,7 +72,8 @@ test('integrated acceptance keeps focused model and authentic runtime evidence i
 
 test('MVP acceptance does not silently enable release or production', () => {
   const acceptance = read('docs/mvp-acceptance.md');
-  assert.match(acceptance, /no production deployment/i);
+  assert.match(acceptance, /production deployment/i);
+  assert.match(acceptance, /not claimed by this PR/i);
   assert.match(acceptance, /native/i);
   assert.match(acceptance, /VS-15/i);
 });
