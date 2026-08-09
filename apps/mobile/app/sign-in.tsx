@@ -20,7 +20,7 @@ export default function SignInScreen() {
       if (code === 'sign_in_cancelled') {
         setError('Sign-in was cancelled. No account changes were made.');
       } else if (code === 'identity_provider_unavailable') {
-        setError('The identity provider is temporarily unavailable. Please try again.');
+        setError('Sign-in is temporarily unavailable. Please try again.');
       } else {
         setError('We could not sign you in securely. Please try again.');
       }
@@ -31,31 +31,33 @@ export default function SignInScreen() {
 
   return (
     <View style={styles.container}>
-      <Text accessibilityRole="header" style={styles.title}>Welcome to Atlas</Text>
-      <Text style={styles.body}>
-        Sign in securely through the configured identity provider. Atlas uses Authorization Code with PKCE and never stores a client secret in the mobile app.
-      </Text>
+      <Text style={styles.eyebrow}>ATLAS</Text>
+      <Text accessibilityRole="header" style={styles.title}>Welcome back</Text>
+      <Text style={styles.body}>Sign in to continue to your business intelligence workspace.</Text>
       {error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{error}</Text> : null}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Sign in securely"
+        accessibilityLabel="Sign in"
         disabled={busy}
         onPress={signIn}
         style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, busy && styles.buttonDisabled]}
       >
-        {busy ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.buttonText}>Sign in securely</Text>}
+        {busy ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.buttonText}>Sign in</Text>}
       </Pressable>
+      <Text style={styles.security}>Your authentication remains provider-managed; Atlas does not store your password in the app.</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, gap: 18 },
-  title: { fontSize: 32, fontWeight: '700' },
-  body: { fontSize: 16, lineHeight: 24 },
-  error: { fontSize: 15, lineHeight: 22, fontWeight: '600' },
-  button: { minHeight: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#111827' },
+  container: { flex: 1, justifyContent: 'center', padding: 24, gap: 18, backgroundColor: '#F8FAFC' },
+  eyebrow: { fontSize: 12, fontWeight: '800', letterSpacing: 2, color: '#64748B' },
+  title: { fontSize: 34, fontWeight: '800', color: '#0F172A' },
+  body: { fontSize: 16, lineHeight: 24, color: '#475569' },
+  error: { fontSize: 15, lineHeight: 22, fontWeight: '600', color: '#991B1B' },
+  button: { minHeight: 52, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0F172A' },
   buttonPressed: { opacity: 0.88 },
   buttonDisabled: { opacity: 0.65 },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
+  security: { fontSize: 12, lineHeight: 18, color: '#64748B', textAlign: 'center' },
 });
