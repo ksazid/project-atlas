@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -345,9 +345,9 @@ const styles = StyleSheet.create({
   primaryButton: { alignItems: 'center', backgroundColor: GREEN, borderRadius: 10, flexDirection: 'row', gap: 8, justifyContent: 'center', minHeight: 55, paddingHorizontal: 22 },
   primaryButtonText: { color: '#FFF', fontSize: 15, fontWeight: '900' },
   secondaryButton: { alignItems: 'center', borderColor: GREEN, borderRadius: 10, borderWidth: 1, justifyContent: 'center', minHeight: 50, paddingHorizontal: 18 },
-  secondaryButtonText: { color: '#0A2F25', fontSize: 14, fontWeight: '850' },
+  secondaryButtonText: { color: '#0A2F25', fontSize: 14, fontWeight: '800' },
   skipButton: { alignItems: 'center', justifyContent: 'center', minHeight: 44, paddingHorizontal: 16 },
-  skipButtonText: { color: GREEN, fontSize: 14, fontWeight: '850' },
+  skipButtonText: { color: GREEN, fontSize: 14, fontWeight: '800' },
   optionalCopy: { color: '#6A7771', fontSize: 12, lineHeight: 18, textAlign: 'center' },
   errorMessage: { backgroundColor: '#FDECEC', borderRadius: 10, color: '#9A2B20', fontSize: 13, lineHeight: 19, padding: 13 },
   completeMark: { alignItems: 'center', backgroundColor: GREEN, borderRadius: 999, height: 58, justifyContent: 'center', width: 58 },
