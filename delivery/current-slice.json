@@ -3,7 +3,7 @@
   "sliceId": "VS-15",
   "title": "VS-15 — Context Visual Migration",
   "status": "active",
-  "lifecycle": "testing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
@@ -42,10 +42,11 @@
     ],
     "notes": [
       "Migrates the existing authenticated Business Context experience to the approved Atlas visual system while preserving the existing Context API boundary, authentication, Business isolation, persistence behavior, and PES Mobile architecture.",
-      "The Product Owner approved the standing Atlas visual migration sequence and instructed the bounded migration to repeat for VS-15 Context.",
+      "The Product Owner approved the standing Atlas visual migration sequence and instructed the bounded migration to repeat for VS-15 Context, then instructed the implementation blocker to be fixed and work to continue through the governed close-out.",
       "Public Context remains subject to the existing owner-confirmation API rule; VS-15 exposes that rule in the UI rather than changing it.",
-      "CI #220, Security baseline #205, Product intake #189 and the CI preflight/mobile validation passed on implementation head 327c0a37cb1169e365a200eaffedd1a2c34428f3.",
-      "Authentic Expo runtime visual evidence is still required by the VS-15 design gate and is not claimed by this execution environment.",
+      "Implementation head a46b9f28ec1e1d360c153adf8e90c40bbe0caca2 passed CI #223, Security baseline #208 and Product intake #192.",
+      "CI #223 includes authentic Expo Web runtime verification in Google Chrome at 390×844 and 768×1024, covering loading, recoverable failure, retry, provenance confirmation, draft-safe save failure, saving/success, authenticated Business boundary, no horizontal overflow, and 44px interactive targets.",
+      "Authentic native iOS keyboard, dynamic-type, VoiceOver and physical-device validation remain release-level evidence and are not represented as passed.",
       "No API, domain, migration, auth, navigation, dependency, release, or production change is authorized."
     ]
   },
@@ -79,12 +80,12 @@
     },
     {
       "type": "certification",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
+      "status": "approved",
+      "version": "VS-15@1.0",
+      "commitSha": "a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
+      "by": "ksazid",
+      "at": "2026-08-09T20:05:00+02:00",
+      "rationale": "Product Owner instructed the VS-15 blocker to be fixed and implementation to continue. The resulting implementation head passed the complete deterministic gate set plus authentic Expo Web runtime verification; release and production remain unauthorized."
     },
     {
       "type": "release",
@@ -112,15 +113,23 @@
     "discovery": 100,
     "decisions": 100,
     "implementation": 100,
-    "testing": 90,
-    "certification": 0,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
-    "evidence": []
+    "status": "passed",
+    "commitSha": "a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
+    "evidence": [
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837113",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837125",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837108",
+      "docs/evidence/VS-15-RUNTIME-2026-08-09.md",
+      "tests/mobile/context-model.test.mjs",
+      "tests/mobile/context-runtime.test.mjs",
+      "CI #223 artifact 9042066098 digest sha256:9bf31f2279766823cf03dfa48ead202ce07ed67d591886dcb904a6b2f5cb6d1a"
+    ]
   },
   "release": {
     "status": "not-authorized",
@@ -142,10 +151,12 @@
     "evidence": [
       "docs/superpowers/specs/2026-08-09-vs-15-context-design.md",
       "docs/superpowers/plans/2026-08-09-vs-15-context.md",
+      "docs/evidence/VS-15-RUNTIME-2026-08-09.md",
       "tests/mobile/context-model.test.mjs",
-      "https://github.com/ksazid/project-atlas/actions/runs/31321305691",
-      "https://github.com/ksazid/project-atlas/actions/runs/31321305692",
-      "https://github.com/ksazid/project-atlas/actions/runs/31321305694"
+      "tests/mobile/context-runtime.test.mjs",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837113",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837125",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837108"
     ]
   },
   "maxAttempts": 3
