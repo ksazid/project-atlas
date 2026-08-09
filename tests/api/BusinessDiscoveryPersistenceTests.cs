@@ -59,6 +59,16 @@ public sealed class BusinessDiscoveryPersistenceTests
     }
 
     [Fact]
+    public void ConfirmationRequest_RejectsValuesThatCannotFitPersistedProvenance()
+    {
+        var request = ValidRequest(Guid.NewGuid()) with { Description = new string('x', BusinessDiscoveryProvenance.MaxValueCharacters + 1) };
+
+        var errors = request.Validate();
+
+        Assert.Contains(nameof(request.Description), errors.Keys);
+    }
+
+    [Fact]
     public async Task Creator_AtomicallyCreatesBusinessProfileProvenanceMembershipPackAndConsumesSnapshot()
     {
         await using var db = CreateDb();
