@@ -2,55 +2,88 @@
 
 Status: **APPROVED / LOCKED**
 
-Selected reference: `https://chatgpt.com/s/m_6a77ea16d68c8191b66c05c93a2a0679`
+Approved visual reference: the four-screen Atlas onboarding composition explicitly approved by the Product Owner in chat: **Welcome → Sign In → Discover → Confirm**. The reference uses a light/airy white canvas, Atlas green identity, soft mint intelligence effects, modern iconography, subtle illustrations, and connected progress states.
 
-This visual language is the source of truth for Atlas. Future screens must preserve its soul rather than introducing a new theme per slice.
+This reference supersedes the earlier purple/dark interpretation. Future screens must preserve this exact visual soul rather than introducing a new theme per slice.
 
 ## Core character
 
-Atlas should feel intelligent, premium, calm, modern, focused, and easy to use. It must not look like a generic enterprise form, admin template, or conventional dashboard.
+Atlas should feel intelligent, optimistic, premium, modern, friendly, focused, and extremely easy to use. It must not look like a generic enterprise form, admin template, conventional dashboard, or dark AI console.
 
 ## Visual DNA
 
-- Light neutral application canvas (`#F5F6FA`) with strong whitespace.
-- Dark intelligence surfaces (`#11131A` / `#171922`) used deliberately for AI analysis, focus, signal, and premium moments.
-- Purple intelligence accent (`#6D28D9`) with soft lavender support (`#EEEAFD`, `#C4B5FD`, `#A78BFA`).
-- White elevated cards with subtle borders rather than heavy shadows.
-- Large, confident headings with tight tracking and strong hierarchy.
-- Rounded geometry: ~14px controls, 18–24px cards/actions, 28–30px hero/intelligence surfaces.
-- Compact icon-led status and metadata instead of verbose labels.
+- White / near-white application canvas with generous whitespace.
+- Atlas green is the primary brand and action accent; use fresh medium/deep greens for CTAs, progress and important emphasis.
+- Soft mint/green atmospheric gradients and glows may support AI/intelligence moments without overpowering content.
+- Blue and other soft supporting colours may appear in illustrations/data-source icons, but green remains dominant.
+- White elevated cards with very subtle grey/green borders and soft shadows.
+- Large, clean, confident headings with strong hierarchy; selected words may use Atlas green for emphasis.
+- Rounded geometry throughout: friendly inputs, cards, chips and CTAs.
+- Modern line/provider icons and compact status indicators.
+- AI intelligence should be communicated through friendly visualisation/illustration, scanning/progress states and motion—not dark surfaces.
 - Progress must feel like a connected journey rather than isolated pages.
-- Green is reserved for verified/success/outcome states, not as a competing brand accent.
+- Success/verified states use green consistently.
+
+## Approved onboarding composition
+
+### Welcome
+- Centered Atlas mark and wordmark.
+- Hero statement: AI for local business intelligence, with business/intelligence emphasis in green.
+- Short value proposition.
+- Light intelligent business illustration/data cards.
+- Green primary CTA and quiet secondary account action.
+
+### Sign In
+- Minimal, secure and effortless.
+- Light mint atmospheric background treatment.
+- Conventional email/phone + password controls where supported by auth architecture.
+- Green primary sign-in action.
+- Provider buttons (Google/Apple/Microsoft or actual supported providers) with authentic icons where available.
+- Do not invent authentication capabilities that the runtime does not support.
+
+### Discover
+- Connected Find business → Discover → Confirm progress indicator.
+- Prominent 'Atlas is discovering your business' heading.
+- URL/source card.
+- Friendly AI analysis visualisation on a light canvas.
+- Progressive scanning checklist with completed/in-progress states.
+- Motion communicates active analysis.
+
+### Confirm
+- Completed progress indicator and rewarding success moment.
+- Business summary card.
+- Category/service chips.
+- Data-source icons.
+- Green 'Looks good, continue' CTA and quiet correction action.
+- Only display facts/sources Atlas actually discovered; never fabricate profile imagery, services, providers or verification.
 
 ## Interaction DNA
 
-- Directional screen flow: Welcome → Sign In → Find Business → Discover → Confirm → Atlas.
+- Directional flow: Welcome → Sign In → Find Business → Discover → Confirm → Atlas.
 - Press states use subtle scale/opacity feedback.
-- Discovery/analysis uses restrained pulse/scanning motion.
-- Information should reveal progressively instead of dumping full forms.
-- Confirmation should feel rewarding and confident.
-- Motion should communicate progress, hierarchy, state change, or intelligence; never decorative noise.
+- Discovery uses restrained scanning/progress motion and staged reveals.
+- Information reveals progressively instead of dumping forms.
+- Confirmation feels rewarding and confident.
+- Motion communicates progress, hierarchy, state change or intelligence; never decorative noise.
 - Respect reduced-motion accessibility when system-level support is introduced.
 
 ## Iconography
 
-Use simple, consistent intelligence/status symbols in compact rounded containers. Icons should support comprehension: insight, growth, location, category, confirmation, source, measurement, and action. Avoid decorative icon overload.
+Use simple, modern and consistent icons for navigation, security, source, location, category, services, analysis, verification, growth and actions. Prefer proper vector/icon components or provider assets over Unicode glyphs where dependencies permit. Avoid decorative icon overload.
 
 ## Product rules
 
-1. One primary action per screen.
-2. Ask only what Atlas cannot infer reliably.
-3. Prefer discovery + confirmation over manual entry.
-4. Use dark intelligence surfaces for AI reasoning/analysis moments, not every card.
-5. Preserve the purple intelligence accent throughout customer-facing Atlas UI.
-6. New category, dashboard, opportunity, execution, outcome, review, settings, and notification screens must extend this language.
-7. Do not replace this visual identity with generic UI skill output. Design skills improve hierarchy, accessibility, motion, responsiveness, and polish while this document remains authoritative.
-8. PES Mobile architecture and business logic remain structurally independent of this visual language.
+1. This approved light-green reference is authoritative across Atlas.
+2. Do not revert to the previous purple/dark intelligence theme.
+3. One primary action per screen.
+4. Ask only what Atlas cannot infer reliably.
+5. Prefer discovery + confirmation over manual entry.
+6. Never invent data, providers, authentication methods or discovered facts merely to match the reference image.
+7. Dashboard, category, opportunity, execution, outcome, review, settings and notification screens must extend this visual language.
+8. Design skills may improve hierarchy, accessibility, motion, responsiveness and polish, but may not replace this identity.
+9. PES Mobile architecture and business logic remain structurally independent of the visual language.
+10. When a visual decision is ambiguous, match the approved reference before introducing a new pattern.
 
-## Current reference implementation
+## Implementation target
 
-- `apps/mobile/app/welcome.tsx`
-- `apps/mobile/app/sign-in.tsx`
-- `apps/mobile/app/create-business.tsx`
-
-These screens establish the initial implementation baseline. New screens should reuse their proportions, surfaces, typography hierarchy, accent semantics, and interaction character rather than copying layouts mechanically.
+The existing onboarding implementation must be migrated to this light-green reference. Once onboarding is visually certified, the same tokens/components should become the shared Atlas mobile visual system for subsequent screens.
