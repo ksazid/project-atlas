@@ -55,6 +55,16 @@ public static class BusinessCategoryTaxonomy
         return new BusinessCategoryMatch(Generic.Key, null, "low");
     }
 
+    public static bool IsKnownCategory(string key) =>
+        Generic.Key.Equals(key, StringComparison.OrdinalIgnoreCase) || Categories.Any(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
+
+    public static bool IsKnownSubcategory(string categoryKey, string? subcategoryKey)
+    {
+        if (string.IsNullOrWhiteSpace(subcategoryKey)) return true;
+        var category = Categories.FirstOrDefault(x => x.Key.Equals(categoryKey, StringComparison.OrdinalIgnoreCase));
+        return category?.Children.Any(x => x.Key.Equals(subcategoryKey, StringComparison.OrdinalIgnoreCase)) == true;
+    }
+
     private static IEnumerable<string> Signals(BusinessCategoryDefinition definition) =>
         definition.Aliases.Append(definition.Label).Append(definition.Key);
 
@@ -123,12 +133,11 @@ public static class PublicBusinessUrlPolicy
         if (address.AddressFamily == AddressFamily.InterNetwork)
         {
             var b = address.GetAddressBytes();
-            if (b[0] == 0 || b[0] == 10 || b[0] == 127) return false;
+            if (b[0] is 0 or 10 or 127) return false;
             if (b[0] == 100 && b[1] is >= 64 and <= 127) return false;
             if (b[0] == 169 && b[1] == 254) return false;
             if (b[0] == 172 && b[1] is >= 16 and <= 31) return false;
-            if (b[0] == 192 && b[1] == 0 && b[2] == 0) return false;
-            if (b[0] == 192 && b[1] == 0 && b[2] == 2) return false;
+            if (b[0] == 192 && b[1] == 0 && b[2] is 0 or 2) return false;
             if (b[0] == 192 && b[1] == 168) return false;
             if (b[0] == 198 && b[1] is 18 or 19) return false;
             if (b[0] == 198 && b[1] == 51 && b[2] == 100) return false;
@@ -140,8 +149,8 @@ public static class PublicBusinessUrlPolicy
         if (address.AddressFamily == AddressFamily.InterNetworkV6)
         {
             if (IPAddress.IPv6Any.Equals(address) || IPAddress.IPv6Loopback.Equals(address) || address.IsIPv6Multicast || address.IsIPv6LinkLocal) return false;
-            var b = address.GetAddressBytes();
-            if ((b[0] & 0xFE) == 0xFC) return false;
+            var bytes = address.GetAddressBytes();
+            if ((bytes[0] & 0xFE) == 0xFC) return false;
             return true;
         }
 
@@ -165,8 +174,16 @@ public sealed record PublicBusinessSnapshot(
     DateTimeOffset ObservedAt,
     IReadOnlyList<PublicBusinessFact> Facts);
 
-public static partial class PublicBusinessExtractor
+public static class PublicBusinessExtractor
 {
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
+    private static readonly Regex JsonLdRegex = new(@"<script[^>]+type=[""']application/ld\+json[""'][^>]*>(.*?)</script>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex OgTitleRegex = new(@"<meta[^>]+property=[""']og:title[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex TitleRegex = new(@"<title[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex OgDescriptionRegex = new(@"<meta[^>]+property=[""']og:description[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex MetaDescriptionRegex = new(@"<meta[^>]+name=[""']description[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex StreetAddressRegex = new(@"[""']streetAddress[""']\s*:\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+
     public static PublicBusinessSnapshot Extract(string provider, Uri sourceUri, string html, DateTimeOffset observedAt)
     {
         var sourceUrl = sourceUri.GetLeftPart(UriPartial.Path);
@@ -180,41 +197,32 @@ public static partial class PublicBusinessExtractor
         var structuredUrl = StructuredString("url");
         var structuredPhone = StructuredString("telephone");
         var typeText = structured is JsonElement structuredValue ? ReadTypes(structuredValue) : string.Empty;
-        var name = Decode(structuredName ?? FirstMatch(OgTitleRegex(), html) ?? FirstMatch(TitleRegex(), html));
-        var description = Decode(structuredDescription ?? FirstMatch(OgDescriptionRegex(), html) ?? FirstMatch(MetaDescriptionRegex(), html));
-        var website = Decode(structuredUrl);
-        var phone = Decode(structuredPhone);
+        var name = Decode(structuredName ?? FirstMatch(OgTitleRegex, html) ?? FirstMatch(TitleRegex, html));
+        var description = Decode(structuredDescription ?? FirstMatch(OgDescriptionRegex, html) ?? FirstMatch(MetaDescriptionRegex, html));
 
         Add("name", CleanTitle(name, provider), structuredName is null ? "medium" : "high");
         Add("description", description, structuredDescription is null ? "medium" : "high");
-        Add("website", website, "high");
-        Add("phone", phone, "high");
+        Add("website", Decode(structuredUrl), "high");
+        Add("phone", Decode(structuredPhone), "high");
 
         if (structured is JsonElement business)
         {
             var address = ReadAddress(business);
-            if (address.Location is not null) Add("primaryLocation", address.Location, "high");
-            if (address.Country is not null) Add("country", address.Country, "high");
-            var openingHours = ReadOpeningHours(business);
-            if (openingHours is not null) Add("openingHours", openingHours, "high");
+            Add("primaryLocation", address.Location, "high");
+            Add("country", address.Country, "high");
+            Add("openingHours", ReadOpeningHours(business), "high");
         }
         else
         {
-            Add("primaryLocation", Decode(FirstMatch(StreetAddressRegex(), html)), "medium");
+            Add("primaryLocation", Decode(FirstMatch(StreetAddressRegex, html)), "medium");
         }
 
-        BusinessCategoryMatch category;
-        if (provider is "wolt" or "bolt-food")
-        {
-            category = new BusinessCategoryMatch("restaurant-cafe", null, "high");
-        }
-        else
-        {
-            category = BusinessCategoryTaxonomy.Infer(string.Join(' ', new[] { typeText, name, description }.Where(x => !string.IsNullOrWhiteSpace(x))));
-        }
+        var category = provider is "wolt" or "bolt-food"
+            ? new BusinessCategoryMatch("restaurant-cafe", null, "high")
+            : BusinessCategoryTaxonomy.Infer(string.Join(" ", new[] { typeText, name, description }.Where(x => !string.IsNullOrWhiteSpace(x))));
 
         Add("category", category.CategoryKey, category.Confidence);
-        if (category.SubcategoryKey is not null) Add("subcategory", category.SubcategoryKey, category.Confidence);
+        Add("subcategory", category.SubcategoryKey, category.Confidence);
 
         return new PublicBusinessSnapshot(provider, sourceUrl, observedAt, facts.Values.ToList());
 
@@ -227,7 +235,7 @@ public static partial class PublicBusinessExtractor
 
     private static JsonElement? FindStructuredBusiness(string html)
     {
-        foreach (Match match in JsonLdRegex().Matches(html))
+        foreach (Match match in JsonLdRegex.Matches(html))
         {
             try
             {
@@ -240,7 +248,7 @@ public static partial class PublicBusinessExtractor
             }
             catch (JsonException)
             {
-                // Malformed public structured data is ignored; conservative fallbacks may still provide facts.
+                // Ignore malformed public structured data and use conservative metadata fallbacks.
             }
         }
         return null;
@@ -252,9 +260,7 @@ public static partial class PublicBusinessExtractor
         {
             yield return element;
             if (element.TryGetProperty("@graph", out var graph))
-            {
                 foreach (var item in EnumerateObjects(graph)) yield return item;
-            }
         }
         else if (element.ValueKind == JsonValueKind.Array)
         {
@@ -265,7 +271,6 @@ public static partial class PublicBusinessExtractor
 
     private static bool IsBusinessType(string types)
     {
-        if (types.Length == 0) return false;
         var normalized = types.ToLowerInvariant();
         return normalized.Contains("localbusiness", StringComparison.Ordinal) ||
                normalized.Contains("restaurant", StringComparison.Ordinal) ||
@@ -285,7 +290,7 @@ public static partial class PublicBusinessExtractor
         return type.ValueKind switch
         {
             JsonValueKind.String => type.GetString() ?? string.Empty,
-            JsonValueKind.Array => string.Join(' ', type.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString())),
+            JsonValueKind.Array => string.Join(" ", type.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString())),
             _ => string.Empty
         };
     }
@@ -317,13 +322,13 @@ public static partial class PublicBusinessExtractor
     {
         if (!business.TryGetProperty("openingHours", out var hours)) return null;
         if (hours.ValueKind == JsonValueKind.String) return hours.GetString()?.Trim();
-        if (hours.ValueKind == JsonValueKind.Array)
-        {
-            var values = hours.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()?.Trim()).Where(x => !string.IsNullOrWhiteSpace(x));
-            var combined = string.Join("; ", values!);
-            return combined.Length == 0 ? null : combined;
-        }
-        return null;
+        if (hours.ValueKind != JsonValueKind.Array) return null;
+        var values = hours.EnumerateArray()
+            .Where(x => x.ValueKind == JsonValueKind.String)
+            .Select(x => x.GetString()?.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x));
+        var combined = string.Join("; ", values);
+        return combined.Length == 0 ? null : combined;
     }
 
     private static string? FirstMatch(Regex regex, string value)
@@ -341,30 +346,12 @@ public static partial class PublicBusinessExtractor
         {
             "wolt" => new[] { " | Wolt", " - Wolt" },
             "bolt-food" => new[] { " | Bolt Food", " - Bolt Food" },
-            _ => []
+            _ => Array.Empty<string>()
         };
         foreach (var suffix in suffixes)
             if (value.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) value = value[..^suffix.Length].Trim();
         return value;
     }
-
-    [GeneratedRegex("<script[^>]+type=[\\\"']application/ld\\+json[\\\"'][^>]*>(.*?)</script>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, 500)]
-    private static partial Regex JsonLdRegex();
-
-    [GeneratedRegex("<meta[^>]+property=[\\\"']og:title[\\\"'][^>]+content=[\\\"']([^\\\"']+)[\\\"']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, 500)]
-    private static partial Regex OgTitleRegex();
-
-    [GeneratedRegex("<title[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, 500)]
-    private static partial Regex TitleRegex();
-
-    [GeneratedRegex("<meta[^>]+property=[\\\"']og:description[\\\"'][^>]+content=[\\\"']([^\\\"']+)[\\\"']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, 500)]
-    private static partial Regex OgDescriptionRegex();
-
-    [GeneratedRegex("<meta[^>]+name=[\\\"']description[\\\"'][^>]+content=[\\\"']([^\\\"']+)[\\\"']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, 500)]
-    private static partial Regex MetaDescriptionRegex();
-
-    [GeneratedRegex("[\\\"']streetAddress[\\\"']\\s*:\\s*[\\\"']([^\\\"']+)[\\\"']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, 500)]
-    private static partial Regex StreetAddressRegex();
 }
 
 public sealed record DiscoverBusinessRequest(string Url);
@@ -416,12 +403,13 @@ public sealed class BusinessDiscoveryService(HttpClient client)
         return new BusinessDiscoveryResponse(provider, snapshot.SourceUrl, name, category, Field("subcategory"), Field("primaryLocation"), Field("description"));
     }
 
-    internal static string ProviderFor(string host) => host.TrimEnd('.').ToLowerInvariant() switch
+    internal static string ProviderFor(string host)
     {
-        "food.bolt.eu" => "bolt-food",
-        "wolt.com" or var value when value.EndsWith(".wolt.com", StringComparison.Ordinal) => "wolt",
-        _ => "website"
-    };
+        var value = host.TrimEnd('.').ToLowerInvariant();
+        if (value == "food.bolt.eu") return "bolt-food";
+        if (value == "wolt.com" || value.EndsWith(".wolt.com", StringComparison.Ordinal)) return "wolt";
+        return "website";
+    }
 }
 
 public sealed class BusinessDiscoveryException(string code, string message) : Exception(message)
