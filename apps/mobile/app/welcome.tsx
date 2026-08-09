@@ -54,11 +54,11 @@ const styles = StyleSheet.create({
   stepNumber: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E2E8F0' },
   stepNumberText: { fontSize: 14, fontWeight: '800', color: '#0F172A' },
   stepCopy: { flex: 1, gap: 3 },
-  stepTitle: { fontSize: 16, fontWeight: '750', color: '#0F172A' },
+  stepTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
   stepBody: { fontSize: 14, lineHeight: 21, color: '#64748B' },
   actions: { marginTop: 'auto', gap: 10 },
   primaryButton: { minHeight: 54, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0F172A' },
   primaryButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
   secondaryButton: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
-  secondaryButtonText: { color: '#334155', fontSize: 15, fontWeight: '650' },
+  secondaryButtonText: { color: '#334155', fontSize: 15, fontWeight: '600' },
 });
