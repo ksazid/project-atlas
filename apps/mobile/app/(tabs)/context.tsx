@@ -69,10 +69,11 @@ export default function ContextScreen() {
       setLoadWarning(null);
     }
 
+    let nextState: ScreenState | null = null;
     try {
       const session = await loadSession();
       if (!session?.businessId) {
-        setState('missing');
+        nextState = 'missing';
         return;
       }
 
@@ -81,18 +82,19 @@ export default function ContextScreen() {
       setCurrentEntries(resolution.entries);
       if (!resolution.preservedDraft) hasDraftEditsRef.current = false;
       setLoadWarning(resolution.preservedDraft ? 'Your unsaved changes are still here. Save them before loading the latest saved context.' : null);
-      setState('ready');
+      nextState = 'ready';
     } catch {
       if (!manual) {
-        setState('error');
+        nextState = 'error';
       } else {
         const failure = resolveContextLoadFailure(entriesRef.current, hasDraftEditsRef.current);
         setCurrentEntries(failure.entries);
         setLoadWarning(failure.warning);
-        setState('ready');
+        nextState = 'ready';
       }
     } finally {
       finishOperation(ticket);
+      if (nextState) setState(nextState);
     }
   }, [beginOperation, finishOperation, setCurrentEntries]);
 
