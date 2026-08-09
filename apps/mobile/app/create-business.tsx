@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { createBusiness } from '@/api/atlas-client';
 import { createBusinessFromDiscovery, discoverBusiness, type BusinessDiscovery } from '@/api/business-discovery';
@@ -39,16 +39,27 @@ export default function CreateBusinessScreen() {
   const [form, setForm] = useState<DiscoveryDraft>(emptyDraft);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reduceMotion, setReduceMotion] = useState(false);
   const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     const animation = Animated.loop(Animated.sequence([
       Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
       Animated.timing(pulse, { toValue: 0, duration: 900, useNativeDriver: true }),
     ]));
-    if (busy) animation.start();
+    if (busy && !reduceMotion) animation.start();
+    else {
+      animation.stop();
+      pulse.setValue(0);
+    }
     return () => animation.stop();
-  }, [busy, pulse]);
+  }, [busy, pulse, reduceMotion]);
 
   const update = (key: keyof DiscoveryDraft, value: string) => setForm(current => ({ ...current, [key]: value }));
 
@@ -150,8 +161,8 @@ export default function CreateBusinessScreen() {
         <Check text="Preparing owner confirmation" />
       </View>
       {error ? <View style={s.errorBox}><Text accessibilityLiveRegion="polite" style={s.error}>{error}</Text></View> : null}
-      {!busy ? <Pressable disabled={!url.trim()} onPress={analyse} style={({ pressed }) => [s.discoverButton, !url.trim() && s.disabled, pressed && s.pressed]}><Text style={s.discoverButtonText}>Discover my business</Text></Pressable> : null}
-      {!busy ? <Pressable accessibilityRole="button" onPress={() => { setDiscovery(null); setForm(emptyDraft); setError(null); setStage('manual'); }} style={({ pressed }) => [s.edit, pressed && s.pressed]}><Text style={s.editText}>Set up manually instead</Text></Pressable> : null}
+      {!busy ? <Pressable accessibilityLabel="Discover my business" accessibilityRole="button" accessibilityState={{ disabled: !url.trim() }} disabled={!url.trim()} onPress={analyse} style={({ pressed }) => [s.discoverButton, !url.trim() && s.disabled, pressed && s.pressed]}><Text style={s.discoverButtonText}>Discover my business</Text></Pressable> : null}
+      {!busy ? <Pressable accessibilityLabel="Set up manually instead" accessibilityRole="button" onPress={() => { setDiscovery(null); setForm(emptyDraft); setError(null); setStage('manual'); }} style={({ pressed }) => [s.edit, pressed && s.pressed]}><Text style={s.editText}>Set up manually instead</Text></Pressable> : null}
     </ScrollView>
   );
 
@@ -160,6 +171,7 @@ export default function CreateBusinessScreen() {
     const hours = form.businessHours.trim();
     const description = form.description.trim();
     const confidence = getDiscoveryFact(discovery, 'name')?.confidence ?? 'observed';
+    const confirmLabel = missing.length > 0 ? 'Complete missing details' : 'Confirm and continue';
     return (
       <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Back />
@@ -199,10 +211,10 @@ export default function CreateBusinessScreen() {
 
         {missing.length > 0 ? <View style={s.missingBox}><Text style={s.missingTitle}>A few details are still needed</Text><Text style={s.missingText}>{missing.map(humanizeField).join(' · ')}</Text></View> : null}
         {error ? <View style={s.errorBox}><Text accessibilityLiveRegion="polite" style={s.error}>{error}</Text></View> : null}
-        <Pressable disabled={busy} onPress={() => missing.length > 0 ? setStage('manual') : void submit()} style={({ pressed }) => [s.primary, busy && s.disabled, pressed && s.pressed]}>
-          {busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.primaryText}>{missing.length > 0 ? 'Complete missing details' : 'Confirm and continue'}</Text>}
+        <Pressable accessibilityLabel={confirmLabel} accessibilityRole="button" accessibilityState={{ busy, disabled: busy }} disabled={busy} onPress={() => missing.length > 0 ? setStage('manual') : void submit()} style={({ pressed }) => [s.primary, busy && s.disabled, pressed && s.pressed]}>
+          {busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.primaryText}>{confirmLabel}</Text>}
         </Pressable>
-        <Pressable onPress={() => setStage('manual')} style={({ pressed }) => [s.edit, pressed && s.pressed]}><Text style={s.editText}>Edit details</Text></Pressable>
+        <Pressable accessibilityLabel="Edit details" accessibilityRole="button" onPress={() => setStage('manual')} style={({ pressed }) => [s.edit, pressed && s.pressed]}><Text style={s.editText}>Edit details</Text></Pressable>
       </ScrollView>
     );
   }
@@ -227,9 +239,9 @@ export default function CreateBusinessScreen() {
       <Field label="Language" value={form.language} onChange={value => update('language', value)} />
       {error ? <View style={s.errorBox}><Text accessibilityLiveRegion="polite" style={s.error}>{error}</Text></View> : null}
       {discovery ? (
-        <Pressable disabled={!canConfirmDiscovery(form)} onPress={() => setStage('confirm')} style={({ pressed }) => [s.primary, !canConfirmDiscovery(form) && s.disabled, pressed && s.pressed]}><Text style={s.primaryText}>Review details</Text></Pressable>
+        <Pressable accessibilityLabel="Review details" accessibilityRole="button" accessibilityState={{ disabled: !canConfirmDiscovery(form) }} disabled={!canConfirmDiscovery(form)} onPress={() => setStage('confirm')} style={({ pressed }) => [s.primary, !canConfirmDiscovery(form) && s.disabled, pressed && s.pressed]}><Text style={s.primaryText}>Review details</Text></Pressable>
       ) : (
-        <Pressable disabled={busy || !canConfirmDiscovery(form)} onPress={() => void submit()} style={({ pressed }) => [s.primary, (busy || !canConfirmDiscovery(form)) && s.disabled, pressed && s.pressed]}>{busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.primaryText}>Create business</Text>}</Pressable>
+        <Pressable accessibilityLabel="Create business" accessibilityRole="button" accessibilityState={{ busy, disabled: busy || !canConfirmDiscovery(form) }} disabled={busy || !canConfirmDiscovery(form)} onPress={() => void submit()} style={({ pressed }) => [s.primary, (busy || !canConfirmDiscovery(form)) && s.disabled, pressed && s.pressed]}>{busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.primaryText}>Create business</Text>}</Pressable>
       )}
     </ScrollView>
   );
