@@ -1,3 +1,7 @@
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+
 namespace Atlas.Api;
 
 public static class ProgressiveQuestionAnswerTypes
@@ -25,6 +29,56 @@ public sealed record ProgressiveQuestionDefinition(
     int? MaxSelections,
     int? MaxLength,
     IReadOnlySet<string> MaterialityTags);
+
+public sealed record ProgressiveQuestionResponse(
+    string QuestionKey,
+    string TargetContextKey,
+    string Prompt,
+    string? Helper,
+    string AnswerType,
+    IReadOnlyList<string> Options,
+    int? MaxSelections,
+    int? MaxLength)
+{
+    public static ProgressiveQuestionResponse From(ProgressiveQuestionDefinition definition) => new(
+        definition.QuestionKey,
+        definition.TargetContextKey,
+        definition.Prompt,
+        definition.Helper,
+        definition.AnswerType,
+        definition.Options,
+        definition.MaxSelections,
+        definition.MaxLength);
+}
+
+public sealed record ProgressiveQuestionSetResponse(
+    string CatalogueKey,
+    string CatalogueVersion,
+    IReadOnlyList<ProgressiveQuestionResponse> Questions);
+
+public sealed record ProgressiveQuestionAnswerRequest(
+    string CatalogueVersion,
+    IReadOnlyList<string>? Selections,
+    string? Text);
+
+public sealed record ProgressiveQuestionSkipRequest(string CatalogueVersion);
+
+public sealed record ProgressiveQuestionMutationResponse(
+    string Status,
+    string QuestionKey,
+    string CatalogueVersion,
+    ProgressiveQuestionSetResponse Remaining);
+
+public sealed class ProgressiveQuestionException(string code, string message) : Exception(message)
+{
+    public string Code { get; } = code;
+}
+
+public sealed class ProgressiveQuestionValidationException(Dictionary<string, string[]> errors)
+    : Exception("Progressive question answer is invalid.")
+{
+    public Dictionary<string, string[]> Errors { get; } = errors;
+}
 
 public static class ProgressiveQuestionCatalogueV1
 {
@@ -168,4 +222,344 @@ public static class ProgressiveQuestionCatalogueV1
             new HashSet<string>(tags, StringComparer.OrdinalIgnoreCase));
 
     private static IReadOnlySet<string> Tags(params string[] values) => new HashSet<string>(values, StringComparer.OrdinalIgnoreCase);
+}
+
+public static class ProgressiveQuestionService
+{
+    public static async Task<ProgressiveQuestionSetResponse> GetAsync(
+        AtlasDbContext db,
+        string subject,
+        Guid businessId,
+        CancellationToken ct)
+    {
+        var (_, business) = await OwnedBusinessAsync(db, subject, businessId, ct);
+        return await BuildSetAsync(db, business, ct);
+    }
+
+    public static async Task<ProgressiveQuestionMutationResponse> AnswerAsync(
+        AtlasDbContext db,
+        string subject,
+        Guid businessId,
+        string questionKey,
+        ProgressiveQuestionAnswerRequest request,
+        CancellationToken ct)
+    {
+        EnsureCurrentVersion(request.CatalogueVersion);
+        var (account, business) = await OwnedBusinessAsync(db, subject, businessId, ct);
+        var definition = FindDefinition(questionKey);
+        var normalizedValue = NormalizeAnswer(definition, request);
+
+        var prior = await db.BusinessQuestionProgress
+            .Where(x => x.BusinessId == businessId && x.CatalogueKey == ProgressiveQuestionCatalogueV1.CatalogueKey && x.QuestionKey == definition.QuestionKey)
+            .OrderByDescending(x => x.CompletedAt)
+            .FirstOrDefaultAsync(ct);
+
+        if (prior is not null)
+        {
+            if (prior.Status == BusinessQuestionProgressStatuses.Answered)
+            {
+                var contextKey = prior.AnsweredContextKey ?? definition.TargetContextKey;
+                var current = await db.BusinessContextEntries.SingleOrDefaultAsync(x => x.BusinessId == businessId && x.Key == contextKey, ct);
+                if (current is not null && string.Equals(current.Value, normalizedValue, StringComparison.Ordinal))
+                    return new ProgressiveQuestionMutationResponse(
+                        BusinessQuestionProgressStatuses.Answered,
+                        definition.QuestionKey,
+                        ProgressiveQuestionCatalogueV1.Version,
+                        await BuildSetAsync(db, business, ct));
+            }
+
+            throw new ProgressiveQuestionException("progressive_question_completed", "That optional question has already been completed.");
+        }
+
+        await EnsureEligibleAsync(db, business, definition.QuestionKey, ct);
+
+        IDbContextTransaction? transaction = null;
+        if (db.Database.IsRelational()) transaction = await db.Database.BeginTransactionAsync(ct);
+        try
+        {
+            var now = DateTimeOffset.UtcNow;
+            var context = await db.BusinessContextEntries.SingleOrDefaultAsync(
+                x => x.BusinessId == businessId && x.Key == definition.TargetContextKey,
+                ct);
+            if (context is null)
+            {
+                context = new BusinessContextEntry
+                {
+                    Id = Guid.NewGuid(),
+                    BusinessId = businessId,
+                    Key = definition.TargetContextKey,
+                    Value = normalizedValue,
+                    Source = FieldSources.Owner,
+                    OwnerConfirmed = true,
+                    UpdatedAt = now
+                };
+                db.BusinessContextEntries.Add(context);
+            }
+            else
+            {
+                context.Value = normalizedValue;
+                context.Source = FieldSources.Owner;
+                context.OwnerConfirmed = true;
+                context.UpdatedAt = now;
+            }
+
+            db.BusinessQuestionProgress.Add(BusinessQuestionProgress.Answered(
+                businessId,
+                ProgressiveQuestionCatalogueV1.CatalogueKey,
+                ProgressiveQuestionCatalogueV1.Version,
+                definition.QuestionKey,
+                definition.TargetContextKey,
+                now));
+            db.AuditRecords.Add(AuditRecord.Create(account.Id, businessId, $"business.progressive-question.answered:{definition.QuestionKey}"));
+
+            await db.SaveChangesAsync(ct);
+            if (transaction is not null) await transaction.CommitAsync(ct);
+
+            return new ProgressiveQuestionMutationResponse(
+                BusinessQuestionProgressStatuses.Answered,
+                definition.QuestionKey,
+                ProgressiveQuestionCatalogueV1.Version,
+                await BuildSetAsync(db, business, ct));
+        }
+        catch
+        {
+            if (transaction is not null) await transaction.RollbackAsync(ct);
+            throw;
+        }
+        finally
+        {
+            if (transaction is not null) await transaction.DisposeAsync();
+        }
+    }
+
+    public static async Task<ProgressiveQuestionMutationResponse> SkipAsync(
+        AtlasDbContext db,
+        string subject,
+        Guid businessId,
+        string questionKey,
+        string catalogueVersion,
+        CancellationToken ct)
+    {
+        EnsureCurrentVersion(catalogueVersion);
+        var (account, business) = await OwnedBusinessAsync(db, subject, businessId, ct);
+        var definition = FindDefinition(questionKey);
+
+        var prior = await db.BusinessQuestionProgress
+            .Where(x => x.BusinessId == businessId && x.CatalogueKey == ProgressiveQuestionCatalogueV1.CatalogueKey && x.QuestionKey == definition.QuestionKey)
+            .OrderByDescending(x => x.CompletedAt)
+            .FirstOrDefaultAsync(ct);
+
+        if (prior is not null)
+        {
+            if (prior.Status == BusinessQuestionProgressStatuses.Skipped)
+                return new ProgressiveQuestionMutationResponse(
+                    BusinessQuestionProgressStatuses.Skipped,
+                    definition.QuestionKey,
+                    ProgressiveQuestionCatalogueV1.Version,
+                    await BuildSetAsync(db, business, ct));
+
+            throw new ProgressiveQuestionException("progressive_question_completed", "That optional question has already been completed.");
+        }
+
+        await EnsureEligibleAsync(db, business, definition.QuestionKey, ct);
+
+        IDbContextTransaction? transaction = null;
+        if (db.Database.IsRelational()) transaction = await db.Database.BeginTransactionAsync(ct);
+        try
+        {
+            var now = DateTimeOffset.UtcNow;
+            db.BusinessQuestionProgress.Add(BusinessQuestionProgress.Skipped(
+                businessId,
+                ProgressiveQuestionCatalogueV1.CatalogueKey,
+                ProgressiveQuestionCatalogueV1.Version,
+                definition.QuestionKey,
+                now));
+            db.AuditRecords.Add(AuditRecord.Create(account.Id, businessId, $"business.progressive-question.skipped:{definition.QuestionKey}"));
+            await db.SaveChangesAsync(ct);
+            if (transaction is not null) await transaction.CommitAsync(ct);
+
+            return new ProgressiveQuestionMutationResponse(
+                BusinessQuestionProgressStatuses.Skipped,
+                definition.QuestionKey,
+                ProgressiveQuestionCatalogueV1.Version,
+                await BuildSetAsync(db, business, ct));
+        }
+        catch
+        {
+            if (transaction is not null) await transaction.RollbackAsync(ct);
+            throw;
+        }
+        finally
+        {
+            if (transaction is not null) await transaction.DisposeAsync();
+        }
+    }
+
+    private static async Task<(UserAccount Account, Business Business)> OwnedBusinessAsync(
+        AtlasDbContext db,
+        string subject,
+        Guid businessId,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(subject))
+            throw new ProgressiveQuestionException("progressive_questions_not_found", "Business questions are unavailable for this session.");
+
+        var membership = await db.BusinessMemberships
+            .Include(x => x.UserAccount)
+            .SingleOrDefaultAsync(x =>
+                x.BusinessId == businessId &&
+                x.Role == MembershipRoles.BusinessOwner &&
+                x.UserAccount.ProviderSubject == subject,
+                ct);
+        if (membership is null)
+            throw new ProgressiveQuestionException("progressive_questions_not_found", "Business questions are unavailable for this Business.");
+
+        var business = await db.Businesses.SingleOrDefaultAsync(x => x.Id == businessId, ct);
+        if (business is null)
+            throw new ProgressiveQuestionException("progressive_questions_not_found", "Business questions are unavailable for this Business.");
+
+        return (membership.UserAccount, business);
+    }
+
+    private static async Task<ProgressiveQuestionSetResponse> BuildSetAsync(AtlasDbContext db, Business business, CancellationToken ct)
+    {
+        var context = await db.BusinessContextEntries.Where(x => x.BusinessId == business.Id).ToListAsync(ct);
+        var progress = await db.BusinessQuestionProgress.Where(x => x.BusinessId == business.Id).ToListAsync(ct);
+        var selected = ProgressiveQuestionCatalogueV1.Select(business.Category, context, progress)
+            .Select(ProgressiveQuestionResponse.From)
+            .ToList();
+        return new ProgressiveQuestionSetResponse(
+            ProgressiveQuestionCatalogueV1.CatalogueKey,
+            ProgressiveQuestionCatalogueV1.Version,
+            selected);
+    }
+
+    private static async Task EnsureEligibleAsync(AtlasDbContext db, Business business, string questionKey, CancellationToken ct)
+    {
+        var set = await BuildSetAsync(db, business, ct);
+        if (!set.Questions.Any(x => string.Equals(x.QuestionKey, questionKey, StringComparison.Ordinal)))
+            throw new ProgressiveQuestionException("progressive_question_not_found", "That optional question is no longer available. Refresh and continue.");
+    }
+
+    private static ProgressiveQuestionDefinition FindDefinition(string questionKey) =>
+        ProgressiveQuestionCatalogueV1.Definitions.SingleOrDefault(x => string.Equals(x.QuestionKey, questionKey, StringComparison.Ordinal))
+        ?? throw new ProgressiveQuestionException("progressive_question_not_found", "That optional question is unavailable. Refresh and continue.");
+
+    private static void EnsureCurrentVersion(string catalogueVersion)
+    {
+        if (!string.Equals(catalogueVersion, ProgressiveQuestionCatalogueV1.Version, StringComparison.Ordinal))
+            throw new ProgressiveQuestionException("progressive_catalogue_stale", "These optional questions changed. Refresh to continue with the latest set.");
+    }
+
+    private static string NormalizeAnswer(ProgressiveQuestionDefinition definition, ProgressiveQuestionAnswerRequest request)
+    {
+        var errors = new Dictionary<string, string[]>();
+        var selections = request.Selections?.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToList() ?? [];
+
+        if (definition.AnswerType == ProgressiveQuestionAnswerTypes.ShortText)
+        {
+            var text = request.Text?.Trim();
+            if (selections.Count > 0) errors[nameof(request.Selections)] = ["Use the text field for this question."];
+            if (string.IsNullOrWhiteSpace(text)) errors[nameof(request.Text)] = ["Enter a short answer or skip for now."];
+            else if (text.Length > (definition.MaxLength ?? 240)) errors[nameof(request.Text)] = [$"Keep this answer to {definition.MaxLength ?? 240} characters or fewer."];
+            if (errors.Count > 0) throw new ProgressiveQuestionValidationException(errors);
+            return text!;
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Text)) errors[nameof(request.Text)] = ["Choose from the available options for this question."];
+        if (selections.Count != selections.Distinct(StringComparer.OrdinalIgnoreCase).Count())
+            errors[nameof(request.Selections)] = ["Choose each option only once."];
+
+        var maximum = definition.AnswerType == ProgressiveQuestionAnswerTypes.SingleChoice ? 1 : definition.MaxSelections ?? definition.Options.Count;
+        if (selections.Count == 0 || selections.Count > maximum)
+            errors[nameof(request.Selections)] = [$"Choose between 1 and {maximum} option{(maximum == 1 ? string.Empty : "s")}."];
+
+        var canonical = definition.Options
+            .Where(option => selections.Contains(option, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+        if (canonical.Count != selections.Count)
+            errors[nameof(request.Selections)] = ["Choose only from the available options."];
+
+        if (errors.Count > 0) throw new ProgressiveQuestionValidationException(errors);
+        return string.Join(", ", canonical);
+    }
+}
+
+public static class ProgressiveQuestionEndpoints
+{
+    public static WebApplication MapProgressiveQuestionEndpoints(this WebApplication app)
+    {
+        app.MapGet("/api/v1/businesses/{businessId:guid}/progressive-questions", async (
+            Guid businessId,
+            ClaimsPrincipal user,
+            AtlasDbContext db,
+            CancellationToken ct) =>
+        {
+            var subject = Subject(user);
+            if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
+            try
+            {
+                return Results.Ok(await ProgressiveQuestionService.GetAsync(db, subject, businessId, ct));
+            }
+            catch (ProgressiveQuestionException ex)
+            {
+                return Problem(ex);
+            }
+        }).RequireAuthorization("BusinessOwner");
+
+        app.MapPost("/api/v1/businesses/{businessId:guid}/progressive-questions/{questionKey}/answer", async (
+            Guid businessId,
+            string questionKey,
+            ProgressiveQuestionAnswerRequest request,
+            ClaimsPrincipal user,
+            AtlasDbContext db,
+            CancellationToken ct) =>
+        {
+            var subject = Subject(user);
+            if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
+            try
+            {
+                return Results.Ok(await ProgressiveQuestionService.AnswerAsync(db, subject, businessId, questionKey, request, ct));
+            }
+            catch (ProgressiveQuestionValidationException ex)
+            {
+                return Results.ValidationProblem(ex.Errors, extensions: new Dictionary<string, object?> { ["code"] = "progressive_question_invalid" });
+            }
+            catch (ProgressiveQuestionException ex)
+            {
+                return Problem(ex);
+            }
+        }).RequireAuthorization("BusinessOwner");
+
+        app.MapPost("/api/v1/businesses/{businessId:guid}/progressive-questions/{questionKey}/skip", async (
+            Guid businessId,
+            string questionKey,
+            ProgressiveQuestionSkipRequest request,
+            ClaimsPrincipal user,
+            AtlasDbContext db,
+            CancellationToken ct) =>
+        {
+            var subject = Subject(user);
+            if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
+            try
+            {
+                return Results.Ok(await ProgressiveQuestionService.SkipAsync(db, subject, businessId, questionKey, request.CatalogueVersion, ct));
+            }
+            catch (ProgressiveQuestionException ex)
+            {
+                return Problem(ex);
+            }
+        }).RequireAuthorization("BusinessOwner");
+
+        return app;
+    }
+
+    private static IResult Problem(ProgressiveQuestionException ex) => ex.Code switch
+    {
+        "progressive_questions_not_found" or "progressive_question_not_found" => Results.NotFound(new { code = ex.Code, message = ex.Message }),
+        "progressive_catalogue_stale" or "progressive_question_completed" => Results.Conflict(new { code = ex.Code, message = ex.Message }),
+        _ => Results.BadRequest(new { code = ex.Code, message = ex.Message })
+    };
+
+    private static string? Subject(ClaimsPrincipal user) => user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
 }
