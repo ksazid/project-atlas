@@ -92,14 +92,21 @@ public static class BusinessCategoryTaxonomy
 
 public static class PublicBusinessUrlPolicy
 {
+    public const int MaxUrlCharacters = 2000;
     private static readonly string[] BlockedHostSuffixes = [".localhost", ".local", ".internal", ".home", ".lan", ".test"];
 
     public static bool TryValidate(string? rawUrl, out Uri? uri, out string? error)
     {
         uri = null;
         error = null;
-        if (string.IsNullOrWhiteSpace(rawUrl) ||
-            !Uri.TryCreate(rawUrl.Trim(), UriKind.Absolute, out var parsed) ||
+        var candidate = rawUrl?.Trim();
+        if (candidate?.Length > MaxUrlCharacters)
+        {
+            error = "Business page URL is too long.";
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(candidate) ||
+            !Uri.TryCreate(candidate, UriKind.Absolute, out var parsed) ||
             parsed.Scheme != Uri.UriSchemeHttps ||
             string.IsNullOrWhiteSpace(parsed.Host))
         {
@@ -240,6 +247,7 @@ public sealed record PublicBusinessSnapshot(
 
 public static class PublicBusinessExtractor
 {
+    public const int MaxFactValueCharacters = BusinessDiscoveryProvenance.MaxValueCharacters;
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
     private static readonly Regex JsonLdRegex = new(@"<script[^>]+type=[""']application/ld\+json[""'][^>]*>(.*?)</script>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex OgTitleRegex = new(@"<meta[^>]+property=[""']og:title[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
@@ -292,8 +300,9 @@ public static class PublicBusinessExtractor
 
         void Add(string key, string? value, string confidence)
         {
-            if (string.IsNullOrWhiteSpace(value)) return;
-            facts[key] = new PublicBusinessFact(key, value.Trim(), provider, sourceUrl, observedAt, confidence);
+            var cleaned = value?.Trim();
+            if (string.IsNullOrWhiteSpace(cleaned) || cleaned.Length > MaxFactValueCharacters) return;
+            facts[key] = new PublicBusinessFact(key, cleaned, provider, sourceUrl, observedAt, confidence);
         }
     }
 
