@@ -162,7 +162,7 @@ function createStaticServer(exportRoot) {
 }
 
 async function runExpoExport(outputDir, apiUrl) {
-  const child = spawn('npx', ['expo', 'export', '--platform', 'web', '--output-dir', outputDir], {
+  const child = spawn('npx', ['expo', 'export', '--clear', '--platform', 'web', '--output-dir', outputDir], {
     cwd: mobileRoot,
     env: {
       ...process.env,
