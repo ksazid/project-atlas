@@ -38,7 +38,7 @@ export type CreateBusinessFromDiscoveryRequest = DiscoveryDraft & {
   ownerConfirmed: true;
 };
 
-const requiredFields: Array<keyof Pick<DiscoveryDraft, 'name' | 'category' | 'country' | 'timezone' | 'currency' | 'primaryLocation'>> = [
+const requiredFields: (keyof Pick<DiscoveryDraft, 'name' | 'category' | 'country' | 'timezone' | 'currency' | 'primaryLocation'>)[] = [
   'name',
   'category',
   'country',
