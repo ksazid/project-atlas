@@ -8,11 +8,11 @@ import { BrandMark } from '@/components/BrandMark';
 type ScreenState = 'loading' | 'ready' | 'empty' | 'error';
 
 const GREEN = '#00754A';
-const GREEN_BRIGHT = '#00A862';
-const DARK = '#0B2E25';
+const GREEN_BRIGHT = '#008A57';
+const DARK = '#0A2F25';
 const INK = '#17221C';
 const MUTED = '#5B6761';
-const SOFT = '#F5F7F5';
+const SOFT = '#F7F5F0';
 
 export function TodayFocusScreen() {
   const [focus, setFocus] = useState<TodayFocus | null>(null);
@@ -89,8 +89,8 @@ export function TodayFocusScreen() {
       refreshControl={<RefreshControl tintColor={GREEN} refreshing={refreshing} onRefresh={() => void load(true)} />}
     >
       <View style={styles.topRow}>
-        <BrandMark size={46} />
-        <Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.historyButton}><Text style={styles.historyText}>History</Text></Pressable>
+        <BrandMark size={50} />
+        <Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={({ pressed }) => [styles.historyButton, pressed && styles.pressed]}><Text style={styles.historyText}>History</Text></Pressable>
       </View>
 
       <Text style={styles.eyebrow}>TODAY’S FOCUS</Text>
@@ -122,7 +122,7 @@ export function TodayFocusScreen() {
         <View style={styles.interpretation}><Text style={styles.interpretationTitle}>Atlas interpretation</Text><Text style={styles.interpretationText}>Interpretation stays separate from confirmed evidence so you can judge the recommendation clearly.</Text></View>
       </View>
 
-      <Pressable accessibilityRole="button" onPress={() => opportunity && router.push(`/opportunities/${opportunity.id}`)} style={styles.secondaryWide}><Text style={styles.secondaryText}>View full details</Text><Text style={styles.secondaryArrow}>→</Text></Pressable>
+      <Pressable accessibilityRole="button" onPress={() => opportunity && router.push(`/opportunities/${opportunity.id}`)} style={({ pressed }) => [styles.secondaryWide, pressed && styles.pressed]}><Text style={styles.secondaryText}>View full details</Text><Text style={styles.secondaryArrow}>→</Text></Pressable>
       <Text style={styles.meta}>Expires {opportunity ? new Date(opportunity.expiresAt).toLocaleString() : ''} · {opportunity?.knowledgePackKey} v{opportunity?.knowledgePackVersion}</Text>
 
       <Pressable accessibilityRole="button" disabled={deciding} onPress={() => void decide('apply')} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed, deciding && styles.disabled]}>
@@ -146,52 +146,52 @@ function StateShell({ children }: { children: React.ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 64, paddingBottom: 42, backgroundColor: '#FFF' },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 34 },
-  historyButton: { minHeight: 42, paddingHorizontal: 16, borderRadius: 21, borderWidth: 1, borderColor: '#DCE4DF', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
+  container: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 58, paddingBottom: 38, backgroundColor: '#FFF' },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
+  historyButton: { minHeight: 44, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1, borderColor: '#DEE5E1', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
   historyText: { fontSize: 12, fontWeight: '800', color: GREEN },
-  eyebrow: { fontSize: 11, letterSpacing: 1.1, fontWeight: '900', color: GREEN, marginBottom: 9 },
-  title: { fontFamily: 'Georgia', fontSize: 34, lineHeight: 40, fontWeight: '800', letterSpacing: -0.5, color: DARK },
-  lead: { marginTop: 14, fontSize: 15, lineHeight: 23, color: MUTED },
-  heroCard: { marginTop: 24, minHeight: 102, borderRadius: 18, backgroundColor: '#073D31', padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, shadowColor: '#073D31', shadowOpacity: 0.14, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 5 },
-  heroAccent: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#E8F7EF', alignItems: 'center', justifyContent: 'center' },
+  eyebrow: { fontSize: 11, letterSpacing: 1.15, fontWeight: '900', color: GREEN, marginBottom: 9 },
+  title: { fontFamily: 'Georgia', fontSize: 32, lineHeight: 38, fontWeight: '800', letterSpacing: -0.5, color: DARK },
+  lead: { marginTop: 13, fontSize: 14.5, lineHeight: 22, color: MUTED },
+  heroCard: { marginTop: 22, minHeight: 100, borderRadius: 12, backgroundColor: '#073D31', padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, shadowColor: '#073D31', shadowOpacity: 0.12, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 4 },
+  heroAccent: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#EEF8F2', alignItems: 'center', justifyContent: 'center' },
   heroAccentIcon: { fontSize: 23, fontWeight: '900', color: GREEN },
   heroCopy: { flex: 1, gap: 5 },
   heroLabel: { fontSize: 9, letterSpacing: 1.1, fontWeight: '900', color: '#58D19B' },
   heroTitle: { fontSize: 15, lineHeight: 21, fontWeight: '800', color: '#FFF' },
-  metricsRow: { flexDirection: 'row', gap: 8, marginTop: 18 },
-  metric: { flex: 1, minHeight: 92, borderRadius: 14, backgroundColor: SOFT, borderWidth: 1, borderColor: '#E4E9E6', padding: 12, justifyContent: 'space-between' },
+  metricsRow: { flexDirection: 'row', gap: 8, marginTop: 16 },
+  metric: { flex: 1, minHeight: 88, borderRadius: 10, backgroundColor: SOFT, borderWidth: 1, borderColor: '#E6E3DD', padding: 12, justifyContent: 'space-between' },
   metricLabel: { fontSize: 10, fontWeight: '800', color: '#6A756F' },
   metricValue: { fontSize: 13, lineHeight: 18, fontWeight: '900', color: INK },
-  card: { marginTop: 16, borderRadius: 17, borderWidth: 1, borderColor: '#E4E9E6', backgroundColor: '#FFF', padding: 17, shadowColor: '#153B2D', shadowOpacity: 0.035, shadowRadius: 9, elevation: 1 },
+  card: { marginTop: 14, borderRadius: 12, borderWidth: 1, borderColor: '#E2E7E4', backgroundColor: '#FFF', padding: 16, shadowColor: '#173B2A', shadowOpacity: 0.025, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 1 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  cardIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#EAF6EF', alignItems: 'center', justifyContent: 'center' },
+  cardIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#EEF8F2', alignItems: 'center', justifyContent: 'center' },
   cardIconText: { color: GREEN, fontSize: 15, fontWeight: '900' },
-  cardTitle: { fontFamily: 'Georgia', fontSize: 19, fontWeight: '800', color: DARK },
-  body: { fontSize: 14, lineHeight: 22, color: '#44514B' },
-  interpretation: { marginTop: 14, borderRadius: 12, backgroundColor: '#F1F8F4', padding: 13 },
+  cardTitle: { fontFamily: 'Georgia', fontSize: 18, fontWeight: '800', color: DARK },
+  body: { fontSize: 13.5, lineHeight: 21, color: '#44514B' },
+  interpretation: { marginTop: 14, borderRadius: 10, backgroundColor: '#EEF8F2', padding: 13 },
   interpretationTitle: { fontSize: 10, letterSpacing: .6, fontWeight: '900', color: GREEN, marginBottom: 4 },
   interpretationText: { fontSize: 12, lineHeight: 18, color: '#607069' },
-  secondaryWide: { marginTop: 18, minHeight: 52, borderRadius: 12, borderWidth: 1, borderColor: '#DCE4DF', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
+  secondaryWide: { marginTop: 18, minHeight: 52, borderRadius: 10, borderWidth: 1, borderColor: '#DEE5E1', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
   secondaryText: { fontSize: 13, fontWeight: '800', color: GREEN },
   secondaryArrow: { position: 'absolute', right: 18, color: GREEN, fontSize: 20 },
   meta: { marginTop: 10, textAlign: 'center', fontSize: 10.5, lineHeight: 16, color: '#7B8781' },
-  primaryButton: { marginTop: 18, minHeight: 58, borderRadius: 11, backgroundColor: GREEN_BRIGHT, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#00754A', shadowOpacity: 0.16, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 4 },
+  primaryButton: { marginTop: 18, minHeight: 55, borderRadius: 10, backgroundColor: GREEN_BRIGHT, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#00633F', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   primaryText: { color: '#FFF', fontSize: 15.5, fontWeight: '900' },
   primaryArrow: { position: 'absolute', right: 18, color: '#FFF', fontSize: 22 },
   secondaryRow: { flexDirection: 'row', gap: 10, marginTop: 11 },
-  smallAction: { flex: 1, minHeight: 48, borderRadius: 11, borderWidth: 1, borderColor: '#E0E5E2', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
+  smallAction: { flex: 1, minHeight: 48, borderRadius: 10, borderWidth: 1, borderColor: '#E0E5E2', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
   smallActionText: { fontSize: 12, fontWeight: '800', color: '#53605A' },
   pressed: { opacity: .92, transform: [{ scale: .99 }] },
   disabled: { opacity: .55 },
   stateContainer: { flex: 1, minHeight: '100%', backgroundColor: '#FFF', paddingHorizontal: 28, paddingVertical: 80, alignItems: 'center', justifyContent: 'center' },
-  loadingOrb: { width: 86, height: 86, borderRadius: 43, backgroundColor: '#EDF8F2', alignItems: 'center', justifyContent: 'center', marginBottom: 26 },
-  stateIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#E9F6EF', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  loadingOrb: { width: 86, height: 86, borderRadius: 43, backgroundColor: '#EEF8F2', alignItems: 'center', justifyContent: 'center', marginBottom: 26 },
+  stateIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#EEF8F2', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   stateIconText: { color: GREEN, fontFamily: 'Georgia', fontSize: 32, fontWeight: '800' },
   stateEyebrow: { fontSize: 10, letterSpacing: 1.1, fontWeight: '900', color: GREEN, marginBottom: 10 },
   stateTitle: { maxWidth: 320, textAlign: 'center', fontFamily: 'Georgia', fontSize: 30, lineHeight: 37, fontWeight: '800', color: DARK },
   stateBody: { maxWidth: 320, marginTop: 14, textAlign: 'center', fontSize: 14, lineHeight: 22, color: MUTED },
-  noteCard: { width: '100%', marginTop: 22, borderRadius: 15, backgroundColor: '#F3F8F5', padding: 16 },
+  noteCard: { width: '100%', marginTop: 22, borderRadius: 12, backgroundColor: '#F7F5F0', padding: 16 },
   noteTitle: { fontSize: 12, fontWeight: '900', color: DARK, marginBottom: 6 },
   noteText: { fontSize: 12, lineHeight: 19, color: MUTED },
 });
