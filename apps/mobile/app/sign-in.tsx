@@ -53,12 +53,23 @@ export default function SignInScreen() {
 
         <View style={styles.orRow}><View style={styles.rule}/><Text style={styles.orText}>or</Text><View style={styles.rule}/></View>
 
-        <Pressable disabled={busy} onPress={signIn} style={({ pressed }) => [styles.providerButton, pressed && styles.pressed]}>
-          <View style={styles.providerLogo}><Text style={styles.providerLogoText}>A</Text></View><Text style={styles.providerButtonText}>Continue with secure provider</Text>
-        </Pressable>
+        <View style={styles.socialStack}>
+          <SocialButton icon="G" label="Continue with Google" iconStyle={styles.googleIcon}/>
+          <SocialButton icon="●" label="Continue with Apple" iconStyle={styles.appleIcon}/>
+          <SocialButton icon="▦" label="Continue with Microsoft" iconStyle={styles.microsoftIcon}/>
+        </View>
       </View>
 
-      <Text style={styles.footer}>Your identity provider controls available sign-in methods and password recovery.</Text>
+      <Text style={styles.footer}>Don&apos;t have an account? <Text style={styles.footerStrong}>Create one</Text></Text>
+    </View>
+  );
+}
+
+function SocialButton({ icon, label, iconStyle }: { icon: string; label: string; iconStyle?: object }) {
+  return (
+    <View accessibilityRole="button" accessibilityState={{ disabled: true }} accessibilityLabel={`${label} — coming later`} style={styles.providerButton}>
+      <View style={styles.providerLogo}><Text style={[styles.providerLogoText, iconStyle]}>{icon}</Text></View>
+      <Text style={styles.providerButtonText}>{label}</Text>
     </View>
   );
 }
@@ -87,14 +98,19 @@ const styles = StyleSheet.create({
   primary: { minHeight: 56, borderRadius: 11, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#287348', shadowOpacity: 0.10, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 3 },
   primaryText: { color: '#FFFFFF', fontSize: 15.5, fontWeight: '800' },
   arrow: { position: 'absolute', right: 19, color: '#FFFFFF', fontSize: 22 },
-  orRow: { marginVertical: 22, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  orRow: { marginVertical: 18, flexDirection: 'row', alignItems: 'center', gap: 12 },
   rule: { flex: 1, height: 1, backgroundColor: '#E6EBE8' },
   orText: { fontSize: 11.5, color: '#7D8881' },
-  providerButton: { minHeight: 54, borderRadius: 11, borderWidth: 1, borderColor: '#E3E8E5', backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
-  providerLogo: { width: 27, height: 27, borderRadius: 14, backgroundColor: '#E2F6EA', alignItems: 'center', justifyContent: 'center' },
-  providerLogoText: { fontSize: 15, fontWeight: '900', color: GREEN },
+  socialStack: { gap: 10 },
+  providerButton: { minHeight: 52, borderRadius: 11, borderWidth: 1, borderColor: '#E3E8E5', backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, shadowColor: '#173B2A', shadowOpacity: 0.02, shadowRadius: 5, elevation: 1 },
+  providerLogo: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center', marginRight: 18 },
+  providerLogoText: { fontSize: 17, fontWeight: '900', color: '#1C1C1C' },
+  googleIcon: { color: '#4285F4' },
+  appleIcon: { color: '#000000', fontSize: 18 },
+  microsoftIcon: { color: '#00A4EF', fontSize: 19 },
   providerButtonText: { fontSize: 13, fontWeight: '700', color: '#26322B' },
-  footer: { marginTop: 'auto', textAlign: 'center', paddingHorizontal: 18, fontSize: 10.5, lineHeight: 16, color: '#7A867F' },
+  footer: { marginTop: 'auto', textAlign: 'center', paddingHorizontal: 18, fontSize: 11.5, lineHeight: 17, color: '#6F7A74' },
+  footerStrong: { color: GREEN, fontWeight: '800' },
   pressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
   disabled: { opacity: 0.55 },
 });
