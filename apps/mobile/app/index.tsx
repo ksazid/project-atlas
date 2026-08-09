@@ -4,16 +4,16 @@ import { Redirect } from 'expo-router';
 import { loadSession } from '@/auth/session';
 
 export default function Index() {
-  const [destination, setDestination] = useState<'/sign-in' | '/create-business' | '/(tabs)' | null>(null);
+  const [destination, setDestination] = useState<'/welcome' | '/create-business' | '/(tabs)' | null>(null);
 
   useEffect(() => {
     let active = true;
     loadSession()
       .then((session) => {
         if (!active) return;
-        setDestination(!session ? '/sign-in' : session.businessId ? '/(tabs)' : '/create-business');
+        setDestination(!session ? '/welcome' : session.businessId ? '/(tabs)' : '/create-business');
       })
-      .catch(() => active && setDestination('/sign-in'));
+      .catch(() => active && setDestination('/welcome'));
     return () => { active = false; };
   }, []);
 

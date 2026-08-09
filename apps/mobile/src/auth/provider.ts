@@ -6,11 +6,15 @@ const redirectUri = AuthSession.makeRedirectUri({
   path: 'auth/callback',
 });
 
-export async function authorizeWithProvider(): Promise<string> {
+export async function authorizeWithProvider(loginHint?: string): Promise<string> {
   const discovery = await AuthSession.fetchDiscoveryAsync(env.authIssuer);
   if (!discovery.authorizationEndpoint || !discovery.tokenEndpoint) {
     throw new Error('identity_provider_unavailable');
   }
+
+  const extraParams: Record<string, string> = {};
+  if (env.authAudience) extraParams.audience = env.authAudience;
+  if (loginHint?.trim()) extraParams.login_hint = loginHint.trim();
 
   const request = await AuthSession.loadAsync(
     {
@@ -19,7 +23,7 @@ export async function authorizeWithProvider(): Promise<string> {
       responseType: AuthSession.ResponseType.Code,
       scopes: ['openid', 'profile', 'email', 'offline_access'],
       usePKCE: true,
-      extraParams: env.authAudience ? { audience: env.authAudience } : undefined,
+      extraParams: Object.keys(extraParams).length ? extraParams : undefined,
     },
     discovery,
   );

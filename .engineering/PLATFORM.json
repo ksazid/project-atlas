@@ -7,8 +7,8 @@
   },
   "mobile": {
     "framework": "expo",
-    "sdk": "57",
-    "reactNative": "0.86",
+    "sdk": "54",
+    "reactNative": "0.81",
     "targets": [
       "android",
       "ios"

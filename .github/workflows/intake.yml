@@ -1,7 +1,7 @@
 name: Product intake
 on:
   pull_request:
-    paths: ["product/**", "security/**", "delivery/**", "planning/**", ".github/workflows/intake.yml"]
+    paths: ["product/**", "security/**", "delivery/**", "planning/**", "tests/**", "docs/acceptance/**", ".github/workflows/intake.yml"]
   workflow_dispatch:
 concurrency:
   group: product-intake-${{ github.event.pull_request.number || github.ref }}
