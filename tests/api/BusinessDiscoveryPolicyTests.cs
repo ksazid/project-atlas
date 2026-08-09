@@ -9,6 +9,7 @@ public sealed class BusinessDiscoveryPolicyTests
     [Theory]
     [InlineData("http://example.com")]
     [InlineData("https://user:pass@example.com")]
+    [InlineData("https://example.com:8443")]
     [InlineData("https://localhost")]
     [InlineData("https://localhost.localdomain")]
     [InlineData("https://127.0.0.1")]
@@ -57,6 +58,16 @@ public sealed class BusinessDiscoveryPolicyTests
     public void UrlPolicy_ClassifiesResolvedAddresses(string value, bool expected)
     {
         Assert.Equal(expected, PublicBusinessUrlPolicy.IsPublicAddress(IPAddress.Parse(value)));
+    }
+
+    [Fact]
+    public async Task HtmlReader_RejectsOversizedResponses()
+    {
+        using var content = new StringContent(new string('x', PublicBusinessHtmlReader.MaxCharacters + 1));
+
+        var error = await Assert.ThrowsAsync<BusinessDiscoveryException>(() => PublicBusinessHtmlReader.ReadAsync(content, CancellationToken.None));
+
+        Assert.Equal("business_source_too_large", error.Code);
     }
 
     [Fact]
