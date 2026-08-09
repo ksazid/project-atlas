@@ -79,6 +79,8 @@ public sealed class BusinessProfileField
 
 public static class BusinessDiscoveryProvenance
 {
+    public const int MaxValueCharacters = 4000;
+
     public static BusinessProfileField Resolve(Guid businessId, string key, string authoritativeValue, BusinessDiscoveryFact? observed, DateTimeOffset updatedAt)
     {
         var value = authoritativeValue.Trim();
@@ -124,7 +126,27 @@ public sealed record CreateBusinessFromDiscoveryRequest(
         if (!BusinessCategoryTaxonomy.IsKnownSubcategory(Category, Subcategory)) errors[nameof(Subcategory)] = ["Choose a subcategory that belongs to the selected category."];
         if (string.IsNullOrWhiteSpace(Language)) errors[nameof(Language)] = ["Language is required."];
         if (!OwnerConfirmed) errors[nameof(OwnerConfirmed)] = ["Review and confirm the discovered business details before continuing."];
+
+        CheckLength(nameof(Name), Name);
+        CheckLength(nameof(Category), Category);
+        CheckLength(nameof(Subcategory), Subcategory);
+        CheckLength(nameof(Country), Country);
+        CheckLength(nameof(Timezone), Timezone);
+        CheckLength(nameof(Currency), Currency);
+        CheckLength(nameof(PrimaryLocation), PrimaryLocation);
+        CheckLength(nameof(OperatingStatus), OperatingStatus);
+        CheckLength(nameof(Description), Description);
+        CheckLength(nameof(Website), Website);
+        CheckLength(nameof(Phone), Phone);
+        CheckLength(nameof(BusinessHours), BusinessHours);
+        CheckLength(nameof(Language), Language);
         return errors;
+
+        void CheckLength(string field, string? value)
+        {
+            if (value?.Length > BusinessDiscoveryProvenance.MaxValueCharacters)
+                errors[field] = [$"Keep this value to {BusinessDiscoveryProvenance.MaxValueCharacters} characters or fewer."];
+        }
     }
 }
 
