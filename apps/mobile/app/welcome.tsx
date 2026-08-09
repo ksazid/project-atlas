@@ -1,106 +1,87 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
+const GREEN = '#27A968';
+const GREEN_DARK = '#168754';
+
 export default function WelcomeScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.topRow}>
-        <View style={styles.brandMark}><Text style={styles.brandMarkText}>✦</Text></View>
-        <Text style={styles.brand}>ATLAS</Text>
-        <View style={styles.betaPill}><Text style={styles.betaText}>INTELLIGENCE</Text></View>
+      <View style={styles.glowOne} /><View style={styles.glowTwo} />
+      <View style={styles.brandArea}>
+        <View style={styles.logo}><Text style={styles.logoA}>A</Text><Text style={styles.spark}>✦</Text></View>
+        <Text style={styles.brand}>Atlas</Text>
       </View>
 
-      <View style={styles.heroCard}>
-        <View style={styles.orbLarge} />
-        <View style={styles.orbSmall} />
-        <View style={styles.heroContent}>
-          <View style={styles.heroTag}><Text style={styles.heroTagIcon}>✦</Text><Text style={styles.heroTagText}>Your business, understood.</Text></View>
-          <Text accessibilityRole="header" style={styles.title}>Know the next move that matters.</Text>
-          <Text style={styles.body}>
-            Atlas turns your business signals into focused decisions, ready-to-run actions, and learning that gets sharper over time.
-          </Text>
-          <View style={styles.signalCard}>
-            <View style={styles.signalIcon}><Text style={styles.signalIconText}>↗</Text></View>
-            <View style={styles.signalCopy}>
-              <Text style={styles.signalLabel}>TODAY&apos;S SIGNAL</Text>
-              <Text style={styles.signalTitle}>Turn quiet hours into profitable demand</Text>
-              <Text style={styles.signalMeta}>Evidence-backed · measurable · actionable</Text>
-            </View>
-          </View>
-        </View>
+      <View style={styles.hero}>
+        <Text accessibilityRole="header" style={styles.title}>AI for local{`\n`}<Text style={styles.green}>business</Text>{`\n`}intelligence</Text>
+        <Text style={styles.body}>Discover opportunities. Understand your market. Grow with confidence.</Text>
       </View>
 
-      <View accessibilityLabel="How Atlas works" style={styles.loopCard}>
-        <Text style={styles.sectionLabel}>HOW ATLAS THINKS</Text>
-        <View style={styles.loopGrid}>
-          <Step icon="⌁" title="Understand" body="Connect context and signals." />
-          <Step icon="◎" title="Prioritise" body="Rank what matters now." />
-          <Step icon="↗" title="Execute" body="Get the exact action kit." />
-          <Step icon="✓" title="Learn" body="Measure and improve." />
+      <View style={styles.intelligenceScene} accessibilityLabel="Atlas business intelligence illustration">
+        <FloatCard style={styles.cardLeft} icon="↗" text="Growth" />
+        <FloatCard style={styles.cardRight} icon="◔" text="Insights" />
+        <View style={styles.shopShadow} />
+        <View style={styles.shop}>
+          <View style={styles.awning}><View style={styles.stripe}/><View style={styles.stripeLight}/><View style={styles.stripe}/><View style={styles.stripeLight}/></View>
+          <View style={styles.shopBody}><View style={styles.door}/><View style={styles.window}/></View>
         </View>
+        <View style={styles.pin}><Text style={styles.pinText}>●</Text></View>
+        <View style={styles.treeOne}/><View style={styles.treeTwo}/>
       </View>
+
+      <View style={styles.dots}><View style={styles.dotActive}/><View style={styles.dot}/><View style={styles.dot}/></View>
 
       <View style={styles.actions}>
         <Pressable accessibilityRole="button" onPress={() => router.push('/sign-in')} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}>
-          <Text style={styles.primaryButtonText}>Start with Atlas</Text>
-          <Text style={styles.primaryButtonIcon}>→</Text>
+          <Text style={styles.primaryText}>Get started</Text><Text style={styles.arrow}>→</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => router.push('/sign-in')} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>Already using Atlas? <Text style={styles.secondaryStrong}>Sign in</Text></Text>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/sign-in')} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
+          <Text style={styles.secondaryText}>I already have an account</Text>
         </Pressable>
       </View>
     </ScrollView>
   );
 }
 
-function Step({ icon, title, body }: { icon: string; title: string; body: string }) {
-  return (
-    <View style={styles.step}>
-      <View style={styles.stepIcon}><Text style={styles.stepIconText}>{icon}</Text></View>
-      <Text style={styles.stepTitle}>{title}</Text>
-      <Text style={styles.stepBody}>{body}</Text>
-    </View>
-  );
+function FloatCard({ style, icon, text }: { style: object; icon: string; text: string }) {
+  return <View style={[styles.floatCard, style]}><Text style={styles.floatIcon}>{icon}</Text><Text style={styles.floatText}>{text}</Text></View>;
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 20, paddingTop: 58, paddingBottom: 30, gap: 20, backgroundColor: '#F5F6FA' },
-  topRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  brandMark: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#111827' },
-  brandMarkText: { color: '#C4B5FD', fontSize: 17, fontWeight: '800' },
-  brand: { fontSize: 15, fontWeight: '900', letterSpacing: 2.6, color: '#111827' },
-  betaPill: { marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: '#EEEAFD' },
-  betaText: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1, color: '#6D28D9' },
-  heroCard: { minHeight: 430, borderRadius: 30, overflow: 'hidden', backgroundColor: '#11131A', position: 'relative' },
-  orbLarge: { position: 'absolute', width: 260, height: 260, borderRadius: 130, right: -88, top: -72, backgroundColor: '#5B21B6', opacity: 0.48 },
-  orbSmall: { position: 'absolute', width: 160, height: 160, borderRadius: 80, left: -86, bottom: 26, backgroundColor: '#2563EB', opacity: 0.18 },
-  heroContent: { flex: 1, padding: 26, paddingTop: 30, gap: 18, justifyContent: 'center' },
-  heroTag: { alignSelf: 'flex-start', flexDirection: 'row', gap: 8, alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.10)' },
-  heroTagIcon: { color: '#C4B5FD', fontSize: 13 },
-  heroTagText: { color: '#E5E7EB', fontSize: 12, fontWeight: '700' },
-  title: { maxWidth: 310, fontSize: 41, lineHeight: 45, letterSpacing: -1.5, fontWeight: '900', color: '#FFFFFF' },
-  body: { maxWidth: 320, fontSize: 16, lineHeight: 24, color: '#B8BDC9' },
-  signalCard: { marginTop: 6, flexDirection: 'row', alignItems: 'center', gap: 13, padding: 15, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', backgroundColor: 'rgba(255,255,255,0.08)' },
-  signalIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EDE9FE' },
-  signalIconText: { fontSize: 20, fontWeight: '900', color: '#6D28D9' },
-  signalCopy: { flex: 1, gap: 3 },
-  signalLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.2, color: '#A78BFA' },
-  signalTitle: { fontSize: 14, lineHeight: 19, fontWeight: '800', color: '#FFFFFF' },
-  signalMeta: { fontSize: 11, color: '#969DAC' },
-  loopCard: { padding: 18, borderRadius: 24, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EBEDF2', gap: 14 },
-  sectionLabel: { fontSize: 10, fontWeight: '900', letterSpacing: 1.5, color: '#8A91A0' },
-  loopGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  step: { width: '48%', minHeight: 120, padding: 14, borderRadius: 18, backgroundColor: '#F8F8FB', gap: 8 },
-  stepIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EEEAFD' },
-  stepIconText: { color: '#6D28D9', fontSize: 16, fontWeight: '900' },
-  stepTitle: { fontSize: 14, fontWeight: '800', color: '#171A22' },
-  stepBody: { fontSize: 12, lineHeight: 17, color: '#757C8B' },
-  actions: { gap: 8 },
-  primaryButton: { minHeight: 58, borderRadius: 18, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: '#6D28D9' },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '900' },
-  primaryButtonIcon: { color: '#FFFFFF', fontSize: 20, fontWeight: '800' },
-  pressed: { transform: [{ scale: 0.985 }], opacity: 0.94 },
-  secondaryButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  secondaryButtonText: { color: '#7A8190', fontSize: 13, fontWeight: '600' },
-  secondaryStrong: { color: '#20242E', fontWeight: '900' },
+  container: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 70, paddingBottom: 28, backgroundColor: '#FBFCFB', overflow: 'hidden' },
+  glowOne: { position: 'absolute', width: 300, height: 300, borderRadius: 150, backgroundColor: '#E7F8EE', opacity: .75, right: -160, top: 30 },
+  glowTwo: { position: 'absolute', width: 260, height: 260, borderRadius: 130, backgroundColor: '#EEF7FF', opacity: .65, left: -150, top: 390 },
+  brandArea: { alignItems: 'center', gap: 4 },
+  logo: { width: 72, height: 64, alignItems: 'center', justifyContent: 'center' },
+  logoA: { fontSize: 60, lineHeight: 64, fontWeight: '900', color: GREEN, letterSpacing: -5 },
+  spark: { position: 'absolute', right: 0, top: 2, fontSize: 15, color: '#65BBD7' },
+  brand: { fontSize: 26, lineHeight: 31, fontWeight: '900', color: '#101827' },
+  hero: { marginTop: 30, alignItems: 'center', gap: 15 },
+  title: { fontSize: 35, lineHeight: 42, letterSpacing: -.8, fontWeight: '900', color: '#101827', textAlign: 'center' },
+  green: { color: GREEN },
+  body: { maxWidth: 310, fontSize: 14, lineHeight: 22, color: '#485463', textAlign: 'center' },
+  intelligenceScene: { height: 250, marginTop: 20, position: 'relative', alignItems: 'center', justifyContent: 'center' },
+  floatCard: { position: 'absolute', width: 78, height: 66, borderRadius: 13, backgroundColor: 'rgba(255,255,255,.94)', alignItems: 'center', justifyContent: 'center', gap: 3, shadowColor: '#19452E', shadowOpacity: .08, shadowRadius: 15, shadowOffset: { width: 0, height: 7 }, elevation: 3 },
+  cardLeft: { left: 14, top: 28, transform: [{ rotate: '-4deg' }] },
+  cardRight: { right: 12, top: 34, transform: [{ rotate: '4deg' }] },
+  floatIcon: { color: GREEN, fontSize: 24, fontWeight: '900' },
+  floatText: { color: '#758078', fontSize: 9, fontWeight: '700' },
+  shopShadow: { position: 'absolute', width: 175, height: 28, borderRadius: 90, backgroundColor: '#DCECE2', bottom: 25, opacity: .75 },
+  shop: { width: 150, height: 120, marginTop: 48, shadowColor: '#2C6C48', shadowOpacity: .12, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 4 },
+  awning: { height: 35, borderTopLeftRadius: 15, borderTopRightRadius: 15, overflow: 'hidden', flexDirection: 'row' },
+  stripe: { flex: 1, backgroundColor: '#4AC37E' }, stripeLight: { flex: 1, backgroundColor: '#DDF6E7' },
+  shopBody: { flex: 1, backgroundColor: '#F5FFF8', borderBottomLeftRadius: 10, borderBottomRightRadius: 10, flexDirection: 'row', padding: 16, gap: 12 },
+  door: { width: 34, backgroundColor: '#BCE9CD', borderRadius: 5 }, window: { flex: 1, backgroundColor: '#D8F4E3', borderRadius: 5 },
+  pin: { position: 'absolute', right: 55, bottom: 48, width: 38, height: 38, borderRadius: 19, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#19452E', shadowOpacity: .1, shadowRadius: 10, elevation: 3 },
+  pinText: { color: GREEN, fontSize: 22 },
+  treeOne: { position: 'absolute', left: 70, bottom: 42, width: 27, height: 40, borderRadius: 16, backgroundColor: '#A7E1BC' },
+  treeTwo: { position: 'absolute', right: 88, bottom: 26, width: 22, height: 33, borderRadius: 13, backgroundColor: '#C7EDD4' },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 2, marginBottom: 22 },
+  dotActive: { width: 8, height: 8, borderRadius: 4, backgroundColor: GREEN }, dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D9DEE2' },
+  actions: { gap: 12 },
+  primaryButton: { minHeight: 56, borderRadius: 13, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
+  primaryText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' }, arrow: { position: 'absolute', right: 20, color: '#FFFFFF', fontSize: 23 },
+  secondaryButton: { minHeight: 54, borderRadius: 13, borderWidth: 1, borderColor: '#E7ECE9', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  secondaryText: { color: '#26322B', fontSize: 14, fontWeight: '700' }, pressed: { opacity: .9, transform: [{ scale: .988 }] },
 });
