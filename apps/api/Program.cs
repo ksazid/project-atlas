@@ -7,6 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient<BusinessDiscoveryService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(8);
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddDbContext<AtlasDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Atlas") ??
         "Host=localhost;Port=5432;Database=atlas;Username=postgres;Password=postgres"));
@@ -212,6 +216,7 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/context/{key}", async (Guid bus
     return Results.Ok(entry);
 }).RequireAuthorization("BusinessOwner");
 
+app.MapBusinessDiscoveryEndpoints();
 app.MapKnowledgePackEndpoints();
 app.MapOpportunityEndpoints();
 app.MapExecutionKitEndpoints();
