@@ -301,8 +301,13 @@ test('VS-16 URL-first discovery completes in authentic Expo Web runtime', { skip
   const exportRoot = path.join(tempRoot, 'web');
   const chromeProfile = path.join(tempRoot, 'chrome');
   fs.mkdirSync(artifactDir, { recursive: true });
-  assert.equal(fs.existsSync(sessionWebPath), false, 'Tracked session.web.ts would invalidate the temporary runtime boundary.');
-  fs.writeFileSync(sessionWebPath, sessionWebShim);
+
+  // VS-15 uses the same temporary web-session seam. Give it the first setup turn
+  // when the full suite runs in parallel, then safely reuse the identical shim.
+  await delay(500);
+  const ownsSessionShim = !fs.existsSync(sessionWebPath);
+  if (ownsSessionShim) fs.writeFileSync(sessionWebPath, sessionWebShim);
+  else assert.equal(fs.readFileSync(sessionWebPath, 'utf8'), sessionWebShim, 'Existing session.web.ts is not the expected temporary runtime shim.');
 
   const fixture = createApiFixture();
   const apiPort = await listen(fixture.server);
@@ -316,7 +321,7 @@ test('VS-16 URL-first discovery completes in authentic Expo Web runtime', { skip
     if (chrome?.child && !chrome.child.killed) chrome.child.kill('SIGKILL');
     await closeServer(staticServer);
     await closeServer(fixture.server);
-    if (fs.existsSync(sessionWebPath)) fs.unlinkSync(sessionWebPath);
+    if (ownsSessionShim && fs.existsSync(sessionWebPath)) fs.unlinkSync(sessionWebPath);
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
