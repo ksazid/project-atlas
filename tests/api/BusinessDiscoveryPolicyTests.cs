@@ -32,6 +32,13 @@ public sealed class BusinessDiscoveryPolicyTests
         Assert.False(PublicBusinessUrlPolicy.TryValidate(value, out _, out _));
     }
 
+    [Fact]
+    public void UrlPolicy_RejectsUrlsThatCannotFitPersistedProvenance()
+    {
+        var value = $"https://example.com/{new string('a', PublicBusinessUrlPolicy.MaxUrlCharacters)}";
+        Assert.False(PublicBusinessUrlPolicy.TryValidate(value, out _, out _));
+    }
+
     [Theory]
     [InlineData("https://example.com")]
     [InlineData("https://www.example.com/menu")]
@@ -81,6 +88,19 @@ public sealed class BusinessDiscoveryPolicyTests
         var error = await Assert.ThrowsAsync<BusinessDiscoveryException>(() => PublicBusinessHtmlReader.ReadAsync(content, CancellationToken.None));
 
         Assert.Equal("business_source_too_large", error.Code);
+    }
+
+    [Fact]
+    public void Extractor_OmitsOversizedFacts_InsteadOfCreatingUnpersistableRows()
+    {
+        var description = new string('x', PublicBusinessExtractor.MaxFactValueCharacters + 1);
+        var html = $"<html><head><meta property=\"og:title\" content=\"Harbour Coffee\" /><meta property=\"og:description\" content=\"{description}\" /></head></html>";
+
+        var snapshot = PublicBusinessExtractor.Extract("website", new Uri("https://harbour.example"), html, DateTimeOffset.UtcNow);
+
+        Assert.Equal("Harbour Coffee", snapshot.Facts.Single(x => x.Key == "name").Value);
+        Assert.DoesNotContain(snapshot.Facts, x => x.Key == "description");
+        Assert.All(snapshot.Facts, x => Assert.True(x.Value.Length <= PublicBusinessExtractor.MaxFactValueCharacters));
     }
 
     [Fact]
