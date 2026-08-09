@@ -58,7 +58,7 @@ public static class BusinessCategoryTaxonomy
     }
 
     public static bool IsKnownCategory(string key) =>
-        Generic.Key.Equals(key, StringComparison.OrdinalIgnoreCase) || Categories.Any(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
+        Generic.Key.Equals(key, StringComparison.OrdinalIgnoreCase) || Categories.Any(x => x.Key.Equals(category.Key, StringComparison.OrdinalIgnoreCase));
 
     public static bool IsKnownSubcategory(string categoryKey, string? subcategoryKey)
     {
@@ -92,6 +92,8 @@ public static class BusinessCategoryTaxonomy
 
 public static class PublicBusinessUrlPolicy
 {
+    private static readonly string[] BlockedHostSuffixes = [".localhost", ".local", ".internal", ".home", ".lan", ".test"];
+
     public static bool TryValidate(string? rawUrl, out Uri? uri, out string? error)
     {
         uri = null;
@@ -111,8 +113,14 @@ public static class PublicBusinessUrlPolicy
             return false;
         }
 
+        if (parsed.Port != 443)
+        {
+            error = "Use a public business page URL on the standard HTTPS port.";
+            return false;
+        }
+
         var host = parsed.IdnHost.TrimEnd('.').ToLowerInvariant();
-        if (host is "localhost" or "localhost.localdomain" || host.EndsWith(".localhost", StringComparison.Ordinal))
+        if (host is "localhost" or "localhost.localdomain" || BlockedHostSuffixes.Any(host.EndsWith))
         {
             error = "Use a public business page URL.";
             return false;
@@ -165,12 +173,11 @@ public static class PublicBusinessHttpConnector
     public static async ValueTask<Stream> ConnectAsync(SocketsHttpConnectionContext context, CancellationToken ct)
     {
         var addresses = await Dns.GetHostAddressesAsync(context.DnsEndPoint.Host, ct);
-        var publicAddresses = addresses.Where(PublicBusinessUrlPolicy.IsPublicAddress).ToArray();
-        if (publicAddresses.Length == 0)
-            throw new HttpRequestException("Public business source resolved only to blocked network addresses.");
+        if (addresses.Length == 0 || addresses.Any(address => !PublicBusinessUrlPolicy.IsPublicAddress(address)))
+            throw new HttpRequestException("Public business source resolved to a blocked network address.");
 
         Exception? last = null;
-        foreach (var address in publicAddresses)
+        foreach (var address in addresses)
         {
             var socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             try
@@ -186,6 +193,32 @@ public static class PublicBusinessHttpConnector
             }
         }
         throw new HttpRequestException("Atlas could not connect to that public business source.", last);
+    }
+}
+
+public static class PublicBusinessHtmlReader
+{
+    public const int MaxCharacters = 750_000;
+    private const int BufferCharacters = 8192;
+
+    public static async Task<string> ReadAsync(HttpContent content, CancellationToken ct)
+    {
+        await using var stream = await content.ReadAsStreamAsync(ct);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: BufferCharacters, leaveOpen: false);
+        var builder = new StringBuilder(Math.Min(MaxCharacters, 64 * 1024));
+        var buffer = new char[BufferCharacters];
+
+        while (builder.Length <= MaxCharacters)
+        {
+            var remaining = MaxCharacters + 1 - builder.Length;
+            var read = await reader.ReadAsync(buffer.AsMemory(0, Math.Min(buffer.Length, remaining)), ct);
+            if (read == 0) return builder.ToString();
+            builder.Append(buffer, 0, read);
+            if (builder.Length > MaxCharacters)
+                throw new BusinessDiscoveryException("business_source_too_large", "That business page is too large for safe discovery. Use a smaller public page or set up manually.");
+        }
+
+        throw new BusinessDiscoveryException("business_source_too_large", "That business page is too large for safe discovery. Use a smaller public page or set up manually.");
     }
 }
 
@@ -398,8 +431,6 @@ public sealed record BusinessDiscoveryResponse(Guid SnapshotId, string Provider,
 
 public sealed class BusinessDiscoveryService(HttpClient client)
 {
-    private const int MaxHtmlCharacters = 750_000;
-
     public async Task<PublicBusinessSnapshot> DiscoverAsync(string rawUrl, CancellationToken ct)
     {
         if (!PublicBusinessUrlPolicy.TryValidate(rawUrl, out var uri, out var validationError) || uri is null)
@@ -418,8 +449,7 @@ public sealed class BusinessDiscoveryService(HttpClient client)
         if (mediaType is not null && !mediaType.Contains("html", StringComparison.OrdinalIgnoreCase))
             throw new BusinessDiscoveryException("business_source_invalid_content", "The supplied URL is not a supported public business page.");
 
-        var html = await response.Content.ReadAsStringAsync(ct);
-        if (html.Length > MaxHtmlCharacters) html = html[..MaxHtmlCharacters];
+        var html = await PublicBusinessHtmlReader.ReadAsync(response.Content, ct);
         var snapshot = PublicBusinessExtractor.Extract(provider, uri, html, DateTimeOffset.UtcNow);
         var usefulFacts = snapshot.Facts.Where(x => x.Key is not "category" || x.Value != BusinessCategoryTaxonomy.Generic.Key).ToList();
         if (usefulFacts.Count == 0)
