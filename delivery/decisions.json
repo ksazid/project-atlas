@@ -16,6 +16,22 @@
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-09T12:54:00+02:00",
       "rationale": "The Product Owner approved the visual-system migration, confirmed that the current mark is temporary, and required a one-change replacement boundary."
+    },
+    {
+      "id": "DEC-02",
+      "sliceId": "VS-14",
+      "status": "approved",
+      "question": "How should VS-14 handle the inherited five-tab navigation while the design baseline describes four primary destinations?",
+      "options": [
+        "Restructure navigation in VS-14",
+        "Preserve the existing navigation model for the bounded visual migration and defer alignment",
+        "Silently redefine the baseline"
+      ],
+      "decision": "Preserve the existing navigation model for VS-14 and defer alignment to a separate governed navigation slice.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-09T16:06:29+02:00",
+      "rationale": "The Product Owner explicitly instructed Atlas to preserve the navigation model, and VS-14 must not become an architecture rewrite."
     }
   ]
 }
