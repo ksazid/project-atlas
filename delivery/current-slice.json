@@ -3,7 +3,7 @@
   "sliceId": "VS-14",
   "title": "VS-14 — Goals Visual Migration",
   "status": "active",
-  "lifecycle": "certification",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
@@ -75,12 +75,12 @@
     },
     {
       "type": "certification",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
+      "status": "approved",
+      "version": "VS-14@1.0",
+      "commitSha": "2cecd41c8feebed5036fabd972b3c79220dea3e9",
+      "by": "ksazid",
+      "at": "2026-08-09T16:39:00+02:00",
+      "rationale": "Product Owner instructed certification and merge after the exact PR head passed CI #217, Security baseline #203 and Product intake #187; release and production remain unauthorized."
     },
     {
       "type": "release",
@@ -109,15 +109,20 @@
     "decisions": 100,
     "implementation": 100,
     "testing": 100,
-    "certification": 0,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "running",
-    "commitSha": "f7db805b0788050dc9d66830294a4745a53a7843",
+    "status": "passed",
+    "commitSha": "2cecd41c8feebed5036fabd972b3c79220dea3e9",
     "evidence": [
+      "Remote PR head 2cecd41c8feebed5036fabd972b3c79220dea3e9 has tree 16848765a32f1de251255e35e599e246d2cd2100, exactly matching locally reviewed head 21753285d18478bcf3a3392d4b70ff933c4fac27.",
+      "https://github.com/ksazid/project-atlas/actions/runs/31318882184",
+      "https://github.com/ksazid/project-atlas/actions/runs/31318882181",
+      "https://github.com/ksazid/project-atlas/actions/runs/31318882180",
       "Local implementation/test head f7db805b0788050dc9d66830294a4745a53a7843 passed planning, governance, slice, dashboard, platform, Expo-isolated mobile validation, and preflight on 2026-08-09.",
+      "Final reviewed local head 21753285d18478bcf3a3392d4b70ff933c4fac27 passed focused 16/16, mobile 27/27, planning, governance, slice, dashboard, platform, and preflight checks.",
       "npm run planning:validate",
       "npm run governance:validate",
       "npm run slice:validate",
@@ -146,8 +151,11 @@
   },
   "links": {
     "specification": "docs/slices/VS-14.md",
-    "implementationPr": null,
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/20",
     "evidence": [
+      "https://github.com/ksazid/project-atlas/actions/runs/31318882184",
+      "https://github.com/ksazid/project-atlas/actions/runs/31318882181",
+      "https://github.com/ksazid/project-atlas/actions/runs/31318882180",
       "docs/evidence/VS-14-RUNTIME-2026-08-09.md",
       "docs/evidence/vs-14/goals-390x844-ready.png",
       "docs/evidence/vs-14/goals-390x844-custom-validation.png",
