@@ -75,7 +75,7 @@ export function updateContextValue(entries: readonly BusinessContextEntry[], key
   return found ? next : [...next, { ...createEmptyEntry(key), value }];
 }
 
-export function setContextConfirmation(entries: readonly BusinessContextEntry[], key: ContextFieldKey, confirmed: boolean): BusinessContextEntry[] {
+export function setContextConfirmation(entries: readonly BusinessContextEntry[], key: string, confirmed: boolean): BusinessContextEntry[] {
   const normalized = normalizeKey(key);
   return entries.map(entry => normalizeKey(entry.key) === normalized ? { ...entry, ownerConfirmed: confirmed } : { ...entry });
 }
