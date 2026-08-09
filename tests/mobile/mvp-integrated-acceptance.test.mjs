@@ -5,20 +5,20 @@ import test from 'node:test';
 const read = path => fs.readFileSync(path, 'utf8');
 const readJson = path => JSON.parse(read(path));
 
-test('certified Atlas main baseline is the source for integrated MVP acceptance', () => {
+test('certified VS-15 evidence remains the integrated MVP baseline while later slices may be active', () => {
   const slice = readJson('delivery/current-slice.json');
 
-  assert.equal(slice.sliceId, 'VS-15');
-  assert.equal(slice.lifecycle, 'certified');
-  assert.equal(slice.certification.status, 'passed');
-  assert.equal(slice.progress.implementation, 100);
-  assert.equal(slice.progress.testing, 100);
-  assert.equal(slice.progress.certification, 100);
+  assert.equal(fs.existsSync('docs/evidence/VS-15-RUNTIME-2026-08-09.md'), true);
   assert.equal(slice.release.status, 'not-authorized');
+  assert.notEqual(slice.certification.status, 'failed');
 
   const productionApproval = slice.approvals.find(item => item.type === 'production-enable');
   assert.ok(productionApproval);
   assert.notEqual(productionApproval.status, 'approved');
+
+  if (slice.sliceId !== 'VS-15') {
+    assert.ok(slice.dependencies.some(item => item.startsWith('VS-15@')), 'later active slices must retain the certified VS-15 dependency boundary');
+  }
 });
 
 test('integrated owner journey retains the implemented Atlas routes', () => {
