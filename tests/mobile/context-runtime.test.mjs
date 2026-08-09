@@ -356,7 +356,12 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
 
   fixture.state.failGet = false;
   fixture.state.delayGetMs = 450;
+  const getCountBeforeRetry = fixture.state.requests.filter(request => request.method === 'GET' && request.path.endsWith('/context')).length;
   await clickByLabel(cdp, 'Try loading business context again');
+  const retryRequestDeadline = Date.now() + 1500;
+  while (Date.now() < retryRequestDeadline && fixture.state.requests.filter(request => request.method === 'GET' && request.path.endsWith('/context')).length <= getCountBeforeRetry) await delay(25);
+  const getCountAfterRetry = fixture.state.requests.filter(request => request.method === 'GET' && request.path.endsWith('/context')).length;
+  assert.ok(getCountAfterRetry > getCountBeforeRetry, `Retry click did not reach the Context GET boundary. GET count remained ${getCountAfterRetry}.`);
   await cdp.waitFor('document.body.innerText.includes("Loading your business context")', 'Context retry loading state', 3000);
   await cdp.waitFor('document.body.innerText.includes("Help Atlas understand how your business works.")', 'Context ready state', 10000);
   assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, '390px Context layout has horizontal overflow.');
