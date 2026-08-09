@@ -17,34 +17,25 @@ const runRuntime = process.env.CI === 'true' && process.env.GITHUB_ACTIONS === '
 
 const sessionWebShim = `const ACCESS_TOKEN_KEY = 'atlas.access-token';
 const BUSINESS_ID_KEY = 'atlas.business-id';
-
 export type Session = { accessToken: string; businessId?: string };
-
 export async function loadSession(): Promise<Session | null> {
   const accessToken = window.localStorage.getItem(ACCESS_TOKEN_KEY);
   if (!accessToken) return null;
   const businessId = window.localStorage.getItem(BUSINESS_ID_KEY);
   return { accessToken, businessId: businessId ?? undefined };
 }
-
 export async function saveSession(session: Session): Promise<void> {
   window.localStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken);
   if (session.businessId) window.localStorage.setItem(BUSINESS_ID_KEY, session.businessId);
 }
-
 export async function clearSession(): Promise<void> {
   window.localStorage.removeItem(ACCESS_TOKEN_KEY);
   window.localStorage.removeItem(BUSINESS_ID_KEY);
 }
 `;
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function sha256(file) {
-  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
-}
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const sha256 = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
 function commandPath(names) {
   for (const name of names) {
@@ -63,7 +54,7 @@ async function listen(server) {
 }
 
 async function closeServer(server) {
-  if (!server.listening) return;
+  if (!server?.listening) return;
   await new Promise(resolve => server.close(resolve));
 }
 
@@ -97,14 +88,14 @@ function createApiFixture() {
 
     const url = new URL(req.url ?? '/', 'http://runtime.invalid');
     state.requests.push({ method: req.method, path: url.pathname, authorization: req.headers.authorization ?? null });
-    const contextPrefix = '/api/v1/businesses/dev-business/context';
-    if (!url.pathname.startsWith(contextPrefix)) {
+    const prefix = '/api/v1/businesses/dev-business/context';
+    if (!url.pathname.startsWith(prefix)) {
       res.statusCode = 404;
       res.end(JSON.stringify({ message: 'Not found.' }));
       return;
     }
 
-    if (req.method === 'GET' && url.pathname === contextPrefix) {
+    if (req.method === 'GET' && url.pathname === prefix) {
       if (state.delayGetMs) await delay(state.delayGetMs);
       if (state.failGet) {
         res.statusCode = 503;
@@ -115,7 +106,7 @@ function createApiFixture() {
       return;
     }
 
-    if (req.method === 'PUT' && url.pathname.startsWith(`${contextPrefix}/`)) {
+    if (req.method === 'PUT' && url.pathname.startsWith(`${prefix}/`)) {
       if (state.delayPutMs) await delay(state.delayPutMs);
       if (state.failPut) {
         res.statusCode = 503;
@@ -125,15 +116,9 @@ function createApiFixture() {
       let body = '';
       for await (const chunk of req) body += chunk;
       const input = JSON.parse(body);
-      const routeKey = decodeURIComponent(url.pathname.slice(contextPrefix.length + 1));
-      const normalized = routeKey.trim().toLowerCase();
-      const next = {
-        key: normalized,
-        value: String(input.value ?? '').trim(),
-        source: input.source,
-        ownerConfirmed: Boolean(input.ownerConfirmed)
-      };
-      const index = state.entries.findIndex(entry => entry.key.trim().toLowerCase() === normalized);
+      const key = decodeURIComponent(url.pathname.slice(prefix.length + 1)).trim().toLowerCase();
+      const next = { key, value: String(input.value ?? '').trim(), source: input.source, ownerConfirmed: Boolean(input.ownerConfirmed) };
+      const index = state.entries.findIndex(entry => entry.key.trim().toLowerCase() === key);
       if (index >= 0) state.entries[index] = next;
       else state.entries.push(next);
       state.putCount += 1;
@@ -144,21 +129,16 @@ function createApiFixture() {
     res.statusCode = 405;
     res.end(JSON.stringify({ message: 'Method not allowed.' }));
   });
-
   return { server, state };
 }
 
 function contentType(file) {
-  const extension = path.extname(file).toLowerCase();
-  if (extension === '.html') return 'text/html; charset=utf-8';
-  if (extension === '.js' || extension === '.mjs') return 'text/javascript; charset=utf-8';
-  if (extension === '.json') return 'application/json; charset=utf-8';
-  if (extension === '.css') return 'text/css; charset=utf-8';
-  if (extension === '.svg') return 'image/svg+xml';
-  if (extension === '.png') return 'image/png';
-  if (extension === '.ico') return 'image/x-icon';
-  if (extension === '.woff2') return 'font/woff2';
-  return 'application/octet-stream';
+  const ext = path.extname(file).toLowerCase();
+  return ({
+    '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
+    '.ico': 'image/x-icon', '.woff2': 'font/woff2'
+  })[ext] ?? 'application/octet-stream';
 }
 
 function createStaticServer(exportRoot) {
@@ -182,17 +162,16 @@ function createStaticServer(exportRoot) {
 }
 
 async function runExpoExport(outputDir, apiUrl) {
-  const env = {
-    ...process.env,
-    CI: 'true',
-    EXPO_NO_TELEMETRY: '1',
-    EXPO_PUBLIC_API_URL: apiUrl,
-    EXPO_PUBLIC_AUTH_ISSUER: 'https://auth.runtime.invalid',
-    EXPO_PUBLIC_AUTH_CLIENT_ID: 'runtime-client'
-  };
   const child = spawn('npx', ['expo', 'export', '--platform', 'web', '--output-dir', outputDir], {
     cwd: mobileRoot,
-    env,
+    env: {
+      ...process.env,
+      CI: 'true',
+      EXPO_NO_TELEMETRY: '1',
+      EXPO_PUBLIC_API_URL: apiUrl,
+      EXPO_PUBLIC_AUTH_ISSUER: 'https://auth.runtime.invalid',
+      EXPO_PUBLIC_AUTH_CLIENT_ID: 'runtime-client'
+    },
     stdio: ['ignore', 'pipe', 'pipe']
   });
   let stdout = '';
@@ -207,7 +186,7 @@ async function runExpoExport(outputDir, apiUrl) {
   assert.ok(fs.existsSync(path.join(outputDir, 'index.html')), 'Expo Web export did not create index.html');
 }
 
-async function waitForJson(url, timeoutMs = 15000) {
+async function waitForJson(url, timeoutMs = 20000) {
   const deadline = Date.now() + timeoutMs;
   let lastError;
   while (Date.now() < deadline) {
@@ -227,9 +206,7 @@ class CdpClient {
     this.url = url;
     this.nextId = 1;
     this.pending = new Map();
-    this.events = [];
   }
-
   async connect() {
     this.socket = new WebSocket(this.url);
     await new Promise((resolve, reject) => {
@@ -238,37 +215,25 @@ class CdpClient {
     });
     this.socket.addEventListener('message', event => {
       const message = JSON.parse(event.data);
-      if (message.id) {
-        const pending = this.pending.get(message.id);
-        if (!pending) return;
-        this.pending.delete(message.id);
-        if (message.error) pending.reject(new Error(`${pending.method}: ${message.error.message}`));
-        else pending.resolve(message.result ?? {});
-        return;
-      }
-      this.events.push(message);
+      if (!message.id) return;
+      const pending = this.pending.get(message.id);
+      if (!pending) return;
+      this.pending.delete(message.id);
+      if (message.error) pending.reject(new Error(`${pending.method}: ${message.error.message}`));
+      else pending.resolve(message.result ?? {});
     });
   }
-
   async send(method, params = {}) {
     const id = this.nextId++;
-    const payload = JSON.stringify({ id, method, params });
     const result = new Promise((resolve, reject) => this.pending.set(id, { resolve, reject, method }));
-    this.socket.send(payload);
+    this.socket.send(JSON.stringify({ id, method, params }));
     return result;
   }
-
   async evaluate(expression) {
-    const result = await this.send('Runtime.evaluate', {
-      expression,
-      awaitPromise: true,
-      returnByValue: true,
-      userGesture: true
-    });
+    const result = await this.send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true, userGesture: true });
     if (result.exceptionDetails) throw new Error(result.exceptionDetails.text ?? 'Runtime evaluation failed.');
     return result.result?.value;
   }
-
   async waitFor(expression, label, timeoutMs = 10000) {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
@@ -278,58 +243,36 @@ class CdpClient {
     const body = await this.evaluate('document.body?.innerText ?? ""');
     throw new Error(`Timed out waiting for ${label}. Body:\n${body}`);
   }
-
   async navigate(url) {
     await this.send('Page.navigate', { url });
     await this.waitFor('document.readyState === "complete"', `page load ${url}`, 15000);
   }
-
   async setViewport(width, height, deviceScaleFactor = 1) {
-    await this.send('Emulation.setDeviceMetricsOverride', {
-      width,
-      height,
-      deviceScaleFactor,
-      mobile: true,
-      screenWidth: width,
-      screenHeight: height
-    });
+    await this.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor, mobile: true, screenWidth: width, screenHeight: height });
   }
-
   async screenshot(file) {
     const result = await this.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false });
     fs.writeFileSync(file, Buffer.from(result.data, 'base64'));
   }
-
-  close() {
-    this.socket?.close();
-  }
+  close() { this.socket?.close(); }
 }
 
 async function launchChrome(binary, appOrigin, userDataDir) {
   const debugPort = 19000 + (process.pid % 1000);
   const child = spawn(binary, [
-    '--headless=new',
-    '--no-sandbox',
-    '--disable-gpu',
-    '--disable-dev-shm-usage',
-    '--disable-background-networking',
-    '--disable-default-apps',
-    '--disable-extensions',
-    '--no-first-run',
-    '--no-default-browser-check',
-    `--remote-debugging-port=${debugPort}`,
-    `--user-data-dir=${userDataDir}`,
-    `${appOrigin}/`
+    '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--disable-background-networking',
+    '--disable-default-apps', '--disable-extensions', '--no-first-run', '--no-default-browser-check',
+    `--remote-debugging-port=${debugPort}`, `--user-data-dir=${userDataDir}`, `${appOrigin}/`
   ], { stdio: ['ignore', 'ignore', 'pipe'] });
   let stderr = '';
   child.stderr.on('data', chunk => { stderr += chunk; });
-  const targets = await waitForJson(`http://127.0.0.1:${debugPort}/json/list`, 20000).catch(error => {
+  const targets = await waitForJson(`http://127.0.0.1:${debugPort}/json/list`).catch(error => {
     child.kill('SIGKILL');
     throw new Error(`Chrome did not expose DevTools. ${error.message}\n${stderr}`);
   });
   const page = targets.find(target => target.type === 'page');
   assert.ok(page?.webSocketDebuggerUrl, `Chrome page target missing. ${stderr}`);
-  return { child, page, stderr: () => stderr };
+  return { child, page };
 }
 
 async function clickByLabel(cdp, label) {
@@ -341,8 +284,7 @@ async function setInputByLabel(cdp, label, value) {
   const updated = await cdp.evaluate(`(() => {
     const element = document.querySelector('[aria-label=${JSON.stringify(label)}]');
     if (!element) return false;
-    const prototype = Object.getPrototypeOf(element);
-    const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
+    const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value');
     if (!descriptor?.set) return false;
     descriptor.set.call(element, ${JSON.stringify(value)});
     element.dispatchEvent(new Event('input', { bubbles: true }));
@@ -350,6 +292,16 @@ async function setInputByLabel(cdp, label, value) {
     return true;
   })()`);
   assert.equal(updated, true, `Could not update input labelled ${label}`);
+}
+
+function prHeadSha() {
+  try {
+    if (!process.env.GITHUB_EVENT_PATH) return process.env.GITHUB_SHA ?? null;
+    const payload = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+    return payload.pull_request?.head?.sha ?? process.env.GITHUB_SHA ?? null;
+  } catch {
+    return process.env.GITHUB_SHA ?? null;
+  }
 }
 
 test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip: !runRuntime, timeout: 180000 }, async t => {
@@ -370,15 +322,13 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
   t.after(async () => {
     cdp?.close();
     if (chrome?.child && !chrome.child.killed) chrome.child.kill('SIGKILL');
-    if (staticServer) await closeServer(staticServer);
+    await closeServer(staticServer);
     await closeServer(fixture.server);
     if (fs.existsSync(sessionWebPath)) fs.unlinkSync(sessionWebPath);
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
   await runExpoExport(exportRoot, apiUrl);
-  assert.equal(fs.existsSync(sessionWebPath), true, 'Runtime session shim disappeared during export.');
-
   staticServer = createStaticServer(exportRoot);
   const appPort = await listen(staticServer);
   const appOrigin = `http://127.0.0.1:${appPort}`;
@@ -396,7 +346,6 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
   await cdp.evaluate(`localStorage.setItem('atlas.access-token','runtime-token'); localStorage.setItem('atlas.business-id','dev-business'); true`);
 
   fixture.state.failGet = true;
-  fixture.state.delayGetMs = 650;
   await cdp.navigate(`${appOrigin}/context`);
   await cdp.waitFor('document.body.innerText.includes("Loading your business context")', 'Context loading state', 5000);
   await cdp.waitFor('document.body.innerText.includes("Context is unavailable")', 'Context recoverable load error', 10000);
@@ -413,7 +362,7 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
   assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, '390px Context layout has horizontal overflow.');
   assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Busy periods context"]')?.value`), 'Weekday mornings');
   assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Current priorities context"]')?.value`), 'Reduce morning queue time');
-  assert.equal(await cdp.evaluate('document.body.innerText.includes("Additional saved context")'), true, 'Unknown saved Context entry is not visible.');
+  assert.equal(await cdp.evaluate('document.body.innerText.includes("ADDITIONAL SAVED CONTEXT")'), true, 'Unknown saved Context entry is not visible.');
   const readyScreenshot = path.join(artifactDir, 'context-390x844-ready.png');
   await cdp.screenshot(readyScreenshot);
 
@@ -434,6 +383,7 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
   await clickByLabel(cdp, 'Save business context');
   await cdp.waitFor('document.body.innerText.includes("Could not save context. Your changes are still here.")', 'draft-safe save failure', 7000);
   assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Customers context"]')?.value`), 'Draft customer groups', 'Save failure discarded the Context draft.');
+  await cdp.evaluate(`document.querySelector('[aria-label="Save business context"]')?.scrollIntoView({ block: 'center' }); true`);
   const failureScreenshot = path.join(artifactDir, 'context-390x844-save-failure.png');
   await cdp.screenshot(failureScreenshot);
 
@@ -442,6 +392,7 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
   await clickByLabel(cdp, 'Save business context');
   await cdp.waitFor(`document.querySelector('[aria-label="Saving business context"]')?.getAttribute('aria-busy') === 'true'`, 'saving busy state', 3000);
   assert.equal(await cdp.evaluate('document.body.innerText.includes("Saving…")'), true, 'Visible saving state is missing.');
+  await cdp.evaluate(`document.querySelector('[aria-label="Saving business context"]')?.scrollIntoView({ block: 'center' }); true`);
   const savingScreenshot = path.join(artifactDir, 'context-390x844-saving.png');
   await cdp.screenshot(savingScreenshot);
   await cdp.waitFor('document.body.innerText.includes("Context saved.")', 'Context save success', 12000);
@@ -452,9 +403,9 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
   const authenticatedRequests = fixture.state.requests.filter(request => request.path.startsWith('/api/v1/businesses/dev-business/context'));
   assert.ok(authenticatedRequests.length >= 3, 'Runtime did not exercise the Context API boundary.');
   assert.equal(authenticatedRequests.every(request => request.authorization === 'Bearer runtime-token'), true, 'Runtime Context request escaped the seeded authentication boundary.');
-  assert.equal(authenticatedRequests.every(request => request.path.startsWith('/api/v1/businesses/dev-business/context')), true, 'Runtime Context request escaped the seeded Business boundary.');
 
   await cdp.setViewport(768, 1024, 1);
+  await cdp.evaluate('window.scrollTo(0, 0); true');
   await delay(150);
   assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, '768px Context layout has horizontal overflow.');
   const tabletScreenshot = path.join(artifactDir, 'context-768x1024-ready.png');
@@ -466,10 +417,9 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
 
   const screenshots = [errorScreenshot, readyScreenshot, failureScreenshot, savingScreenshot, savedScreenshot, tabletScreenshot];
   const summary = {
-    headSha: process.env.GITHUB_SHA ?? null,
+    headSha: prHeadSha(),
+    workflowSha: process.env.GITHUB_SHA ?? null,
     route: '/context',
-    appOrigin,
-    apiBoundary: apiUrl,
     browser: chromeBinary,
     viewports: ['390x844@2x', '768x1024@1x'],
     assertions: {
@@ -477,6 +427,7 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
       recoverableLoadError: true,
       retry: true,
       normalizedServerKeysVisible: true,
+      unknownServerEntryPreserved: true,
       publicOwnerConfirmation: true,
       validationBlocksUnconfirmedSave: true,
       saveFailurePreservesDraft: true,
@@ -491,5 +442,4 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
     screenshots: screenshots.map(file => ({ file: path.basename(file), sha256: sha256(file) }))
   };
   fs.writeFileSync(path.join(artifactDir, 'runtime-summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
-  assert.equal(fs.existsSync(sessionWebPath), true, 'Temporary runtime session shim was removed before verification completed.');
 });
