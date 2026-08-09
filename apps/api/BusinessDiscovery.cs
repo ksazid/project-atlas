@@ -1,9 +1,11 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Atlas.Api;
 
@@ -155,6 +157,35 @@ public static class PublicBusinessUrlPolicy
         }
 
         return false;
+    }
+}
+
+public static class PublicBusinessHttpConnector
+{
+    public static async ValueTask<Stream> ConnectAsync(SocketsHttpConnectionContext context, CancellationToken ct)
+    {
+        var addresses = await Dns.GetHostAddressesAsync(context.DnsEndPoint.Host, ct);
+        var publicAddresses = addresses.Where(PublicBusinessUrlPolicy.IsPublicAddress).ToArray();
+        if (publicAddresses.Length == 0)
+            throw new HttpRequestException("Public business source resolved only to blocked network addresses.");
+
+        Exception? last = null;
+        foreach (var address in publicAddresses)
+        {
+            var socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
+                await socket.ConnectAsync(new IPEndPoint(address, context.DnsEndPoint.Port), ct);
+                return new NetworkStream(socket, ownsSocket: true);
+            }
+            catch (Exception ex) when (ex is SocketException or OperationCanceledException)
+            {
+                last = ex;
+                socket.Dispose();
+                if (ex is OperationCanceledException) throw;
+            }
+        }
+        throw new HttpRequestException("Atlas could not connect to that public business source.", last);
     }
 }
 
@@ -355,21 +386,21 @@ public static class PublicBusinessExtractor
 }
 
 public sealed record DiscoverBusinessRequest(string Url);
-public sealed record DiscoveredBusinessField(string? Value, string Source, string Confidence, bool OwnerConfirmed = false);
-public sealed record BusinessDiscoveryResponse(
-    string Provider,
-    string SourceUrl,
-    DiscoveredBusinessField Name,
-    DiscoveredBusinessField Category,
-    DiscoveredBusinessField? Subcategory,
-    DiscoveredBusinessField? PrimaryLocation,
-    DiscoveredBusinessField? Description);
+public sealed record BusinessDiscoveryResponse(Guid SnapshotId, string Provider, string SourceUrl, DateTimeOffset ObservedAt, IReadOnlyList<PublicBusinessFact> Facts)
+{
+    public static BusinessDiscoveryResponse From(BusinessDiscoverySnapshot snapshot) => new(
+        snapshot.Id,
+        snapshot.Provider,
+        snapshot.SourceUrl,
+        snapshot.ObservedAt,
+        snapshot.Facts.Select(x => new PublicBusinessFact(x.Key, x.Value, x.Source, x.SourceUrl, x.ObservedAt, x.Confidence, x.EvidenceClass, x.OwnerConfirmed)).ToList());
+}
 
 public sealed class BusinessDiscoveryService(HttpClient client)
 {
     private const int MaxHtmlCharacters = 750_000;
 
-    public async Task<BusinessDiscoveryResponse> DiscoverAsync(string rawUrl, CancellationToken ct)
+    public async Task<PublicBusinessSnapshot> DiscoverAsync(string rawUrl, CancellationToken ct)
     {
         if (!PublicBusinessUrlPolicy.TryValidate(rawUrl, out var uri, out var validationError) || uri is null)
             throw new BusinessDiscoveryException("business_url_invalid", validationError ?? "Use a valid HTTPS business page URL.");
@@ -379,7 +410,7 @@ public sealed class BusinessDiscoveryService(HttpClient client)
         request.Headers.UserAgent.ParseAdd("AtlasBusinessDiscovery/1.0");
         using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
         if ((int)response.StatusCode is >= 300 and < 400)
-            throw new BusinessDiscoveryException("business_source_redirected", "The business page redirected to another location. Please use its final public URL.");
+            throw new BusinessDiscoveryException("business_source_redirected", "The business page redirected. Use its final public URL or set up manually.");
         if (!response.IsSuccessStatusCode)
             throw new BusinessDiscoveryException("business_source_unavailable", "Atlas could not read that business page right now.");
 
@@ -390,17 +421,10 @@ public sealed class BusinessDiscoveryService(HttpClient client)
         var html = await response.Content.ReadAsStringAsync(ct);
         if (html.Length > MaxHtmlCharacters) html = html[..MaxHtmlCharacters];
         var snapshot = PublicBusinessExtractor.Extract(provider, uri, html, DateTimeOffset.UtcNow);
-
-        PublicBusinessFact? Fact(string key) => snapshot.Facts.FirstOrDefault(x => x.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
-        DiscoveredBusinessField? Field(string key)
-        {
-            var fact = Fact(key);
-            return fact is null ? null : new DiscoveredBusinessField(fact.Value, fact.Source, fact.Confidence, fact.OwnerConfirmed);
-        }
-
-        var name = Field("name") ?? new DiscoveredBusinessField(null, provider, "low");
-        var category = Field("category") ?? new DiscoveredBusinessField(BusinessCategoryTaxonomy.Generic.Key, "atlas-category-taxonomy", "low");
-        return new BusinessDiscoveryResponse(provider, snapshot.SourceUrl, name, category, Field("subcategory"), Field("primaryLocation"), Field("description"));
+        var usefulFacts = snapshot.Facts.Where(x => x.Key is not "category" || x.Value != BusinessCategoryTaxonomy.Generic.Key).ToList();
+        if (usefulFacts.Count == 0)
+            throw new BusinessDiscoveryException("business_source_no_facts", "Atlas could not find useful business details on that page. You can set up manually instead.");
+        return snapshot;
     }
 
     internal static string ProviderFor(string host)
@@ -427,13 +451,31 @@ public static class BusinessDiscoveryEndpoints
             fallback = BusinessCategoryTaxonomy.Generic
         })).RequireAuthorization("BusinessOwner");
 
-        app.MapPost("/api/v1/business-discovery", async (DiscoverBusinessRequest request, BusinessDiscoveryService discovery, CancellationToken ct) =>
+        app.MapPost("/api/v1/business-discovery", async (DiscoverBusinessRequest request, ClaimsPrincipal user, BusinessDiscoveryService discovery, AtlasDbContext db, CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(request.Url))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Url)] = ["Business page URL is required."] });
+            var subject = Subject(user);
+            if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
             try
             {
-                return Results.Ok(await discovery.DiscoverAsync(request.Url, ct));
+                var publicSnapshot = await discovery.DiscoverAsync(request.Url, ct);
+                var account = await db.UserAccounts.SingleOrDefaultAsync(x => x.ProviderSubject == subject, ct);
+                if (account is null)
+                {
+                    account = new UserAccount { Id = Guid.NewGuid(), ProviderSubject = subject, CreatedAt = DateTimeOffset.UtcNow };
+                    db.UserAccounts.Add(account);
+                }
+                var snapshot = BusinessDiscoverySnapshot.Create(account.Id, publicSnapshot);
+                foreach (var fact in snapshot.Facts)
+                {
+                    fact.SnapshotId = snapshot.Id;
+                    fact.Snapshot = snapshot;
+                }
+                db.BusinessDiscoverySnapshots.Add(snapshot);
+                db.AuditRecords.Add(AuditRecord.Create(account.Id, null, "business.discovery.created"));
+                await db.SaveChangesAsync(ct);
+                return Results.Ok(BusinessDiscoveryResponse.From(snapshot));
             }
             catch (BusinessDiscoveryException ex)
             {
@@ -445,10 +487,35 @@ public static class BusinessDiscoveryEndpoints
             }
             catch (HttpRequestException)
             {
-                return Results.BadRequest(new { code = "business_source_unavailable", message = "Atlas could not read that business page right now. Try again or set up manually." });
+                return Results.BadRequest(new { code = "business_source_unavailable", message = "Atlas could not read that business page safely right now. Try again or set up manually." });
+            }
+        }).RequireAuthorization("BusinessOwner");
+
+        app.MapPost("/api/v1/businesses/from-discovery", async (CreateBusinessFromDiscoveryRequest request, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
+        {
+            var subject = Subject(user);
+            if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
+            try
+            {
+                var business = await BusinessDiscoveryBusinessCreator.CreateAsync(db, subject, request, ct);
+                return Results.Created($"/api/v1/businesses/{business.Id}", business);
+            }
+            catch (BusinessDiscoveryValidationException ex)
+            {
+                return Results.ValidationProblem(ex.Errors, extensions: new Dictionary<string, object?> { ["code"] = "business_discovery_invalid" });
+            }
+            catch (BusinessDiscoveryException ex) when (ex.Code == "initial_business_exists")
+            {
+                return Results.Conflict(new { code = ex.Code, message = ex.Message });
+            }
+            catch (BusinessDiscoveryException ex)
+            {
+                return Results.BadRequest(new { code = ex.Code, message = ex.Message });
             }
         }).RequireAuthorization("BusinessOwner");
 
         return app;
     }
+
+    private static string? Subject(ClaimsPrincipal user) => user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
 }
