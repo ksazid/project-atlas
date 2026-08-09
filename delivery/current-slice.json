@@ -1,13 +1,13 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-14",
-  "title": "VS-14 — Goals Visual Migration",
+  "sliceId": "VS-15",
+  "title": "VS-15 — Context Visual Migration",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
-    "FR-04"
+    "FR-05"
   ],
   "owners": {
     "product": "ksazid",
@@ -19,7 +19,8 @@
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "VS-02@9c080a4a8867076be95ddd672b646e7eb5f2a535",
-    "VS-13@0788b03b02ad86753de6da4eb27ad355b520dbc7"
+    "VS-13@0788b03b02ad86753de6da4eb27ad355b520dbc7",
+    "VS-14@54b8b216b5a42c54da22aaaa02695708cda33428"
   ],
   "blockers": [],
   "allowedPaths": [
@@ -40,8 +41,12 @@
       "customer-flow"
     ],
     "notes": [
-      "Migrates the existing authenticated Goals experience to the approved Atlas visual system while preserving the existing Business API boundary, goal persistence, Business isolation, and PES Mobile architecture.",
-      "The Product Owner approved the standing five-slice visual migration sequence; VS-14 is limited to the written Goals Visual Migration design and FR-04.",
+      "Migrates the existing authenticated Business Context experience to the approved Atlas visual system while preserving the existing Context API boundary, authentication, Business isolation, persistence behavior, and PES Mobile architecture.",
+      "The Product Owner approved the standing Atlas visual migration sequence and instructed the bounded migration to repeat for VS-15 Context, then instructed the implementation blocker to be fixed and work to continue through the governed close-out.",
+      "Public Context remains subject to the existing owner-confirmation API rule; VS-15 exposes that rule in the UI rather than changing it.",
+      "Implementation head a46b9f28ec1e1d360c153adf8e90c40bbe0caca2 passed CI #223, Security baseline #208 and Product intake #192.",
+      "CI #223 includes authentic Expo Web runtime verification in Google Chrome at 390×844 and 768×1024, covering loading, recoverable failure, retry, provenance confirmation, draft-safe save failure, saving/success, authenticated Business boundary, no horizontal overflow, and 44px interactive targets.",
+      "Authentic native iOS keyboard, dynamic-type, VoiceOver and physical-device validation remain release-level evidence and are not represented as passed.",
       "No API, domain, migration, auth, navigation, dependency, release, or production change is authorized."
     ]
   },
@@ -49,11 +54,11 @@
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-14@1.0",
+      "version": "VS-15@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-09T15:30:00+02:00",
-      "rationale": "Product Owner approved the standing five-slice Atlas visual migration sequence, including the written VS-14 Goals Visual Migration specification."
+      "at": "2026-08-09T17:18:00+02:00",
+      "rationale": "Product Owner approved the planned Atlas visual migration sequence and explicitly instructed that the migration repeat for VS-15 Context."
     },
     {
       "type": "policy",
@@ -67,20 +72,20 @@
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-14@1.0",
+      "version": "VS-15@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-09T15:30:00+02:00",
-      "rationale": "Product Owner approved runtime implementation and testing for the bounded written VS-14 Goals Visual Migration specification; release and production remain unauthorized."
+      "at": "2026-08-09T17:18:00+02:00",
+      "rationale": "Product Owner approved implementation planning and coding for the bounded visual migration sequence; VS-15 remains limited to FR-05 and the written Context Visual Migration specification. Release and production remain unauthorized."
     },
     {
       "type": "certification",
       "status": "approved",
-      "version": "VS-14@1.0",
-      "commitSha": "2cecd41c8feebed5036fabd972b3c79220dea3e9",
+      "version": "VS-15@1.0",
+      "commitSha": "a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
       "by": "ksazid",
-      "at": "2026-08-09T16:39:00+02:00",
-      "rationale": "Product Owner instructed certification and merge after the exact PR head passed CI #217, Security baseline #203 and Product intake #187; release and production remain unauthorized."
+      "at": "2026-08-09T20:05:00+02:00",
+      "rationale": "Product Owner instructed the VS-15 blocker to be fixed and implementation to continue. The resulting implementation head passed the complete deterministic gate set plus authentic Expo Web runtime verification; release and production remain unauthorized."
     },
     {
       "type": "release",
@@ -102,7 +107,7 @@
     }
   ],
   "decisionIds": [
-    "DEC-02"
+    "DEC-03"
   ],
   "progress": {
     "discovery": 100,
@@ -115,24 +120,15 @@
   },
   "certification": {
     "status": "passed",
-    "commitSha": "2cecd41c8feebed5036fabd972b3c79220dea3e9",
+    "commitSha": "a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "evidence": [
-      "Remote PR head 2cecd41c8feebed5036fabd972b3c79220dea3e9 has tree 16848765a32f1de251255e35e599e246d2cd2100, exactly matching locally reviewed head 21753285d18478bcf3a3392d4b70ff933c4fac27.",
-      "https://github.com/ksazid/project-atlas/actions/runs/31318882184",
-      "https://github.com/ksazid/project-atlas/actions/runs/31318882181",
-      "https://github.com/ksazid/project-atlas/actions/runs/31318882180",
-      "Local implementation/test head f7db805b0788050dc9d66830294a4745a53a7843 passed planning, governance, slice, dashboard, platform, Expo-isolated mobile validation, and preflight on 2026-08-09.",
-      "Final reviewed local head 21753285d18478bcf3a3392d4b70ff933c4fac27 passed focused 16/16, mobile 27/27, planning, governance, slice, dashboard, platform, and preflight checks.",
-      "npm run planning:validate",
-      "npm run governance:validate",
-      "npm run slice:validate",
-      "npm run dashboard:check",
-      "npm run platform:validate",
-      "EXPO_NO_TELEMETRY=1 __UNSAFE_EXPO_HOME_DIRECTORY=/tmp/atlas-vs14-expo npm run mobile:validate",
-      "EXPO_NO_TELEMETRY=1 __UNSAFE_EXPO_HOME_DIRECTORY=/tmp/atlas-vs14-expo npm run preflight",
-      "tests/mobile/goals-model.test.mjs",
-      "docs/evidence/VS-14-RUNTIME-2026-08-09.md",
-      "Native iOS keyboard, dynamic-type, screen-reader traversal, physical-device, and native automation validation remain pending and are not represented as passed by this local evidence."
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837113",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837125",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837108",
+      "docs/evidence/VS-15-RUNTIME-2026-08-09.md",
+      "tests/mobile/context-model.test.mjs",
+      "tests/mobile/context-runtime.test.mjs",
+      "CI #223 artifact 9042066098 digest sha256:9bf31f2279766823cf03dfa48ead202ce07ed67d591886dcb904a6b2f5cb6d1a"
     ]
   },
   "release": {
@@ -150,18 +146,17 @@
     "metrics": []
   },
   "links": {
-    "specification": "docs/slices/VS-14.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/20",
+    "specification": "docs/slices/VS-15.md",
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/21",
     "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31318882184",
-      "https://github.com/ksazid/project-atlas/actions/runs/31318882181",
-      "https://github.com/ksazid/project-atlas/actions/runs/31318882180",
-      "docs/evidence/VS-14-RUNTIME-2026-08-09.md",
-      "docs/evidence/vs-14/goals-390x844-ready.png",
-      "docs/evidence/vs-14/goals-390x844-custom-validation.png",
-      "docs/evidence/vs-14/goals-390x844-save-failure.png",
-      "docs/evidence/vs-14/goals-390x844-save-success.png",
-      "docs/evidence/vs-14/goals-768x1024-ready.png"
+      "docs/superpowers/specs/2026-08-09-vs-15-context-design.md",
+      "docs/superpowers/plans/2026-08-09-vs-15-context.md",
+      "docs/evidence/VS-15-RUNTIME-2026-08-09.md",
+      "tests/mobile/context-model.test.mjs",
+      "tests/mobile/context-runtime.test.mjs",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837113",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837125",
+      "https://github.com/ksazid/project-atlas/actions/runs/31327837108"
     ]
   },
   "maxAttempts": 3

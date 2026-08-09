@@ -32,6 +32,22 @@
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-09T16:06:29+02:00",
       "rationale": "The Product Owner explicitly instructed Atlas to preserve the navigation model, and VS-14 must not become an architecture rewrite."
+    },
+    {
+      "id": "DEC-03",
+      "sliceId": "VS-15",
+      "status": "approved",
+      "question": "How should VS-15 handle the inherited five-tab navigation while the approved baseline describes four persistent destinations?",
+      "options": [
+        "Restructure navigation in VS-15",
+        "Preserve the existing navigation model for the bounded Context visual migration and defer alignment",
+        "Silently redefine the baseline"
+      ],
+      "decision": "Preserve the existing navigation model for VS-15 and defer navigation alignment to a separate governed slice.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-09T17:18:00+02:00",
+      "rationale": "The Product Owner approved the planned bounded migration sequence and instructed that existing navigation be preserved; repeating the migration for Context must not become a navigation or architecture rewrite."
     }
   ]
 }
