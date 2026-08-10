@@ -42,11 +42,15 @@ Businesses owns a provider-neutral location port. Conceptual contract:
 
 Canonical location includes provider reference, display name, formatted address, latitude, longitude, country code/name, timezone and currency.
 
-Google Places/Place Details + Time Zone is the first adapter for the test/pilot path. Provider credentials are server-side configuration. No provider SDK is called by domain code.
+Google Places Text Search (New) is the first adapter for the test/pilot path. The adapter requests only the required Pro-tier fields, including `places.timeZone`, so address, coordinates, country and IANA timezone arrive in the same response. Atlas does not call the separate Google Time Zone API. Provider credentials are server-side configuration. No provider SDK is called by domain code.
 
 ### Deterministic metadata
 
-Country-to-currency mapping is Atlas-owned deterministic data. Timezone is resolved from coordinates/provider result and validated as an IANA identifier before persistence.
+Country-to-currency mapping is Atlas-owned deterministic data. Timezone comes from the selected Places result and is validated as an IANA identifier before persistence.
+
+### Cost/dependency rule
+
+One location search produces one Google Places request for the result set. No secondary Time Zone API request is permitted in this slice. This reduces external dependency surface and keeps pilot usage easier to constrain under provider quota.
 
 ### Validation
 
@@ -57,6 +61,7 @@ Server remains authoritative. Mobile performs equivalent local state checks for 
 - Preserve existing public-URL SSRF policy.
 - Do not expose Google server keys to mobile.
 - Bound search query lengths and result count.
+- Use an explicit Places response field mask; do not request wildcard fields.
 - Do not log provider credentials or full sensitive request headers.
 - Only public business/location information is queried in this slice.
 
