@@ -64,6 +64,22 @@
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-09T21:12:00+02:00",
       "rationale": "The Product Owner explicitly approved the recommended VS-16 scope including normal public business websites plus Wolt/Bolt and instructed implementation to proceed through completion."
+    },
+    {
+      "id": "DEC-05",
+      "sliceId": "VS-17",
+      "status": "approved",
+      "question": "How should VS-17 collect optional category-aware onboarding context?",
+      "options": [
+        "Generate onboarding questions dynamically with AI",
+        "Show a fixed static form per category",
+        "Use a deterministic versioned skippable catalogue selected from missing context"
+      ],
+      "decision": "Use a deterministic, versioned, server-owned and fully skippable progressive-question catalogue. Create the Business first, select only 3–5 highest-value missing questions, present them tap-first one at a time, persist answers as owner-confirmed Business Context, and persist skip/answer progress separately for resumability.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-10T00:55:00+02:00",
+      "rationale": "The Product Owner approved skippable questions, deterministic versioning, tap-first one-question-at-a-time interaction, post-Business sequencing, all eight initial category families plus Generic fallback, and suppression of skipped questions unless a future explicit material-value trigger justifies re-asking."
     }
   ]
 }

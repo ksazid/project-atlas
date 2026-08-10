@@ -113,7 +113,7 @@ export default function CreateBusinessScreen() {
           });
 
       await saveSession({ ...session, businessId: business.id });
-      router.replace('/(tabs)');
+      router.replace('/progressive-questions');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Atlas could not finish business setup.');
     } finally {

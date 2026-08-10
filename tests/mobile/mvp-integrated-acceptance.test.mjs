@@ -26,6 +26,7 @@ test('integrated owner journey retains the implemented Atlas routes', () => {
     'apps/mobile/app/welcome.tsx',
     'apps/mobile/app/sign-in.tsx',
     'apps/mobile/app/create-business.tsx',
+    'apps/mobile/app/progressive-questions.tsx',
     'apps/mobile/app/(tabs)/index.tsx',
     'apps/mobile/app/(tabs)/profile.tsx',
     'apps/mobile/app/(tabs)/goals.tsx',
@@ -62,12 +63,28 @@ test('integrated acceptance keeps focused model and authentic runtime evidence i
     'tests/mobile/goals-model.test.mjs',
     'tests/mobile/context-model.test.mjs',
     'tests/mobile/context-runtime.test.mjs',
+    'tests/mobile/progressive-question-model.test.mjs',
+    'tests/mobile/progressive-question-screen.test.mjs',
+    'tests/mobile/progressive-question-runtime.test.mjs',
     'docs/evidence/VS-13-RUNTIME-2026-08-09.md',
     'docs/evidence/VS-14-RUNTIME-2026-08-09.md',
     'docs/evidence/VS-15-RUNTIME-2026-08-09.md'
   ]) {
     assert.equal(fs.existsSync(path), true, `${path} must remain part of the acceptance baseline`);
   }
+});
+
+test('active VS-17 keeps optional enrichment bounded and release disabled', () => {
+  const slice = readJson('delivery/current-slice.json');
+  if (slice.sliceId !== 'VS-17') return;
+
+  const screen = read('apps/mobile/app/progressive-questions.tsx');
+  const createBusiness = read('apps/mobile/app/create-business.tsx');
+  assert.match(screen, /Skip for now/);
+  assert.match(screen, /Continue for now/);
+  assert.match(createBusiness, /router\.replace\(['"]\/progressive-questions['"]\)/);
+  assert.equal(slice.release.status, 'not-authorized');
+  assert.notEqual(slice.approvals.find(item => item.type === 'production-enable')?.status, 'approved');
 });
 
 test('MVP acceptance does not silently enable release or production', () => {

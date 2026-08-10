@@ -77,6 +77,30 @@ public sealed class Business
 public sealed class BusinessProfile { public Guid BusinessId { get; set; } public string? Description { get; set; } public string? Address { get; set; } public string? Website { get; set; } public string? Phone { get; set; } public string? Email { get; set; } public string? SocialChannels { get; set; } public string? BusinessHours { get; set; } public required string Language { get; set; } public required string Source { get; set; } public bool OwnerConfirmed { get; set; } public DateTimeOffset UpdatedAt { get; set; } }
 public sealed class BusinessGoal { public Guid Id { get; set; } public Guid BusinessId { get; set; } public required string Type { get; set; } public required string Title { get; set; } public int Priority { get; set; } public bool IsCustom { get; set; } public DateTimeOffset UpdatedAt { get; set; } }
 public sealed class BusinessContextEntry { public Guid Id { get; set; } public Guid BusinessId { get; set; } public required string Key { get; set; } public required string Value { get; set; } public required string Source { get; set; } public bool OwnerConfirmed { get; set; } public DateTimeOffset UpdatedAt { get; set; } }
+public sealed class BusinessQuestionProgress
+{
+    public Guid Id { get; set; }
+    public Guid BusinessId { get; set; }
+    public required string CatalogueKey { get; set; }
+    public required string CatalogueVersion { get; set; }
+    public required string QuestionKey { get; set; }
+    public required string Status { get; set; }
+    public string? AnsweredContextKey { get; set; }
+    public DateTimeOffset CompletedAt { get; set; }
+    public uint ConcurrencyVersion { get; set; }
+
+    public static BusinessQuestionProgress Skipped(Guid businessId, string catalogueKey, string catalogueVersion, string questionKey, DateTimeOffset at) => new()
+    {
+        Id = Guid.NewGuid(), BusinessId = businessId, CatalogueKey = catalogueKey, CatalogueVersion = catalogueVersion,
+        QuestionKey = questionKey, Status = BusinessQuestionProgressStatuses.Skipped, CompletedAt = at
+    };
+
+    public static BusinessQuestionProgress Answered(Guid businessId, string catalogueKey, string catalogueVersion, string questionKey, string contextKey, DateTimeOffset at) => new()
+    {
+        Id = Guid.NewGuid(), BusinessId = businessId, CatalogueKey = catalogueKey, CatalogueVersion = catalogueVersion,
+        QuestionKey = questionKey, Status = BusinessQuestionProgressStatuses.Answered, AnsweredContextKey = contextKey, CompletedAt = at
+    };
+}
 public sealed class BusinessMembership { public Guid Id { get; set; } public Guid BusinessId { get; set; } public Guid UserAccountId { get; set; } public required string Role { get; set; } public DateTimeOffset CreatedAt { get; set; } public UserAccount UserAccount { get; set; } = null!; }
 public sealed class AuditRecord
 {
@@ -89,7 +113,8 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
 {
     public DbSet<UserAccount> UserAccounts => Set<UserAccount>(); public DbSet<Business> Businesses => Set<Business>();
     public DbSet<BusinessProfile> BusinessProfiles => Set<BusinessProfile>(); public DbSet<BusinessGoal> BusinessGoals => Set<BusinessGoal>();
-    public DbSet<BusinessContextEntry> BusinessContextEntries => Set<BusinessContextEntry>(); public DbSet<BusinessMembership> BusinessMemberships => Set<BusinessMembership>();
+    public DbSet<BusinessContextEntry> BusinessContextEntries => Set<BusinessContextEntry>(); public DbSet<BusinessQuestionProgress> BusinessQuestionProgress => Set<BusinessQuestionProgress>();
+    public DbSet<BusinessMembership> BusinessMemberships => Set<BusinessMembership>();
     public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>(); public DbSet<KnowledgePack> KnowledgePacks => Set<KnowledgePack>();
     public DbSet<KnowledgePackVersion> KnowledgePackVersions => Set<KnowledgePackVersion>(); public DbSet<KnowledgeSection> KnowledgeSections => Set<KnowledgeSection>();
     public DbSet<BusinessKnowledgeAssignment> BusinessKnowledgeAssignments => Set<BusinessKnowledgeAssignment>();
@@ -108,6 +133,14 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<BusinessProfile>().HasKey(x => x.BusinessId);
         modelBuilder.Entity<BusinessGoal>().HasIndex(x => new { x.BusinessId, x.Priority }).IsUnique();
         modelBuilder.Entity<BusinessContextEntry>().HasIndex(x => new { x.BusinessId, x.Key }).IsUnique();
+        modelBuilder.Entity<BusinessQuestionProgress>().Property(x => x.CatalogueKey).HasMaxLength(80);
+        modelBuilder.Entity<BusinessQuestionProgress>().Property(x => x.CatalogueVersion).HasMaxLength(40);
+        modelBuilder.Entity<BusinessQuestionProgress>().Property(x => x.QuestionKey).HasMaxLength(160);
+        modelBuilder.Entity<BusinessQuestionProgress>().Property(x => x.Status).HasMaxLength(20);
+        modelBuilder.Entity<BusinessQuestionProgress>().Property(x => x.AnsweredContextKey).HasMaxLength(80);
+        modelBuilder.Entity<BusinessQuestionProgress>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<BusinessQuestionProgress>().HasIndex(x => new { x.BusinessId, x.CatalogueKey, x.CatalogueVersion, x.QuestionKey }).IsUnique();
+        modelBuilder.Entity<BusinessQuestionProgress>().HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Cascade);
         modelBuilder.Entity<BusinessMembership>().HasIndex(x => new { x.BusinessId, x.UserAccountId, x.Role }).IsUnique();
         modelBuilder.Entity<BusinessMembership>().HasOne(x => x.UserAccount).WithMany().HasForeignKey(x => x.UserAccountId);
         modelBuilder.Entity<AuditRecord>().HasIndex(x => new { x.BusinessId, x.OccurredAt });
