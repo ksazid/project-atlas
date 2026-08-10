@@ -37,7 +37,6 @@ export default function ProgressiveQuestionsScreen() {
   const [completedCount, setCompletedCount] = useState(0);
 
   const question = questionSet?.questions[0] ?? null;
-
   const continueToToday = useCallback(() => router.replace('/(tabs)'), []);
 
   const load = useCallback(async () => {
@@ -203,6 +202,11 @@ export default function ProgressiveQuestionsScreen() {
         <AnswerControl question={question} draft={draft} saving={saving} onChange={setDraft} />
 
         {message ? <Text accessibilityLiveRegion="polite" style={styles.errorMessage}>{message}</Text> : null}
+        {message ? (
+          <Pressable accessibilityLabel="Continue for now" accessibilityRole="button" onPress={continueToToday} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
+            <Text style={styles.secondaryButtonText}>Continue for now</Text>
+          </Pressable>
+        ) : null}
 
         <Pressable
           accessibilityLabel="Continue with this answer"
@@ -232,12 +236,7 @@ export default function ProgressiveQuestionsScreen() {
   );
 }
 
-function AnswerControl({
-  question,
-  draft,
-  saving,
-  onChange,
-}: {
+function AnswerControl({ question, draft, saving, onChange }: {
   question: ProgressiveQuestion;
   draft: ProgressiveQuestionAnswerDraft;
   saving: boolean;
@@ -265,13 +264,14 @@ function AnswerControl({
   }
 
   return (
-    <View accessibilityRole="radiogroup" style={styles.answerGroup}>
+    <View accessibilityRole={question.answerType === 'single-choice' ? 'radiogroup' : undefined} style={styles.answerGroup}>
       {question.options.map(option => {
         const selected = draft.selections.includes(option);
         if (question.answerType === 'multi-choice') {
           return (
             <Pressable
               key={option}
+              aria-checked={selected}
               accessibilityLabel={option}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: selected, disabled: saving }}
@@ -288,6 +288,7 @@ function AnswerControl({
         return (
           <Pressable
             key={option}
+            aria-checked={selected}
             accessibilityLabel={option}
             accessibilityRole="radio"
             accessibilityState={{ selected: selected, disabled: saving }}
