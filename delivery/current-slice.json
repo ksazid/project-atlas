@@ -3,7 +3,7 @@
   "sliceId": "VS-17",
   "title": "VS-17 — Progressive Business Questions",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
@@ -55,8 +55,11 @@
       "Answered questions reuse the existing BusinessContextEntry as owner-confirmed authoritative context; BusinessQuestionProgress stores only answered/skipped workflow state and catalogue/question identity.",
       "Question selection supports all eight initial category families plus Generic fallback, suppresses reliably known context, returns at most five useful questions and never pads with filler.",
       "A catalogue version change alone never re-asks a skipped question; future material-value-triggered re-asking remains outside VS-17.",
+      "The generic customer-groups question uses the existing canonical Business Context key customers so known customer context is not duplicated under a synonymous storage key.",
       "The approved Atlas visual system, BrandMark boundary, existing Business creation/provenance semantics, authentication and Business isolation are preserved.",
       "The direct VS-15 certified dependency is retained as required by the integrated MVP acceptance boundary, in addition to VS-16.",
+      "Implementation head 6f67fe53d9a71edd850df12a0af26096fcceba1e passed CI run 31344152550, Security baseline run 31344152567 and Product Intake run 31344152547.",
+      "CI run 31344152550 includes authentic Expo Web verification at 390×844 and 768×1024 for VS-17 plus the existing VS-15 Context and VS-16 discovery regression journeys; evidence is retained in artifact 9046799968 (sha256:911e2ff1d5949e87b9d2850fda528a9b42a9a750d1025090c10f1982c35c768d).",
       "No Knowledge Pack Schema v2, category opportunity engine, release, deployment or production enablement is authorized."
     ]
   },
@@ -90,12 +93,12 @@
     },
     {
       "type": "certification",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
+      "status": "approved",
+      "version": "VS-17@1.0",
+      "commitSha": "6f67fe53d9a71edd850df12a0af26096fcceba1e",
+      "by": "ksazid",
+      "at": "2026-08-10T02:25:00+02:00",
+      "rationale": "Product Owner instructed the governed VS-17 work to continue through completion. Exact implementation head 6f67fe53d9a71edd850df12a0af26096fcceba1e passed CI, Security baseline and Product Intake, including authentic Expo Web phone/tablet VS-17 runtime evidence and VS-15/VS-16 regression journeys. Release and production remain unauthorized."
     },
     {
       "type": "release",
@@ -122,16 +125,28 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 0,
-    "testing": 0,
-    "certification": 0,
+    "implementation": 100,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
-    "evidence": []
+    "status": "passed",
+    "commitSha": "6f67fe53d9a71edd850df12a0af26096fcceba1e",
+    "evidence": [
+      "https://github.com/ksazid/project-atlas/actions/runs/31344152550",
+      "https://github.com/ksazid/project-atlas/actions/runs/31344152567",
+      "https://github.com/ksazid/project-atlas/actions/runs/31344152547",
+      "docs/evidence/VS-17-RUNTIME-2026-08-10.md",
+      "tests/api/ProgressiveQuestionCatalogueTests.cs",
+      "tests/api/ProgressiveQuestionPersistenceTests.cs",
+      "tests/mobile/progressive-question-model.test.mjs",
+      "tests/mobile/progressive-question-screen.test.mjs",
+      "tests/mobile/progressive-question-runtime.test.mjs",
+      "tests/mobile/mvp-integrated-acceptance.test.mjs",
+      "CI artifact 9046799968 digest sha256:911e2ff1d5949e87b9d2850fda528a9b42a9a750d1025090c10f1982c35c768d"
+    ]
   },
   "release": {
     "status": "not-authorized",
@@ -152,7 +167,12 @@
     "implementationPr": "https://github.com/ksazid/project-atlas/pull/24",
     "evidence": [
       "docs/superpowers/specs/2026-08-10-vs-17-progressive-business-questions-design.md",
-      "docs/superpowers/plans/2026-08-10-vs-17-progressive-business-questions.md"
+      "docs/superpowers/plans/2026-08-10-vs-17-progressive-business-questions.md",
+      "docs/evidence/VS-17-RUNTIME-2026-08-10.md",
+      "tests/mobile/progressive-question-runtime.test.mjs",
+      "https://github.com/ksazid/project-atlas/actions/runs/31344152550",
+      "https://github.com/ksazid/project-atlas/actions/runs/31344152567",
+      "https://github.com/ksazid/project-atlas/actions/runs/31344152547"
     ]
   },
   "maxAttempts": 3
