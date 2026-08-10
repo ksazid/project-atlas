@@ -296,6 +296,7 @@ test('VS-21 URL-first discovery resolves one operating location in authentic Exp
   await cdp.waitFor('document.body.innerText.includes("Discovering your")', 'discovery entry');
 
   await setInputByLabel(cdp, 'Business page URL', fixture.sourceUrl);
+  await cdp.waitFor(`(() => { const element = document.querySelector('[aria-label="Discover my business"]'); return Boolean(element) && element.getAttribute('aria-disabled') !== 'true'; })()`, 'discover action enabled', 5000);
   await clickByLabel(cdp, 'Discover my business');
   await cdp.waitFor('document.body.innerText.includes("We found your business!") && document.body.innerText.includes("65 Triq Il-Herba")', 'resolved location confirmation', 15000);
 
