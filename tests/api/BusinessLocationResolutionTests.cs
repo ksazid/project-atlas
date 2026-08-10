@@ -1,4 +1,7 @@
+using System.Net;
+using System.Text;
 using Atlas.Api;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Atlas.Api.Tests;
@@ -75,6 +78,52 @@ public sealed class BusinessLocationResolutionTests
     }
 
     [Fact]
+    public async Task GoogleLocationProvider_UsesTextSearchTimezone_InOneProviderRequest()
+    {
+        var handler = new RecordingHandler(request =>
+        {
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal("places.googleapis.com", request.RequestUri?.Host);
+            Assert.True(request.Headers.TryGetValues("X-Goog-FieldMask", out var fieldMasks));
+            Assert.Contains("places.timeZone", Assert.Single(fieldMasks));
+
+            const string body = """
+            {
+              "places": [
+                {
+                  "id": "place-gun-birkirkara",
+                  "displayName": { "text": "GÜN Turkish Kebab" },
+                  "formattedAddress": "65 Triq Il-Herba, Birkirkara, Malta",
+                  "location": { "latitude": 35.90, "longitude": 14.46 },
+                  "addressComponents": [
+                    { "shortText": "MT", "types": ["country"] }
+                  ],
+                  "timeZone": "Europe/Malta"
+                }
+              ]
+            }
+            """;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(body, Encoding.UTF8, "application/json")
+            };
+        });
+        using var client = new HttpClient(handler);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["GoogleMaps:ApiKey"] = "test-key" })
+            .Build();
+        var provider = new GoogleBusinessLocationProvider(client, configuration);
+
+        var candidates = await provider.SearchAsync("GUN Turkish Kebab Malta", CancellationToken.None);
+
+        var candidate = Assert.Single(candidates);
+        Assert.Equal("Europe/Malta", candidate.Timezone);
+        Assert.Equal("MT", candidate.CountryCode);
+        Assert.Equal("EUR", candidate.Currency);
+        Assert.Equal(1, handler.RequestCount);
+    }
+
+    [Fact]
     public void LocationSelection_RequiresExplicitChoice_WhenSeveralBranchesMatch()
     {
         var result = BusinessLocationResolution.Classify(
@@ -108,5 +157,16 @@ public sealed class BusinessLocationResolutionTests
         Assert.Equal(BusinessLocationResolutionState.SearchRequired, result.State);
         Assert.Empty(result.Candidates);
         Assert.Null(result.Selected);
+    }
+
+    private sealed class RecordingHandler(Func<HttpRequestMessage, HttpResponseMessage> responder) : HttpMessageHandler
+    {
+        public int RequestCount { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            RequestCount++;
+            return Task.FromResult(responder(request));
+        }
     }
 }
