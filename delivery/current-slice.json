@@ -1,159 +1,32 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-18",
-  "title": "VS-18 — Knowledge Pack Schema v2",
+  "sliceId": "VS-19",
+  "title": "VS-19 — Restaurant/Café Reference Intelligence",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": [
-    "FR-06"
-  ],
-  "owners": {
-    "product": "ksazid",
-    "engineering": "ksazid",
-    "operations": "ksazid",
-    "security": "ksazid"
-  },
-  "dependencies": [
-    "ATLAS-PRD-001",
-    "ATLAS-TRD-001",
-    "ATLAS-DESIGN-001",
-    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-17@eb6da74b99808ea913b118de749f407258266397"
-  ],
+  "requirements": ["FR-06"],
+  "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-18@fe15b48f889c448436768f5938e7544cbdf93278"],
   "blockers": [],
-  "allowedPaths": [
-    "apps/api/**",
-    "tests/api/**",
-    "delivery/**",
-    "docs/**"
-  ],
-  "protectedPaths": [
-    ".github/workflows/release.yml",
-    "infrastructure/**",
-    "**/Payments/**",
-    "**/Uploads/**"
-  ],
-  "impact": {
-    "areas": [
-      "architecture",
-      "api"
-    ],
-    "notes": [
-      "Introduces the deterministic packaged Knowledge Pack Manifest Schema v2 contract for FR-06 while retaining v1 persistence compatibility.",
-      "Schema v2 covers pack identity/layer, canonical applicability, KPIs, evidence rules, Opportunity patterns, execution templates, measurement suggestions, seasonality and guardrails.",
-      "MVP packs remain backend-packaged and provider-neutral; no remote installation or private connector is introduced.",
-      "The direct certified VS-15 dependency is retained as required by integrated MVP acceptance while VS-17 is the immediate predecessor.",
-      "TDD RED was proven on head 374fe37a8361c063af093fb56ec2f3d961a784eb after preflight/build/migration passed and the new contract tests failed only for missing Manifest v2 production types.",
-      "Implementation head abe3c1bd7f5dfb6423dd9065b41486efa768d8d9 passed CI run 31345640681, Security baseline run 31345640673 and Product Intake run 31345640677.",
-      "No database migration, release, deployment or production enablement is authorized by VS-18."
-    ]
-  },
+  "allowedPaths": ["apps/api/**","tests/api/**","delivery/**","docs/**"],
+  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
+  "impact": {"areas":["architecture","api"],"notes":["Adds only the first Restaurant/Café Category-layer packaged reference manifest on the certified VS-18 schema.","The pack is provider-neutral and uses only canonical category/subcategory keys.","TDD RED was proven on a0577ca35282066fee5b10c436f3512fafea58e1.","Implementation c2214599fa56269820eb3695bef4ad0eec08a99f passed CI 31346398914, Security 31346398910 and Product Intake 31346398915.","No private marketplace API, paid provider, database migration, release or production enablement is included."]},
   "approvals": [
-    {
-      "type": "scope",
-      "status": "approved",
-      "version": "VS-18@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-10T02:34:00+02:00",
-      "rationale": "Product Owner explicitly approved the next five Atlas slices and instructed implementation, fixes and merge after required gates pass; VS-18 is the first slice in the approved continuation sequence."
-    },
-    {
-      "type": "policy",
-      "status": "not-required",
-      "version": "VS-18@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-10T02:34:00+02:00",
-      "rationale": "VS-18 introduces no policy waiver, production provider, private connector or new data-collection surface."
-    },
-    {
-      "type": "implementation",
-      "status": "approved",
-      "version": "VS-18@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-10T02:34:00+02:00",
-      "rationale": "Product Owner authorized implementation, fixes and merge for the next five slices. Release and production remain unauthorized."
-    },
-    {
-      "type": "certification",
-      "status": "approved",
-      "version": "VS-18@1.0",
-      "commitSha": "abe3c1bd7f5dfb6423dd9065b41486efa768d8d9",
-      "by": "ksazid",
-      "at": "2026-08-10T02:58:39+02:00",
-      "rationale": "Product Owner pre-authorized implementation, fixes, certification and merge for the next five slices. Exact implementation head abe3c1bd7f5dfb6423dd9065b41486efa768d8d9 passed CI, Security baseline and Product Intake. Release and production remain unauthorized."
-    },
-    {
-      "type": "release",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
-    },
-    {
-      "type": "production-enable",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
-    }
+    {"type":"scope","status":"approved","version":"VS-19@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T02:34:00+02:00","rationale":"Product Owner approved the next five Atlas slices; VS-19 is the second slice."},
+    {"type":"policy","status":"not-required","version":"VS-19@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T02:34:00+02:00","rationale":"No policy waiver, private connector, paid provider or new data-collection surface."},
+    {"type":"implementation","status":"approved","version":"VS-19@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T02:34:00+02:00","rationale":"Product Owner authorized implementation, fixes and merge for the next five slices."},
+    {"type":"certification","status":"approved","version":"VS-19@1.0","commitSha":"c2214599fa56269820eb3695bef4ad0eec08a99f","by":"ksazid","at":"2026-08-10T03:15:00+02:00","rationale":"Exact implementation head passed CI, Security baseline and Product Intake. Release and production remain unauthorized."},
+    {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {
-    "discovery": 100,
-    "decisions": 100,
-    "implementation": 100,
-    "testing": 100,
-    "certification": 100,
-    "release": 0,
-    "validation": 0
-  },
-  "certification": {
-    "status": "passed",
-    "commitSha": "abe3c1bd7f5dfb6423dd9065b41486efa768d8d9",
-    "evidence": [
-      "CI run 31345640681",
-      "Security baseline run 31345640673",
-      "Product Intake run 31345640677",
-      "TDD RED CI run 31345424122",
-      "tests/api/KnowledgePackManifestV2Tests.cs",
-      "docs/evidence/VS-18-CERTIFICATION-2026-08-10.md"
-    ]
-  },
-  "release": {
-    "status": "not-authorized",
-    "releaseId": null
-  },
-  "rollback": {
-    "status": "not-applicable",
-    "rollbackId": null
-  },
-  "postRelease": {
-    "status": "not-started",
-    "reviewAt": null,
-    "expectedOutcome": null,
-    "metrics": []
-  },
-  "links": {
-    "specification": "docs/slices/VS-18.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/25",
-    "evidence": [
-      "docs/superpowers/specs/2026-08-10-vs-18-knowledge-pack-schema-v2-design.md",
-      "docs/superpowers/plans/2026-08-10-vs-18-knowledge-pack-schema-v2.md",
-      "docs/evidence/VS-18-CERTIFICATION-2026-08-10.md",
-      "tests/api/KnowledgePackManifestV2Tests.cs",
-      "CI run 31345640681",
-      "Security baseline run 31345640673",
-      "Product Intake run 31345640677"
-    ]
-  },
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
+  "certification": {"status":"passed","commitSha":"c2214599fa56269820eb3695bef4ad0eec08a99f","evidence":["CI run 31346398914","Security baseline run 31346398910","Product Intake run 31346398915","TDD RED CI run 31346161417","docs/evidence/VS-19-CERTIFICATION-2026-08-10.md"]},
+  "release": {"status":"not-authorized","releaseId":null},
+  "rollback": {"status":"not-applicable","rollbackId":null},
+  "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
+  "links": {"specification":"docs/slices/VS-19.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/26","evidence":["docs/superpowers/specs/2026-08-10-vs-19-restaurant-cafe-reference-intelligence-design.md","docs/superpowers/plans/2026-08-10-vs-19-restaurant-cafe-reference-intelligence.md","tests/api/RestaurantCafeKnowledgeManifestV2Tests.cs","docs/evidence/VS-19-CERTIFICATION-2026-08-10.md"]},
   "maxAttempts": 3
 }
