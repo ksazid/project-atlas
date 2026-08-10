@@ -38,15 +38,6 @@ export type CreateBusinessFromDiscoveryRequest = DiscoveryDraft & {
   ownerConfirmed: true;
 };
 
-const requiredFields: (keyof Pick<DiscoveryDraft, 'name' | 'category' | 'country' | 'timezone' | 'currency' | 'primaryLocation'>)[] = [
-  'name',
-  'category',
-  'country',
-  'timezone',
-  'currency',
-  'primaryLocation',
-];
-
 export function getDiscoveryFact(discovery: BusinessDiscovery, key: string): DiscoveryFact | undefined {
   return discovery.facts.find(fact => fact.key.toLowerCase() === key.toLowerCase());
 }
@@ -75,7 +66,11 @@ export function createDiscoveryDraft(discovery: BusinessDiscovery): DiscoveryDra
 }
 
 export function getMissingRequiredFields(draft: DiscoveryDraft): string[] {
-  return requiredFields.filter(key => !draft[key].trim());
+  const missing: string[] = [];
+  if (!draft.name.trim()) missing.push('name');
+  if (!draft.category.trim()) missing.push('category');
+  if (![draft.primaryLocation, draft.country, draft.timezone, draft.currency].every(value => value.trim())) missing.push('location');
+  return missing;
 }
 
 export function canConfirmDiscovery(draft: DiscoveryDraft): boolean {
