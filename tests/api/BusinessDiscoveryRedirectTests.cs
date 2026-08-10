@@ -58,6 +58,22 @@ public sealed class BusinessDiscoveryRedirectTests
         Assert.Single(inner.Requests);
     }
 
+    [Theory]
+    [InlineData("https://share.google/guJAzxecjEv9AE195")]
+    [InlineData("https://maps.app.goo.gl/ExampleShortLink")]
+    public async Task Handler_RejectsGoogleMapsShortLinks_BeforeAnyNetworkRequest(string url)
+    {
+        var inner = new SequenceHandler();
+        using var handler = new PublicBusinessRedirectHandler(inner);
+        using var client = new HttpClient(handler);
+
+        var error = await Assert.ThrowsAsync<BusinessDiscoveryException>(() => client.GetAsync(url));
+
+        Assert.Equal("business_google_maps_short_link", error.Code);
+        Assert.Contains("search the business name or address", error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(inner.Requests);
+    }
+
     private static HttpResponseMessage Redirect(HttpStatusCode statusCode, Uri location)
     {
         var response = new HttpResponseMessage(statusCode);
