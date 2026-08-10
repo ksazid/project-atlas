@@ -58,6 +58,68 @@ public static partial class MarketplaceBusinessIdentity
     private static partial Regex MarketplaceSlugRegex();
 }
 
+public static class MarketplaceBusinessContent
+{
+    public static string? CleanDescription(string provider, string? description)
+    {
+        var cleaned = description?.Trim();
+        if (string.IsNullOrWhiteSpace(cleaned)) return null;
+
+        var normalized = Regex.Replace(cleaned.ToLowerInvariant(), "\\s+", " ").Trim();
+        if (provider == "bolt-food" &&
+            normalized.StartsWith("open ", StringComparison.Ordinal) &&
+            normalized.Contains(" on bolt food", StringComparison.Ordinal) &&
+            (normalized.Contains("order delivery", StringComparison.Ordinal) ||
+             normalized.Contains("delivery or pickup", StringComparison.Ordinal) ||
+             normalized.Contains("order pickup", StringComparison.Ordinal)))
+            return null;
+
+        if (provider == "wolt" &&
+            (normalized.Contains(" on wolt", StringComparison.Ordinal) || normalized.Contains(" wolt delivery", StringComparison.Ordinal)) &&
+            (normalized.StartsWith("order ", StringComparison.Ordinal) || normalized.StartsWith("open ", StringComparison.Ordinal)))
+            return null;
+
+        return cleaned;
+    }
+}
+
+public static class GooglePlaceTypeSummary
+{
+    private static readonly HashSet<string> GenericTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "restaurant", "food", "point_of_interest", "establishment", "meal_takeaway", "meal_delivery"
+    };
+
+    public static string? Summarize(IReadOnlyList<string> types)
+    {
+        var labels = new List<string>();
+        foreach (var type in types)
+        {
+            if (GenericTypes.Contains(type)) continue;
+
+            string? label = type switch
+            {
+                "kebab_shop" => "Kebab",
+                "coffee_shop" => "Coffee",
+                "cafe" => "Café",
+                "bakery" => "Bakery",
+                _ when type.EndsWith("_restaurant", StringComparison.OrdinalIgnoreCase) => Humanize(type[..^"_restaurant".Length]),
+                _ => null
+            };
+
+            if (!string.IsNullOrWhiteSpace(label) && !labels.Contains(label, StringComparer.OrdinalIgnoreCase))
+                labels.Add(label);
+            if (labels.Count == 3) break;
+        }
+
+        return labels.Count == 0 ? null : string.Join(" · ", labels);
+    }
+
+    private static string Humanize(string value) => string.Join(' ', value
+        .Split('_', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Select(word => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(word.ToLowerInvariant())));
+}
+
 public sealed record BusinessMarketMetadata(
     string CountryName,
     string CountryCode,
@@ -112,7 +174,10 @@ public sealed record BusinessLocationCandidate(
     string CountryName,
     string Timezone,
     string Currency,
-    string Provider);
+    string Provider)
+{
+    public string? BusinessTypeSummary { get; init; }
+}
 
 public enum BusinessLocationResolutionState
 {
@@ -151,7 +216,7 @@ public sealed class GoogleBusinessLocationProvider(HttpClient client, IConfigura
 {
     private const int MaxResults = 5;
     private const string PlacesEndpoint = "https://places.googleapis.com/v1/places:searchText";
-    private const string PlacesFieldMask = "places.id,places.displayName,places.formattedAddress,places.location,places.addressComponents,places.timeZone";
+    private const string PlacesFieldMask = "places.id,places.displayName,places.formattedAddress,places.location,places.addressComponents,places.timeZone,places.types";
     private const string ProviderName = "google-places";
 
     private string? ApiKey => configuration["GoogleMaps:ApiKey"]?.Trim();
@@ -191,7 +256,8 @@ public sealed class GoogleBusinessLocationProvider(HttpClient client, IConfigura
             var latitude = NestedDouble(place, "location", "latitude");
             var longitude = NestedDouble(place, "location", "longitude");
             var countryCode = CountryCode(place);
-            var timezone = String(place, "timeZone");
+            var timezone = NestedString(place, "timeZone", "id");
+            var placeTypes = StringArray(place, "types");
             if (string.IsNullOrWhiteSpace(providerRef) || string.IsNullOrWhiteSpace(name) ||
                 string.IsNullOrWhiteSpace(formattedAddress) || latitude is null || longitude is null ||
                 string.IsNullOrWhiteSpace(countryCode) || string.IsNullOrWhiteSpace(timezone)) continue;
@@ -216,7 +282,10 @@ public sealed class GoogleBusinessLocationProvider(HttpClient client, IConfigura
                 market.CountryName,
                 market.Timezone,
                 market.Currency,
-                ProviderName));
+                ProviderName)
+            {
+                BusinessTypeSummary = GooglePlaceTypeSummary.Summarize(placeTypes)
+            });
         }
         return candidates;
     }
@@ -238,6 +307,17 @@ public sealed class GoogleBusinessLocationProvider(HttpClient client, IConfigura
 
     private static string? NestedString(JsonElement element, string parent, string property) =>
         element.TryGetProperty(parent, out var value) && value.ValueKind == JsonValueKind.Object ? String(value, property) : null;
+
+    private static IReadOnlyList<string> StringArray(JsonElement element, string property)
+    {
+        if (!element.TryGetProperty(property, out var value) || value.ValueKind != JsonValueKind.Array) return [];
+        return value.EnumerateArray()
+            .Where(item => item.ValueKind == JsonValueKind.String)
+            .Select(item => item.GetString()?.Trim())
+            .Where(item => !string.IsNullOrWhiteSpace(item))
+            .Select(item => item!)
+            .ToList();
+    }
 
     private static double? NestedDouble(JsonElement element, string parent, string property)
     {
