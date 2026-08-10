@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-16R",
-  "title": "VS-16R — Business Location Resolution Remediation",
+  "sliceId": "VS-21",
+  "title": "VS-21 — Business Location Resolution Remediation",
   "status": "active",
   "lifecycle": "implementing",
   "riskLevel": "medium",
@@ -23,10 +23,10 @@
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-16R@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Product Owner approved automatic country/timezone/currency resolution, Google Maps/Places search for unknown locations, branch selection for multi-location businesses, and instructed implementation to proceed."},
-    {"type":"policy","status":"approved","version":"VS-16R@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Google location search is approved for the isolated test/pilot path behind a replaceable server-side provider boundary; production enablement remains separately governed."},
-    {"type":"implementation","status":"approved","version":"VS-16R@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Product Owner said go ahead after reviewing the proposed remediation flow."},
-    {"type":"certification","status":"pending","version":"VS-16R@1.0","commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"scope","status":"approved","version":"VS-21@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Product Owner approved automatic country/timezone/currency resolution, Google Maps/Places search for unknown locations, branch selection for multi-location businesses, and instructed implementation to proceed."},
+    {"type":"policy","status":"approved","version":"VS-21@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Google location search is approved for the isolated test/pilot path behind a replaceable server-side provider boundary; production enablement remains separately governed."},
+    {"type":"implementation","status":"approved","version":"VS-21@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Product Owner said go ahead after reviewing the proposed remediation flow."},
+    {"type":"certification","status":"pending","version":"VS-21@1.0","commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
@@ -37,8 +37,8 @@
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification":"docs/slices/VS-16R.md",
-    "implementationPr":null,
+    "specification":"docs/slices/VS-21.md",
+    "implementationPr":"https://github.com/ksazid/project-atlas/pull/28",
     "evidence":[
       "docs/superpowers/specs/2026-08-10-vs-16r-business-location-resolution-design.md",
       "docs/superpowers/plans/2026-08-10-vs-16r-business-location-resolution.md"
