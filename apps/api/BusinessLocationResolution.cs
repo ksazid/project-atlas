@@ -151,7 +151,7 @@ public sealed class GoogleBusinessLocationProvider(HttpClient client, IConfigura
 {
     private const int MaxResults = 5;
     private const string PlacesEndpoint = "https://places.googleapis.com/v1/places:searchText";
-    private const string PlacesFieldMask = "places.id,places.displayName,places.formattedAddress,places.location,places.addressComponents";
+    private const string PlacesFieldMask = "places.id,places.displayName,places.formattedAddress,places.location,places.addressComponents,places.timeZone";
     private const string ProviderName = "google-places";
 
     private string? ApiKey => configuration["GoogleMaps:ApiKey"]?.Trim();
@@ -191,12 +191,11 @@ public sealed class GoogleBusinessLocationProvider(HttpClient client, IConfigura
             var latitude = NestedDouble(place, "location", "latitude");
             var longitude = NestedDouble(place, "location", "longitude");
             var countryCode = CountryCode(place);
+            var timezone = String(place, "timeZone");
             if (string.IsNullOrWhiteSpace(providerRef) || string.IsNullOrWhiteSpace(name) ||
                 string.IsNullOrWhiteSpace(formattedAddress) || latitude is null || longitude is null ||
-                string.IsNullOrWhiteSpace(countryCode)) continue;
+                string.IsNullOrWhiteSpace(countryCode) || string.IsNullOrWhiteSpace(timezone)) continue;
 
-            var timezone = await TimezoneAsync(latitude.Value, longitude.Value, ct);
-            if (string.IsNullOrWhiteSpace(timezone)) continue;
             BusinessMarketMetadata market;
             try
             {
@@ -220,19 +219,6 @@ public sealed class GoogleBusinessLocationProvider(HttpClient client, IConfigura
                 ProviderName));
         }
         return candidates;
-    }
-
-    private async Task<string?> TimezoneAsync(double latitude, double longitude, CancellationToken ct)
-    {
-        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var uri = $"https://maps.googleapis.com/maps/api/timezone/json?location={latitude.ToString(CultureInfo.InvariantCulture)}%2C{longitude.ToString(CultureInfo.InvariantCulture)}&timestamp={timestamp}&key={Uri.EscapeDataString(ApiKey!)}";
-        using var response = await client.GetAsync(uri, ct);
-        if (!response.IsSuccessStatusCode) return null;
-        await using var stream = await response.Content.ReadAsStreamAsync(ct);
-        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
-        var root = document.RootElement;
-        if (!string.Equals(String(root, "status"), "OK", StringComparison.OrdinalIgnoreCase)) return null;
-        return String(root, "timeZoneId");
     }
 
     private static string? CountryCode(JsonElement place)
