@@ -3,7 +3,7 @@
   "sliceId": "VS-21",
   "title": "VS-21 — Business Location Resolution Remediation",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "testing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-02", "FR-03", "FR-16"],
@@ -19,6 +19,8 @@
       "Business location becomes the owner-facing input; canonical country, timezone and currency are derived.",
       "Multiple branch candidates require explicit owner selection; one strong candidate may be preselected but remains changeable.",
       "Google Places Text Search (New) is the approved first test/pilot location adapter behind a replaceable provider boundary; timezone is returned by places.timeZone in the same response and currency is Atlas-derived.",
+      "Live test on 2026-08-11 exposed that Google Places returns timeZone as an object with an id field; the parser must consume that documented response shape.",
+      "Marketplace ordering boilerplate must not be retained as the business description; public Google place types may supply a conservative cuisine/type summary when available.",
       "The separate Google Time Zone API is not used by VS-21.",
       "No production release or production enablement is authorized."
     ]
@@ -27,20 +29,20 @@
     {"type":"scope","status":"approved","version":"VS-21@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Product Owner approved automatic country/timezone/currency resolution, Google Maps/Places search for unknown locations, branch selection for multi-location businesses, and instructed implementation to proceed."},
     {"type":"policy","status":"approved","version":"VS-21@1.1","commitSha":null,"by":"ksazid","at":"2026-08-11T00:20:00+02:00","rationale":"Product Owner approved the recommended lower-dependency approach: use Places Text Search (New) to return timezone in the same request and derive currency inside Atlas, with no separate Time Zone API call."},
     {"type":"implementation","status":"approved","version":"VS-21@1.1","commitSha":null,"by":"ksazid","at":"2026-08-11T00:20:00+02:00","rationale":"Product Owner said go ahead with the recommended single-API refinement."},
-    {"type":"certification","status":"approved","version":"VS-21@1.1","commitSha":"e22d2a40a132585d2d282577755b191c2885e891","by":"ksazid","at":"2026-08-11T00:27:00+02:00","rationale":"Exact implementation SHA passed CI, Security baseline and Product Intake, including the single-request Places timezone regression and full API/mobile verification."},
+    {"type":"certification","status":"approved","version":"VS-21@1.1","commitSha":"e22d2a40a132585d2d282577755b191c2885e891","by":"ksazid","at":"2026-08-11T00:27:00+02:00","rationale":"Historical certification for the prior exact implementation SHA. Live testing later exposed a documented Google Places response-shape defect, so certification is stale until the remediation passes exact-head gates."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": ["DEC-06"],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
+  "progress": {"discovery":100,"decisions":100,"implementation":90,"testing":60,"certification":0,"release":0,"validation":0},
   "certification": {
-    "status":"passed",
+    "status":"stale",
     "commitSha":"e22d2a40a132585d2d282577755b191c2885e891",
     "evidence":[
-      "CI run 31438146682: success",
-      "Security baseline run 31438146773: success",
-      "Product Intake run 31438146655: success",
-      "BusinessLocationResolutionTests: Places timeZone + exactly one provider request"
+      "Historical CI run 31438146682: success",
+      "Historical Security baseline run 31438146773: success",
+      "Historical Product Intake run 31438146655: success",
+      "Live Expo/Render evidence 2026-08-11: Places search returned HTTP 200 but Atlas discarded candidates because timeZone was parsed as a string instead of the documented object { id, version }."
     ]
   },
   "release": {"status":"not-authorized","releaseId":null},
