@@ -40,8 +40,10 @@ export function applyLocationToDraft<T extends Pick<DiscoveryDraft, 'primaryLoca
 ): T {
   const summary = location.businessTypeSummary?.trim();
   const currentDescription = typeof draft.description === 'string' ? draft.description : undefined;
+  const isBoilerplate = currentDescription !== undefined && isMarketplaceOrderingBoilerplate(currentDescription);
   const shouldUseSummary = currentDescription !== undefined && Boolean(summary) &&
-    (!currentDescription.trim() || isMarketplaceOrderingBoilerplate(currentDescription));
+    (!currentDescription.trim() || isBoilerplate);
+  const shouldClearBoilerplate = currentDescription !== undefined && isBoilerplate && !summary;
 
   return {
     ...draft,
@@ -50,6 +52,7 @@ export function applyLocationToDraft<T extends Pick<DiscoveryDraft, 'primaryLoca
     timezone: location.timezone,
     currency: location.currency,
     ...(shouldUseSummary ? { description: summary } : {}),
+    ...(shouldClearBoilerplate ? { description: '' } : {}),
   } as T;
 }
 
