@@ -14,6 +14,7 @@ const baseCandidate = {
   timezone: 'Europe/Malta',
   currency: 'EUR',
   provider: 'google-places',
+  businessTypeSummary: 'Turkish · Kebab',
 };
 
 test('one strong candidate is preselected but remains changeable', () => {
@@ -39,18 +40,32 @@ test('no candidates requests Google location search', () => {
   assert.equal(state.selected, null);
 });
 
-test('selected location supplies canonical market metadata to business creation', () => {
+test('selected location supplies canonical market metadata and replaces marketplace boilerplate with public place type summary', () => {
   const applied = locationModel.applyLocationToDraft({
     primaryLocation: '',
     country: '',
     timezone: '',
     currency: '',
+    description: "Open GUN Turkish Kebab on Bolt Food app to order delivery or pickup.",
   }, baseCandidate);
 
   assert.equal(applied.primaryLocation, '65 Triq Il-Herba, Birkirkara, Malta');
   assert.equal(applied.country, 'MT');
   assert.equal(applied.timezone, 'Europe/Malta');
   assert.equal(applied.currency, 'EUR');
+  assert.equal(applied.description, 'Turkish · Kebab');
+});
+
+test('selected location does not overwrite a useful owner or public description', () => {
+  const applied = locationModel.applyLocationToDraft({
+    primaryLocation: '',
+    country: '',
+    timezone: '',
+    currency: '',
+    description: 'Family-run restaurant serving charcoal-grilled kebabs.',
+  }, baseCandidate);
+
+  assert.equal(applied.description, 'Family-run restaurant serving charcoal-grilled kebabs.');
 });
 
 test('onboarding screen does not ask owners to type country timezone or currency codes', () => {
