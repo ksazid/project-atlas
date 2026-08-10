@@ -31,6 +31,20 @@ public sealed class BusinessLocationResolutionTests
     }
 
     [Fact]
+    public void MarketplaceContent_DropsOrderingBoilerplate_ButPreservesUsefulDescription()
+    {
+        Assert.Null(MarketplaceBusinessContent.CleanDescription(
+            "bolt-food",
+            "Open Antalya Kebab St. Julian's on Bolt Food app to order delivery or pickup."));
+
+        Assert.Equal(
+            "Family-run Turkish restaurant serving charcoal-grilled kebabs.",
+            MarketplaceBusinessContent.CleanDescription(
+                "bolt-food",
+                "Family-run Turkish restaurant serving charcoal-grilled kebabs."));
+    }
+
+    [Fact]
     public void DiscoverySnapshot_ReplacesGenericBoltIdentityWithMerchantSlug()
     {
         var observedAt = new DateTimeOffset(2026, 8, 10, 18, 0, 0, TimeSpan.Zero);
@@ -78,14 +92,16 @@ public sealed class BusinessLocationResolutionTests
     }
 
     [Fact]
-    public async Task GoogleLocationProvider_UsesTextSearchTimezone_InOneProviderRequest()
+    public async Task GoogleLocationProvider_UsesDocumentedTimezoneObject_AndSpecificPlaceTypes_InOneProviderRequest()
     {
         var handler = new RecordingHandler(request =>
         {
             Assert.Equal(HttpMethod.Post, request.Method);
             Assert.Equal("places.googleapis.com", request.RequestUri?.Host);
             Assert.True(request.Headers.TryGetValues("X-Goog-FieldMask", out var fieldMasks));
-            Assert.Contains("places.timeZone", Assert.Single(fieldMasks));
+            var fieldMask = Assert.Single(fieldMasks);
+            Assert.Contains("places.timeZone", fieldMask);
+            Assert.Contains("places.types", fieldMask);
 
             const string body = """
             {
@@ -98,7 +114,8 @@ public sealed class BusinessLocationResolutionTests
                   "addressComponents": [
                     { "shortText": "MT", "types": ["country"] }
                   ],
-                  "timeZone": "Europe/Malta"
+                  "timeZone": { "id": "Europe/Malta", "version": "2026a" },
+                  "types": ["turkish_restaurant", "kebab_shop", "restaurant", "food"]
                 }
               ]
             }
@@ -120,6 +137,7 @@ public sealed class BusinessLocationResolutionTests
         Assert.Equal("Europe/Malta", candidate.Timezone);
         Assert.Equal("MT", candidate.CountryCode);
         Assert.Equal("EUR", candidate.Currency);
+        Assert.Equal("Turkish · Kebab", candidate.BusinessTypeSummary);
         Assert.Equal(1, handler.RequestCount);
     }
 
