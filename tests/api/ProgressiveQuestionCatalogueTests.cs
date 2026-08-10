@@ -45,7 +45,7 @@ public sealed class ProgressiveQuestionCatalogueTests
             Context(businessId, "primarychannels", "In person"),
             Context(businessId, "busyperiods", "Weekday mornings"),
             Context(businessId, "constraints", "Staffing"),
-            Context(businessId, "customergroups", "Local residents")
+            Context(businessId, "customers", "Local residents")
         };
 
         var selected = ProgressiveQuestionCatalogueV1.Select("generic-business", context, []);
@@ -53,6 +53,17 @@ public sealed class ProgressiveQuestionCatalogueTests
         Assert.DoesNotContain(selected, x => context.Any(entry => string.Equals(entry.Key, x.TargetContextKey, StringComparison.OrdinalIgnoreCase)));
         Assert.Single(selected);
         Assert.Equal("currentpriorities", selected[0].TargetContextKey);
+    }
+
+    [Fact]
+    public void Selection_SuppressesCustomerQuestionWhenCanonicalCustomersContextExists()
+    {
+        var businessId = Guid.NewGuid();
+        var context = new[] { Context(businessId, "customers", "Local families and commuters") };
+
+        var selected = ProgressiveQuestionCatalogueV1.Select("generic-business", context, []);
+
+        Assert.DoesNotContain(selected, x => x.QuestionKey == "generic.customer-groups");
     }
 
     [Fact]
