@@ -9,7 +9,8 @@
 5. RED: add mobile model tests proving country/timezone/currency are not owner-entered requirements and proving one/multiple/unknown location states.
 6. GREEN: update onboarding state/model and API client to support location candidates and field-level Problem Details.
 7. GREEN: update the existing create-business screen within the approved design baseline: selected-location summary, branch cards, `Find your business location`, no technical-code text inputs.
-8. Verification: API build/tests, mobile tests, governance validation, preflight, exact diff review and live test deploy on the isolated harness only.
+8. RED/GREEN refinement: prove Google location resolution requests `places.timeZone` from Places Text Search (New), returns canonical timezone/currency from that single response, and makes exactly one provider HTTP request.
+9. Verification: API build/tests, mobile tests, governance validation, preflight, exact diff review and live test deploy on the isolated harness only.
 
 ## Constraints
 
@@ -19,3 +20,4 @@
 - No weakening of SSRF protections.
 - No broad Business schema rewrite unless a failing acceptance test proves it necessary.
 - Preserve owner confirmation/provenance.
+- No separate Google Time Zone API dependency in the test/pilot adapter.
