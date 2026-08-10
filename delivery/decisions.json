@@ -83,7 +83,7 @@
     },
     {
       "id": "DEC-06",
-      "sliceId": "VS-16R",
+      "sliceId": "VS-21",
       "status": "approved",
       "question": "How should URL-first onboarding resolve operating location and dependent market metadata, including multi-location businesses?",
       "options": [
