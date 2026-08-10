@@ -284,6 +284,17 @@ public static class BusinessLocationEndpoints
 {
     public static IEndpointRouteBuilder MapBusinessLocationEndpoints(this IEndpointRouteBuilder app)
     {
+        app.MapPost("/api/v1/business-locations/search", async (
+            SearchBusinessLocationsRequest request,
+            ClaimsPrincipal user,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration,
+            CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(Subject(user))) return Results.Unauthorized();
+            return await SearchProvider(request.Query, httpClientFactory, configuration, ct);
+        }).RequireAuthorization("BusinessOwner");
+
         app.MapPost("/api/v1/business-discovery/{snapshotId:guid}/locations/search", async (
             Guid snapshotId,
             SearchBusinessLocationsRequest request,
@@ -293,7 +304,7 @@ public static class BusinessLocationEndpoints
             IConfiguration configuration,
             CancellationToken ct) =>
         {
-            var subject = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
+            var subject = Subject(user);
             if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
             var account = await db.UserAccounts.SingleOrDefaultAsync(x => x.ProviderSubject == subject, ct);
             if (account is null) return Results.NotFound();
@@ -306,29 +317,35 @@ public static class BusinessLocationEndpoints
             var query = request.Query?.Trim();
             if (string.IsNullOrWhiteSpace(query))
                 query = string.Join(", ", new[] { observedName, observedLocation }.Where(x => !string.IsNullOrWhiteSpace(x)));
-            if (string.IsNullOrWhiteSpace(query))
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["query"] = ["Enter a business name or address to find its location."] }, extensions: new Dictionary<string, object?> { ["code"] = "business_location_query_required" });
-
-            try
-            {
-                var provider = new GoogleBusinessLocationProvider(httpClientFactory.CreateClient(), configuration);
-                var candidates = await provider.SearchAsync(query, ct);
-                return Results.Ok(BusinessLocationResolutionResponse.From(BusinessLocationResolution.Classify(candidates)));
-            }
-            catch (BusinessLocationProviderUnavailableException)
-            {
-                return Results.Problem(statusCode: 503, title: "Location search unavailable", detail: "Atlas cannot search business locations right now. Try again later.", extensions: new Dictionary<string, object?> { ["code"] = "business_location_provider_unavailable" });
-            }
-            catch (BusinessDiscoveryException ex)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["query"] = [ex.Message] }, extensions: new Dictionary<string, object?> { ["code"] = ex.Code });
-            }
-            catch (HttpRequestException)
-            {
-                return Results.Problem(statusCode: 503, title: "Location search unavailable", detail: "Atlas cannot search business locations right now. Try again later.", extensions: new Dictionary<string, object?> { ["code"] = "business_location_provider_unavailable" });
-            }
+            return await SearchProvider(query, httpClientFactory, configuration, ct);
         }).RequireAuthorization("BusinessOwner");
 
         return app;
     }
+
+    private static async Task<IResult> SearchProvider(string? query, IHttpClientFactory httpClientFactory, IConfiguration configuration, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return Results.ValidationProblem(new Dictionary<string, string[]> { ["query"] = ["Enter a business name or address to find its location."] }, extensions: new Dictionary<string, object?> { ["code"] = "business_location_query_required" });
+        try
+        {
+            var provider = new GoogleBusinessLocationProvider(httpClientFactory.CreateClient(), configuration);
+            var candidates = await provider.SearchAsync(query, ct);
+            return Results.Ok(BusinessLocationResolutionResponse.From(BusinessLocationResolution.Classify(candidates)));
+        }
+        catch (BusinessLocationProviderUnavailableException)
+        {
+            return Results.Problem(statusCode: 503, title: "Location search unavailable", detail: "Atlas cannot search business locations right now. Try again later.", extensions: new Dictionary<string, object?> { ["code"] = "business_location_provider_unavailable" });
+        }
+        catch (BusinessDiscoveryException ex)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]> { ["query"] = [ex.Message] }, extensions: new Dictionary<string, object?> { ["code"] = ex.Code });
+        }
+        catch (HttpRequestException)
+        {
+            return Results.Problem(statusCode: 503, title: "Location search unavailable", detail: "Atlas cannot search business locations right now. Try again later.", extensions: new Dictionary<string, object?> { ["code"] = "business_location_provider_unavailable" });
+        }
+    }
+
+    private static string? Subject(ClaimsPrincipal user) => user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
 }
