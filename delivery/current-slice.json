@@ -8,7 +8,7 @@
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-02", "FR-03", "FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-16","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758"],
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-16","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758"],
   "blockers": [],
   "allowedPaths": ["apps/api/**","apps/mobile/**","tests/api/**","tests/mobile/**","delivery/**","docs/**"],
   "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
