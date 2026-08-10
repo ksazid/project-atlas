@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
@@ -288,10 +289,11 @@ public static class BusinessLocationEndpoints
             SearchBusinessLocationsRequest request,
             ClaimsPrincipal user,
             AtlasDbContext db,
-            IBusinessLocationProvider provider,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration,
             CancellationToken ct) =>
         {
-            var subject = user.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
+            var subject = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
             if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
             var account = await db.UserAccounts.SingleOrDefaultAsync(x => x.ProviderSubject == subject, ct);
             if (account is null) return Results.NotFound();
@@ -309,6 +311,7 @@ public static class BusinessLocationEndpoints
 
             try
             {
+                var provider = new GoogleBusinessLocationProvider(httpClientFactory.CreateClient(), configuration);
                 var candidates = await provider.SearchAsync(query, ct);
                 return Results.Ok(BusinessLocationResolutionResponse.From(BusinessLocationResolution.Classify(candidates)));
             }
