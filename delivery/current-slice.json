@@ -3,7 +3,7 @@
   "sliceId": "VS-21",
   "title": "VS-21 — Business Location Resolution Remediation",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "testing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-02", "FR-03", "FR-16"],
@@ -31,7 +31,7 @@
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": ["DEC-06"],
-  "progress": {"discovery":100,"decisions":100,"implementation":10,"testing":0,"certification":0,"release":0,"validation":0},
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":70,"certification":0,"release":0,"validation":0},
   "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
@@ -40,8 +40,8 @@
     "specification":"docs/slices/VS-21.md",
     "implementationPr":"https://github.com/ksazid/project-atlas/pull/28",
     "evidence":[
-      "docs/superpowers/specs/2026-08-10-vs-16r-business-location-resolution-design.md",
-      "docs/superpowers/plans/2026-08-10-vs-16r-business-location-resolution.md"
+      "docs/superpowers/specs/2026-08-10-vs-21-business-location-resolution-design.md",
+      "docs/superpowers/plans/2026-08-10-vs-21-business-location-resolution.md"
     ]
   },
   "maxAttempts": 3
