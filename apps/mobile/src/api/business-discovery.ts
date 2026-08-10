@@ -58,10 +58,13 @@ export async function discoverBusiness(accessToken: string, url: string): Promis
 
 export async function searchBusinessLocations(
   accessToken: string,
-  snapshotId: string,
+  snapshotId: string | null,
   query?: string,
 ): Promise<BusinessLocationSearchResponse> {
-  const response = await fetch(`${env.apiUrl}/api/v1/business-discovery/${encodeURIComponent(snapshotId)}/locations/search`, {
+  const path = snapshotId
+    ? `/api/v1/business-discovery/${encodeURIComponent(snapshotId)}/locations/search`
+    : '/api/v1/business-locations/search';
+  const response = await fetch(`${env.apiUrl}${path}`, {
     method: 'POST',
     headers: headers(accessToken),
     body: JSON.stringify({ query: query?.trim() || null }),
