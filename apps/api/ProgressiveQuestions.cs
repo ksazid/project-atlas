@@ -174,9 +174,9 @@ public static class ProgressiveQuestionCatalogueV1
             .Select(x => x.Key.Trim())
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var completedQuestionKeys = progress
+        var skippedQuestionKeys = progress
             .Where(x => string.Equals(x.CatalogueKey, CatalogueKey, StringComparison.OrdinalIgnoreCase) &&
-                        (x.Status == BusinessQuestionProgressStatuses.Skipped || x.Status == BusinessQuestionProgressStatuses.Answered))
+                        x.Status == BusinessQuestionProgressStatuses.Skipped)
             .Select(x => x.QuestionKey)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -185,7 +185,7 @@ public static class ProgressiveQuestionCatalogueV1
                 question.Categories.Contains(canonicalCategory) ||
                 question.Categories.Contains(BusinessCategoryTaxonomy.Generic.Key))
             .Where(question => !authoritativeContextKeys.Contains(question.TargetContextKey))
-            .Where(question => !completedQuestionKeys.Contains(question.QuestionKey))
+            .Where(question => !skippedQuestionKeys.Contains(question.QuestionKey))
             .OrderByDescending(question => question.Priority)
             .ThenByDescending(question => question.Categories.Contains(canonicalCategory) && !question.Categories.Contains(BusinessCategoryTaxonomy.Generic.Key))
             .ThenBy(question => question.QuestionKey, StringComparer.Ordinal)
