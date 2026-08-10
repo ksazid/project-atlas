@@ -80,6 +80,22 @@
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-10T00:55:00+02:00",
       "rationale": "The Product Owner approved skippable questions, deterministic versioning, tap-first one-question-at-a-time interaction, post-Business sequencing, all eight initial category families plus Generic fallback, and suppression of skipped questions unless a future explicit material-value trigger justifies re-asking."
+    },
+    {
+      "id": "DEC-06",
+      "sliceId": "VS-16R",
+      "status": "approved",
+      "question": "How should URL-first onboarding resolve operating location and dependent market metadata, including multi-location businesses?",
+      "options": [
+        "Keep manual country/timezone/currency fields",
+        "Auto-select the first address found without owner review",
+        "Resolve a Business location, let the owner select among branches when ambiguous, use Google Places search when unknown, and derive country/timezone/currency automatically"
+      ],
+      "decision": "Treat the operating location as the owner-facing choice. Preselect one strong branch but keep it changeable; show branch cards when multiple matches exist; use a Google Places-backed search when location is unknown; derive canonical country, IANA timezone and ISO currency from the selected location. Onboard one location first and add other branches later.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-10T20:31:00+02:00",
+      "rationale": "The Product Owner explicitly required automatic country/timezone/currency selection, Google Maps search for unknown locations, asked how multi-location businesses should choose a branch, approved the proposed one-location-first flow and instructed implementation to proceed."
     }
   ]
 }
