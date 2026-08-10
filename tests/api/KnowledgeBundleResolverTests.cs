@@ -92,9 +92,12 @@ public sealed class KnowledgeBundleResolverTests
     public void Exact_core_assignment_is_required_for_reproducible_resolution()
     {
         var business = BusinessRecord("restaurant-cafe");
-        var wrongVersion = CoreAssignment(business.Id) with { ExactVersion = "9.9" };
-        var wrongPack = CoreAssignment(business.Id) with { PackKey = "other-core" };
-        var notCurrent = CoreAssignment(business.Id) with { IsCurrent = false };
+        var wrongVersion = CoreAssignment(business.Id);
+        wrongVersion.ExactVersion = "9.9";
+        var wrongPack = CoreAssignment(business.Id);
+        wrongPack.PackKey = "other-core";
+        var notCurrent = CoreAssignment(business.Id);
+        notCurrent.IsCurrent = false;
 
         Assert.Throws<KnowledgeBundleResolutionException>(() => KnowledgeBundleResolver.Resolve(business, wrongVersion, [], [], []));
         Assert.Throws<KnowledgeBundleResolutionException>(() => KnowledgeBundleResolver.Resolve(business, wrongPack, [], [], []));
