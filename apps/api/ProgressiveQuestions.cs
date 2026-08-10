@@ -136,7 +136,7 @@ public static class ProgressiveQuestionCatalogueV1
             Tags("constraint", "capacity")),
         new(
             "generic.customer-groups",
-            "customergroups",
+            "customers",
             GenericCategory,
             70,
             "Who do you mainly serve?",
