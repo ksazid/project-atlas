@@ -18,20 +18,21 @@
       "Remediates live VS-16 discovery defects found through the isolated Expo Go test harness.",
       "Business location becomes the owner-facing input; canonical country, timezone and currency are derived.",
       "Multiple branch candidates require explicit owner selection; one strong candidate may be preselected but remains changeable.",
-      "Google Places/Place Details and Time Zone are the approved first test/pilot location adapter behind a replaceable provider boundary.",
+      "Google Places Text Search (New) is the approved first test/pilot location adapter behind a replaceable provider boundary; timezone is returned by places.timeZone in the same response and currency is Atlas-derived.",
+      "The separate Google Time Zone API is not used by VS-21.",
       "No production release or production enablement is authorized."
     ]
   },
   "approvals": [
     {"type":"scope","status":"approved","version":"VS-21@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Product Owner approved automatic country/timezone/currency resolution, Google Maps/Places search for unknown locations, branch selection for multi-location businesses, and instructed implementation to proceed."},
-    {"type":"policy","status":"approved","version":"VS-21@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Google location search is approved for the isolated test/pilot path behind a replaceable server-side provider boundary; production enablement remains separately governed."},
-    {"type":"implementation","status":"approved","version":"VS-21@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Product Owner said go ahead after reviewing the proposed remediation flow."},
-    {"type":"certification","status":"pending","version":"VS-21@1.0","commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"policy","status":"approved","version":"VS-21@1.1","commitSha":null,"by":"ksazid","at":"2026-08-11T00:20:00+02:00","rationale":"Product Owner approved the recommended lower-dependency approach: use Places Text Search (New) to return timezone in the same request and derive currency inside Atlas, with no separate Time Zone API call."},
+    {"type":"implementation","status":"approved","version":"VS-21@1.1","commitSha":null,"by":"ksazid","at":"2026-08-11T00:20:00+02:00","rationale":"Product Owner said go ahead with the recommended single-API refinement."},
+    {"type":"certification","status":"pending","version":"VS-21@1.1","commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": ["DEC-06"],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":70,"certification":0,"release":0,"validation":0},
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":80,"certification":0,"release":0,"validation":0},
   "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
