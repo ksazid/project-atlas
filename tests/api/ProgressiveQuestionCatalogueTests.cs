@@ -114,6 +114,26 @@ public sealed class ProgressiveQuestionCatalogueTests
     }
 
     [Fact]
+    public void Selection_ReasksPreviouslyAnsweredQuestionWhenItsContextWasRemoved()
+    {
+        var businessId = Guid.NewGuid();
+        var progress = new[]
+        {
+            BusinessQuestionProgress.Answered(
+                businessId,
+                ProgressiveQuestionCatalogueV1.CatalogueKey,
+                ProgressiveQuestionCatalogueV1.Version,
+                "generic.primary-channel",
+                "primarychannels",
+                DateTimeOffset.UtcNow)
+        };
+
+        var selected = ProgressiveQuestionCatalogueV1.Select("generic-business", [], progress);
+
+        Assert.Contains(selected, x => x.QuestionKey == "generic.primary-channel");
+    }
+
+    [Fact]
     public void Catalogue_UsesOnlyApprovedBoundedAnswerTypesAndStableKeys()
     {
         var all = ProgressiveQuestionCatalogueV1.Definitions;
