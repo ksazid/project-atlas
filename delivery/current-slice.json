@@ -34,7 +34,7 @@
   "decisionIds": ["DEC-06"],
   "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
   "certification": {
-    "status":"certified",
+    "status":"passed",
     "commitSha":"e22d2a40a132585d2d282577755b191c2885e891",
     "evidence":[
       "CI run 31438146682: success",
