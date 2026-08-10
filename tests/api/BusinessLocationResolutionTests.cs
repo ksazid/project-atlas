@@ -12,7 +12,7 @@ public sealed class BusinessLocationResolutionTests
 
         var name = MarketplaceBusinessIdentity.ResolveName("bolt-food", finalUri, "Bolt Food");
 
-        Assert.Equal("GUN Turkish Kebab", name.Value);
+        Assert.Equal("Gun Turkish Kebab", name.Value);
         Assert.Equal("medium", name.Confidence);
     }
 
