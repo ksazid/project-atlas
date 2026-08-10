@@ -1,14 +1,13 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-17",
-  "title": "VS-17 — Progressive Business Questions",
+  "sliceId": "VS-18",
+  "title": "VS-18 — Knowledge Pack Schema v2",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
-    "FR-03",
-    "FR-05"
+    "FR-06"
   ],
   "owners": {
     "product": "ksazid",
@@ -20,16 +19,13 @@
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001",
-    "CATEGORY-INTELLIGENCE-FOUNDATION",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-16@4febc069a796ebcc7cdc871629695ab7631bb71c"
+    "VS-17@eb6da74b99808ea913b118de749f407258266397"
   ],
   "blockers": [],
   "allowedPaths": [
     "apps/api/**",
-    "apps/mobile/**",
     "tests/api/**",
-    "tests/mobile/**",
     "delivery/**",
     "docs/**"
   ],
@@ -41,64 +37,55 @@
   ],
   "impact": {
     "areas": [
-      "frontend",
-      "api",
-      "database",
-      "authentication",
-      "authorization",
-      "customer-flow",
-      "sensitive-data"
+      "architecture",
+      "api"
     ],
     "notes": [
-      "Adds a bounded post-Business optional intelligence-enrichment step using deterministic server-owned question definitions.",
-      "Every question is skippable; skip progress never creates fake Business Context and optional enrichment must never trap the owner from reaching Today.",
-      "Answered questions reuse the existing BusinessContextEntry as owner-confirmed authoritative context; BusinessQuestionProgress stores only answered/skipped workflow state and catalogue/question identity.",
-      "Question selection supports all eight initial category families plus Generic fallback, suppresses reliably known context, returns at most five useful questions and never pads with filler.",
-      "A catalogue version change alone never re-asks a skipped question; future material-value-triggered re-asking remains outside VS-17.",
-      "The generic customer-groups question uses the existing canonical Business Context key customers so known customer context is not duplicated under a synonymous storage key.",
-      "The approved Atlas visual system, BrandMark boundary, existing Business creation/provenance semantics, authentication and Business isolation are preserved.",
-      "The direct VS-15 certified dependency is retained as required by the integrated MVP acceptance boundary, in addition to VS-16.",
-      "Implementation head 6f67fe53d9a71edd850df12a0af26096fcceba1e passed CI run 31344152550, Security baseline run 31344152567 and Product Intake run 31344152547.",
-      "CI run 31344152550 includes authentic Expo Web verification at 390×844 and 768×1024 for VS-17 plus the existing VS-15 Context and VS-16 discovery regression journeys; evidence is retained in artifact 9046799968 (sha256:911e2ff1d5949e87b9d2850fda528a9b42a9a750d1025090c10f1982c35c768d).",
-      "No Knowledge Pack Schema v2, category opportunity engine, release, deployment or production enablement is authorized."
+      "Introduces the deterministic packaged Knowledge Pack Manifest Schema v2 contract for FR-06 while retaining v1 persistence compatibility.",
+      "Schema v2 covers pack identity/layer, canonical applicability, KPIs, evidence rules, Opportunity patterns, execution templates, measurement suggestions, seasonality and guardrails.",
+      "MVP packs remain backend-packaged and provider-neutral; no remote installation or private connector is introduced.",
+      "The direct certified VS-15 dependency is retained as required by integrated MVP acceptance while VS-17 is the immediate predecessor.",
+      "TDD RED was proven on head 374fe37a8361c063af093fb56ec2f3d961a784eb after preflight/build/migration passed and the new contract tests failed only for missing Manifest v2 production types.",
+      "Implementation head abe3c1bd7f5dfb6423dd9065b41486efa768d8d9 passed CI run 31345640681, Security baseline run 31345640673 and Product Intake run 31345640677.",
+      "No database migration, release, deployment or production enablement is authorized by VS-18."
     ]
   },
   "approvals": [
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-17@1.0",
+      "version": "VS-18@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-10T00:55:00+02:00",
-      "rationale": "Product Owner approved the VS-17 written design after approving the skippable deterministic catalogue, tap-first one-question flow, post-Business sequence, category coverage and skip suppression semantics."
+      "at": "2026-08-10T02:34:00+02:00",
+      "rationale": "Product Owner explicitly approved the next five Atlas slices and instructed implementation, fixes and merge after required gates pass; VS-18 is the first slice in the approved continuation sequence."
     },
     {
       "type": "policy",
       "status": "not-required",
-      "version": "VS-17@1.0",
+      "version": "VS-18@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-10T00:55:00+02:00",
-      "rationale": "VS-17 introduces no policy waiver; it minimizes owner data collection, keeps every enrichment question optional and preserves existing Business isolation/privacy boundaries."
+      "at": "2026-08-10T02:34:00+02:00",
+      "rationale": "VS-18 introduces no policy waiver, production provider, private connector or new data-collection surface."
     },
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-17@1.0",
+      "version": "VS-18@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-10T00:55:00+02:00",
-      "rationale": "Product Owner approved the written VS-17 design and instructed work to continue. Release and production remain unauthorized."
+      "at": "2026-08-10T02:34:00+02:00",
+      "rationale": "Product Owner authorized implementation, fixes and merge for the next five slices. Release and production remain unauthorized."
     },
     {
       "type": "certification",
       "status": "approved",
-      "version": "VS-17@1.0",
-      "commitSha": "6f67fe53d9a71edd850df12a0af26096fcceba1e",
+      "version": "VS-18@1.0",
+      "commitSha": "abe3c1bd7f5dfb6423dd9065b41486efa768d8d9",
       "by": "ksazid",
-      "at": "2026-08-10T02:25:00+02:00",
-      "rationale": "Product Owner instructed the governed VS-17 work to continue through completion. Exact implementation head 6f67fe53d9a71edd850df12a0af26096fcceba1e passed CI, Security baseline and Product Intake, including authentic Expo Web phone/tablet VS-17 runtime evidence and VS-15/VS-16 regression journeys. Release and production remain unauthorized."
+      "at": "2026-08-10T02:58:39+02:00",
+      "rationale": "Product Owner pre-authorized implementation, fixes, certification and merge for the next five slices. Exact implementation head abe3c1bd7f5dfb6423dd9065b41486efa768d8d9 passed CI, Security baseline and Product Intake. Release and production remain unauthorized."
     },
     {
       "type": "release",
@@ -119,9 +106,7 @@
       "rationale": null
     }
   ],
-  "decisionIds": [
-    "DEC-05"
-  ],
+  "decisionIds": [],
   "progress": {
     "discovery": 100,
     "decisions": 100,
@@ -133,19 +118,14 @@
   },
   "certification": {
     "status": "passed",
-    "commitSha": "6f67fe53d9a71edd850df12a0af26096fcceba1e",
+    "commitSha": "abe3c1bd7f5dfb6423dd9065b41486efa768d8d9",
     "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31344152550",
-      "https://github.com/ksazid/project-atlas/actions/runs/31344152567",
-      "https://github.com/ksazid/project-atlas/actions/runs/31344152547",
-      "docs/evidence/VS-17-RUNTIME-2026-08-10.md",
-      "tests/api/ProgressiveQuestionCatalogueTests.cs",
-      "tests/api/ProgressiveQuestionPersistenceTests.cs",
-      "tests/mobile/progressive-question-model.test.mjs",
-      "tests/mobile/progressive-question-screen.test.mjs",
-      "tests/mobile/progressive-question-runtime.test.mjs",
-      "tests/mobile/mvp-integrated-acceptance.test.mjs",
-      "CI artifact 9046799968 digest sha256:911e2ff1d5949e87b9d2850fda528a9b42a9a750d1025090c10f1982c35c768d"
+      "CI run 31345640681",
+      "Security baseline run 31345640673",
+      "Product Intake run 31345640677",
+      "TDD RED CI run 31345424122",
+      "tests/api/KnowledgePackManifestV2Tests.cs",
+      "docs/evidence/VS-18-CERTIFICATION-2026-08-10.md"
     ]
   },
   "release": {
@@ -163,16 +143,16 @@
     "metrics": []
   },
   "links": {
-    "specification": "docs/slices/VS-17.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/24",
+    "specification": "docs/slices/VS-18.md",
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/25",
     "evidence": [
-      "docs/superpowers/specs/2026-08-10-vs-17-progressive-business-questions-design.md",
-      "docs/superpowers/plans/2026-08-10-vs-17-progressive-business-questions.md",
-      "docs/evidence/VS-17-RUNTIME-2026-08-10.md",
-      "tests/mobile/progressive-question-runtime.test.mjs",
-      "https://github.com/ksazid/project-atlas/actions/runs/31344152550",
-      "https://github.com/ksazid/project-atlas/actions/runs/31344152567",
-      "https://github.com/ksazid/project-atlas/actions/runs/31344152547"
+      "docs/superpowers/specs/2026-08-10-vs-18-knowledge-pack-schema-v2-design.md",
+      "docs/superpowers/plans/2026-08-10-vs-18-knowledge-pack-schema-v2.md",
+      "docs/evidence/VS-18-CERTIFICATION-2026-08-10.md",
+      "tests/api/KnowledgePackManifestV2Tests.cs",
+      "CI run 31345640681",
+      "Security baseline run 31345640673",
+      "Product Intake run 31345640677"
     ]
   },
   "maxAttempts": 3
