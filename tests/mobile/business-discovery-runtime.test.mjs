@@ -240,8 +240,10 @@ async function clickByLabel(cdp, label) {
 }
 
 async function setInputByLabel(cdp, label, value) {
-  const updated = await cdp.evaluate(`(() => { const element = document.querySelector('[aria-label=${JSON.stringify(label)}]'); if (!element) return false; const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value'); if (!descriptor?.set) return false; descriptor.set.call(element, ${JSON.stringify(value)}); element.dispatchEvent(new Event('input', { bubbles: true })); element.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
-  assert.equal(updated, true, `Could not update input labelled ${label}`);
+  const focused = await cdp.evaluate(`(() => { const element = document.querySelector('[aria-label=${JSON.stringify(label)}]'); if (!element) return false; element.focus(); return document.activeElement === element; })()`);
+  assert.equal(focused, true, `Could not focus input labelled ${label}`);
+  await cdp.send('Input.insertText', { text: value });
+  await cdp.waitFor(`(() => { const element = document.querySelector('[aria-label=${JSON.stringify(label)}]'); return Boolean(element) && element.value === ${JSON.stringify(value)}; })()`, `${label} input value`, 5000);
 }
 
 function prHeadSha() {
