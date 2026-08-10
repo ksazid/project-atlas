@@ -91,11 +91,11 @@
         "Auto-select the first address found without owner review",
         "Resolve a Business location, let the owner select among branches when ambiguous, use Google Places search when unknown, and derive country/timezone/currency automatically"
       ],
-      "decision": "Treat the operating location as the owner-facing choice. Preselect one strong branch but keep it changeable; show branch cards when multiple matches exist; use a Google Places-backed search when location is unknown; derive canonical country, IANA timezone and ISO currency from the selected location. Onboard one location first and add other branches later.",
+      "decision": "Treat the operating location as the owner-facing choice. Preselect one strong branch but keep it changeable; show branch cards when multiple matches exist; use Google Places Text Search (New) when location is unknown; obtain canonical address, coordinates, country and IANA timezone from the same Places response; derive ISO currency inside Atlas; onboard one location first and add other branches later. Do not call the separate Google Time Zone API in this slice.",
       "blocks": [],
       "decidedBy": "ksazid",
-      "decidedAt": "2026-08-10T20:31:00+02:00",
-      "rationale": "The Product Owner explicitly required automatic country/timezone/currency selection, Google Maps search for unknown locations, asked how multi-location businesses should choose a branch, approved the proposed one-location-first flow and instructed implementation to proceed."
+      "decidedAt": "2026-08-11T00:20:00+02:00",
+      "rationale": "The Product Owner explicitly required automatic country/timezone/currency selection and branch choice, then approved the recommended lower-cost refinement to use Places timeZone in the same Text Search response and remove the separate Time Zone API dependency."
     }
   ]
 }
