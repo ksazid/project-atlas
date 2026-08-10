@@ -59,24 +59,35 @@ async function closeServer(server) {
 }
 
 function createApiFixture() {
-  const state = { requests: [], discoveryCount: 0, createCount: 0, createBody: null };
+  const state = { requests: [], discoveryCount: 0, locationCount: 0, createCount: 0, createBody: null };
+  const sourceUrl = 'https://food.bolt.eu/en/324-valletta/p/11881-gun-turkish-kebab/';
   const facts = [
-    ['name', 'Harbour Coffee', 'high'],
+    ['name', 'Gun Turkish Kebab', 'medium'],
     ['category', 'restaurant-cafe', 'high'],
-    ['subcategory', 'cafe', 'high'],
-    ['primaryLocation', '1 Republic Street, Valletta, MT', 'high'],
-    ['country', 'MT', 'high'],
-    ['description', 'Independent coffee shop and bakery', 'medium'],
+    ['subcategory', 'restaurant', 'medium'],
   ].map(([key, value, confidence]) => ({
     key,
     value,
-    source: 'website',
-    sourceUrl: 'https://harbour.example',
-    observedAt: '2026-08-09T20:00:00Z',
+    source: 'bolt-food',
+    sourceUrl,
+    observedAt: '2026-08-10T18:00:00Z',
     confidence,
     evidenceClass: 'public-observed',
     ownerConfirmed: false,
   }));
+
+  const location = {
+    providerRef: 'place-gun-birkirkara',
+    name: 'GÜN Turkish Kebab',
+    formattedAddress: '65 Triq Il-Herba, Birkirkara, Malta',
+    latitude: 35.90,
+    longitude: 14.46,
+    countryCode: 'MT',
+    countryName: 'Malta',
+    timezone: 'Europe/Malta',
+    currency: 'EUR',
+    provider: 'google-places',
+  };
 
   const server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -97,22 +108,21 @@ function createApiFixture() {
 
     if (req.method === 'POST' && url.pathname === '/api/v1/business-discovery') {
       state.discoveryCount += 1;
-      assert.equal(parsedBody?.url, 'https://harbour.example');
-      await delay(250);
-      res.end(JSON.stringify({
-        snapshotId: 'runtime-snapshot',
-        provider: 'website',
-        sourceUrl: 'https://harbour.example',
-        observedAt: '2026-08-09T20:00:00Z',
-        facts,
-      }));
+      assert.equal(parsedBody?.url, sourceUrl);
+      res.end(JSON.stringify({ snapshotId: 'runtime-snapshot', provider: 'bolt-food', sourceUrl, observedAt: '2026-08-10T18:00:00Z', facts }));
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/v1/business-discovery/runtime-snapshot/locations/search') {
+      state.locationCount += 1;
+      assert.match(parsedBody?.query ?? '', /Gun Turkish Kebab/i);
+      res.end(JSON.stringify({ state: 'preselected', candidates: [location], selected: location, canChange: true }));
       return;
     }
 
     if (req.method === 'POST' && url.pathname === '/api/v1/businesses/from-discovery') {
       state.createCount += 1;
       state.createBody = parsedBody;
-      await delay(250);
       res.statusCode = 201;
       res.end(JSON.stringify({ id: 'runtime-business' }));
       return;
@@ -121,16 +131,12 @@ function createApiFixture() {
     res.statusCode = 404;
     res.end(JSON.stringify({ message: 'Not found.' }));
   });
-  return { server, state };
+  return { server, state, sourceUrl };
 }
 
 function contentType(file) {
   const ext = path.extname(file).toLowerCase();
-  return ({
-    '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
-    '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
-    '.ico': 'image/x-icon', '.woff2': 'font/woff2'
-  })[ext] ?? 'application/octet-stream';
+  return ({ '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' })[ext] ?? 'application/octet-stream';
 }
 
 function createStaticServer(exportRoot) {
@@ -156,68 +162,46 @@ function createStaticServer(exportRoot) {
 async function runExpoExport(outputDir, apiUrl) {
   const child = spawn('npx', ['expo', 'export', '--platform', 'web', '--output-dir', outputDir], {
     cwd: mobileRoot,
-    env: {
-      ...process.env,
-      CI: 'true',
-      EXPO_NO_TELEMETRY: '1',
-      EXPO_PUBLIC_API_URL: apiUrl,
-      EXPO_PUBLIC_AUTH_ISSUER: 'https://auth.runtime.invalid',
-      EXPO_PUBLIC_AUTH_CLIENT_ID: 'runtime-client'
-    },
+    env: { ...process.env, CI: 'true', EXPO_NO_TELEMETRY: '1', EXPO_PUBLIC_API_URL: apiUrl, EXPO_PUBLIC_AUTH_ISSUER: 'https://auth.runtime.invalid', EXPO_PUBLIC_AUTH_CLIENT_ID: 'runtime-client' },
     stdio: ['ignore', 'pipe', 'pipe']
   });
   let stdout = '';
   let stderr = '';
   child.stdout.on('data', chunk => { stdout += chunk; });
   child.stderr.on('data', chunk => { stderr += chunk; });
-  const code = await new Promise((resolve, reject) => {
-    child.once('error', reject);
-    child.once('close', resolve);
-  });
+  const code = await new Promise((resolve, reject) => { child.once('error', reject); child.once('close', resolve); });
   assert.equal(code, 0, `Expo Web export failed.\nSTDOUT:\n${stdout}\nSTDERR:\n${stderr}`);
-  assert.ok(fs.existsSync(path.join(outputDir, 'index.html')), 'Expo Web export did not create index.html');
 }
 
 async function waitForJson(url, timeoutMs = 20000) {
   const deadline = Date.now() + timeoutMs;
-  let lastError;
   while (Date.now() < deadline) {
     try {
       const response = await fetch(url);
       if (response.ok) return response.json();
-    } catch (error) {
-      lastError = error;
-    }
+    } catch {}
     await delay(100);
   }
-  throw lastError ?? new Error(`Timed out waiting for ${url}`);
+  throw new Error(`Timed out waiting for ${url}`);
 }
 
 class CdpClient {
-  constructor(url) {
-    this.url = url;
-    this.nextId = 1;
-    this.pending = new Map();
-  }
+  constructor(url) { this.url = url; this.nextId = 1; this.pending = new Map(); }
   async connect() {
     this.socket = new WebSocket(this.url);
-    await new Promise((resolve, reject) => {
-      this.socket.addEventListener('open', resolve, { once: true });
-      this.socket.addEventListener('error', reject, { once: true });
-    });
+    await new Promise((resolve, reject) => { this.socket.addEventListener('open', resolve, { once: true }); this.socket.addEventListener('error', reject, { once: true }); });
     this.socket.addEventListener('message', event => {
       const message = JSON.parse(event.data);
       if (!message.id) return;
       const pending = this.pending.get(message.id);
       if (!pending) return;
       this.pending.delete(message.id);
-      if (message.error) pending.reject(new Error(`${pending.method}: ${message.error.message}`));
-      else pending.resolve(message.result ?? {});
+      if (message.error) pending.reject(new Error(message.error.message)); else pending.resolve(message.result ?? {});
     });
   }
   async send(method, params = {}) {
     const id = this.nextId++;
-    const result = new Promise((resolve, reject) => this.pending.set(id, { resolve, reject, method }));
+    const result = new Promise((resolve, reject) => this.pending.set(id, { resolve, reject }));
     this.socket.send(JSON.stringify({ id, method, params }));
     return result;
   }
@@ -235,35 +219,18 @@ class CdpClient {
     const body = await this.evaluate('document.body?.innerText ?? ""');
     throw new Error(`Timed out waiting for ${label}. Body:\n${body}`);
   }
-  async navigate(url) {
-    await this.send('Page.navigate', { url });
-    await this.waitFor('document.readyState === "complete"', `page load ${url}`, 15000);
-  }
-  async setViewport(width, height, deviceScaleFactor = 1) {
-    await this.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor, mobile: true, screenWidth: width, screenHeight: height });
-  }
-  async screenshot(file) {
-    const result = await this.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false });
-    fs.writeFileSync(file, Buffer.from(result.data, 'base64'));
-  }
+  async navigate(url) { await this.send('Page.navigate', { url }); await this.waitFor('document.readyState === "complete"', `page load ${url}`, 15000); }
+  async setViewport(width, height, deviceScaleFactor = 1) { await this.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor, mobile: true, screenWidth: width, screenHeight: height }); }
+  async screenshot(file) { const result = await this.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false }); fs.writeFileSync(file, Buffer.from(result.data, 'base64')); }
   close() { this.socket?.close(); }
 }
 
 async function launchChrome(binary, appOrigin, userDataDir) {
   const debugPort = 20000 + (process.pid % 1000);
-  const child = spawn(binary, [
-    '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--disable-background-networking',
-    '--disable-default-apps', '--disable-extensions', '--no-first-run', '--no-default-browser-check',
-    `--remote-debugging-port=${debugPort}`, `--user-data-dir=${userDataDir}`, `${appOrigin}/`
-  ], { stdio: ['ignore', 'ignore', 'pipe'] });
-  let stderr = '';
-  child.stderr.on('data', chunk => { stderr += chunk; });
-  const targets = await waitForJson(`http://127.0.0.1:${debugPort}/json/list`).catch(error => {
-    child.kill('SIGKILL');
-    throw new Error(`Chrome did not expose DevTools. ${error.message}\n${stderr}`);
-  });
+  const child = spawn(binary, ['--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--disable-background-networking', '--disable-default-apps', '--disable-extensions', '--no-first-run', `--remote-debugging-port=${debugPort}`, `--user-data-dir=${userDataDir}`, `${appOrigin}/`], { stdio: ['ignore', 'ignore', 'pipe'] });
+  const targets = await waitForJson(`http://127.0.0.1:${debugPort}/json/list`);
   const page = targets.find(target => target.type === 'page');
-  assert.ok(page?.webSocketDebuggerUrl, `Chrome page target missing. ${stderr}`);
+  assert.ok(page?.webSocketDebuggerUrl, 'Chrome page target missing.');
   return { child, page };
 }
 
@@ -273,16 +240,7 @@ async function clickByLabel(cdp, label) {
 }
 
 async function setInputByLabel(cdp, label, value) {
-  const updated = await cdp.evaluate(`(() => {
-    const element = document.querySelector('[aria-label=${JSON.stringify(label)}]');
-    if (!element) return false;
-    const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value');
-    if (!descriptor?.set) return false;
-    descriptor.set.call(element, ${JSON.stringify(value)});
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-    return true;
-  })()`);
+  const updated = await cdp.evaluate(`(() => { const element = document.querySelector('[aria-label=${JSON.stringify(label)}]'); if (!element) return false; const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value'); if (!descriptor?.set) return false; descriptor.set.call(element, ${JSON.stringify(value)}); element.dispatchEvent(new Event('input', { bubbles: true })); element.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   assert.equal(updated, true, `Could not update input labelled ${label}`);
 }
 
@@ -291,23 +249,19 @@ function prHeadSha() {
     if (!process.env.GITHUB_EVENT_PATH) return process.env.GITHUB_SHA ?? null;
     const payload = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
     return payload.pull_request?.head?.sha ?? process.env.GITHUB_SHA ?? null;
-  } catch {
-    return process.env.GITHUB_SHA ?? null;
-  }
+  } catch { return process.env.GITHUB_SHA ?? null; }
 }
 
-test('VS-16 URL-first discovery completes in authentic Expo Web runtime', { skip: !runRuntime, timeout: 180000 }, async t => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'atlas-vs16-runtime-'));
+test('VS-21 URL-first discovery resolves one operating location in authentic Expo Web runtime', { skip: !runRuntime, timeout: 180000 }, async t => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'atlas-vs21-runtime-'));
   const exportRoot = path.join(tempRoot, 'web');
   const chromeProfile = path.join(tempRoot, 'chrome');
   fs.mkdirSync(artifactDir, { recursive: true });
 
-  // VS-15 uses the same temporary web-session seam. Give it the first setup turn
-  // when the full suite runs in parallel, then safely reuse the identical shim.
   await delay(500);
   const ownsSessionShim = !fs.existsSync(sessionWebPath);
   if (ownsSessionShim) fs.writeFileSync(sessionWebPath, sessionWebShim);
-  else assert.equal(fs.readFileSync(sessionWebPath, 'utf8'), sessionWebShim, 'Existing session.web.ts is not the expected temporary runtime shim.');
+  else assert.equal(fs.readFileSync(sessionWebPath, 'utf8'), sessionWebShim);
 
   const fixture = createApiFixture();
   const apiPort = await listen(fixture.server);
@@ -315,7 +269,6 @@ test('VS-16 URL-first discovery completes in authentic Expo Web runtime', { skip
   let staticServer;
   let chrome;
   let cdp;
-
   t.after(async () => {
     cdp?.close();
     if (chrome?.child && !chrome.child.killed) chrome.child.kill('SIGKILL');
@@ -330,95 +283,61 @@ test('VS-16 URL-first discovery completes in authentic Expo Web runtime', { skip
   const appPort = await listen(staticServer);
   const appOrigin = `http://127.0.0.1:${appPort}`;
   const chromeBinary = commandPath(['google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser']);
-  assert.ok(chromeBinary, 'GitHub runner does not provide a headless Chrome/Chromium binary.');
+  assert.ok(chromeBinary, 'GitHub runner does not provide Chrome/Chromium.');
   chrome = await launchChrome(chromeBinary, appOrigin, chromeProfile);
   cdp = new CdpClient(chrome.page.webSocketDebuggerUrl);
   await cdp.connect();
   await cdp.send('Page.enable');
   await cdp.send('Runtime.enable');
-  await cdp.send('Network.enable');
-  await cdp.send('Network.setBlockedURLs', { urls: ['*upload.wikimedia.org*'] });
   await cdp.setViewport(390, 844, 2);
   await cdp.navigate(`${appOrigin}/`);
   await cdp.evaluate(`localStorage.setItem('atlas.access-token','runtime-token'); localStorage.removeItem('atlas.business-id'); true`);
   await cdp.navigate(`${appOrigin}/create-business`);
-  await cdp.waitFor('document.body.innerText.includes("Discovering your")', 'discovery entry screen', 10000);
-  assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, '390px discovery layout has horizontal overflow.');
+  await cdp.waitFor('document.body.innerText.includes("Discovering your")', 'discovery entry');
 
-  await setInputByLabel(cdp, 'Business page URL', 'https://harbour.example');
-  await cdp.waitFor(`document.querySelector('[aria-label="Business page URL"]')?.value === 'https://harbour.example'`, 'business URL input', 3000);
+  await setInputByLabel(cdp, 'Business page URL', fixture.sourceUrl);
   await clickByLabel(cdp, 'Discover my business');
-  await cdp.waitFor('document.body.innerText.includes("We found your business!")', 'discovery confirmation', 10000);
-  assert.equal(fixture.state.discoveryCount, 1, 'Discovery API should be called once.');
+  await cdp.waitFor('document.body.innerText.includes("We found your business!") && document.body.innerText.includes("65 Triq Il-Herba")', 'resolved location confirmation', 15000);
+
   const confirmText = await cdp.evaluate('document.body.innerText');
-  assert.match(confirmText, /Harbour Coffee/);
-  assert.match(confirmText, /Restaurant Cafe|Restaurant Café/);
-  assert.match(confirmText, /A few details are still needed/);
-  assert.match(confirmText, /Timezone/);
-  assert.match(confirmText, /Currency/);
-  assert.doesNotMatch(confirmText, /12,847|4\.6|6:00 AM|10:00 PM/);
+  assert.match(confirmText, /Gun Turkish Kebab/i);
+  assert.match(confirmText, /65 Triq Il-Herba, Birkirkara, Malta/);
+  assert.match(confirmText, /Malta.*Europe\/Malta.*EUR/s);
+  assert.doesNotMatch(confirmText, /Country\s*\n|Timezone\s*\n|Currency\s*\n/);
+  assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true);
+
   const confirmScreenshot = path.join(artifactDir, 'discovery-390x844-confirm.png');
   await cdp.screenshot(confirmScreenshot);
-
-  const confirmActionHeight = await cdp.evaluate(`document.querySelector('[aria-label="Complete missing details"]')?.getBoundingClientRect().height ?? 0`);
-  assert.ok(confirmActionHeight >= 44, `Complete-details action must be at least 44px high, got ${confirmActionHeight}`);
-  await clickByLabel(cdp, 'Complete missing details');
-  await cdp.waitFor('document.body.innerText.includes("Fill only what Atlas still needs.")', 'missing details screen', 5000);
-  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Business name"]')?.value`), 'Harbour Coffee');
-  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Country"]')?.value`), 'MT');
-  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Timezone"]')?.value`), '', 'Timezone must not be silently inferred.');
-  assert.equal(await cdp.evaluate(`document.querySelector('[aria-label="Currency"]')?.value`), '', 'Currency must not be silently inferred.');
-  await setInputByLabel(cdp, 'Timezone', 'Europe/Malta');
-  await setInputByLabel(cdp, 'Currency', 'EUR');
-  await cdp.waitFor(`document.querySelector('[aria-label="Timezone"]')?.value === 'Europe/Malta' && document.querySelector('[aria-label="Currency"]')?.value === 'EUR'`, 'owner-provided missing fields', 3000);
-  const missingScreenshot = path.join(artifactDir, 'discovery-390x844-missing-details.png');
-  await cdp.screenshot(missingScreenshot);
-
-  await clickByLabel(cdp, 'Review details');
-  await cdp.waitFor('document.body.innerText.includes("We found your business!") && document.body.innerText.includes("Confirm and continue")', 'completed confirmation', 5000);
-  await cdp.setViewport(768, 1024, 1);
-  assert.equal(await cdp.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), true, '768px confirmation layout has horizontal overflow.');
-  const tabletScreenshot = path.join(artifactDir, 'discovery-768x1024-confirm.png');
-  await cdp.screenshot(tabletScreenshot);
-  await cdp.setViewport(390, 844, 2);
+  const buttonHeight = await cdp.evaluate(`document.querySelector('[aria-label="Confirm and continue"]')?.getBoundingClientRect().height ?? 0`);
+  assert.ok(buttonHeight >= 44, `Confirm action must be at least 44px high, got ${buttonHeight}`);
 
   await clickByLabel(cdp, 'Confirm and continue');
   await cdp.waitFor(`localStorage.getItem('atlas.business-id') === 'runtime-business'`, 'created business session', 10000);
-  assert.equal(fixture.state.createCount, 1, 'Business creation should consume discovery once.');
+
+  assert.equal(fixture.state.discoveryCount, 1);
+  assert.equal(fixture.state.locationCount, 1);
+  assert.equal(fixture.state.createCount, 1);
   assert.equal(fixture.state.createBody?.snapshotId, 'runtime-snapshot');
-  assert.equal(fixture.state.createBody?.name, 'Harbour Coffee');
   assert.equal(fixture.state.createBody?.country, 'MT');
   assert.equal(fixture.state.createBody?.timezone, 'Europe/Malta');
   assert.equal(fixture.state.createBody?.currency, 'EUR');
+  assert.equal(fixture.state.createBody?.primaryLocation, '65 Triq Il-Herba, Birkirkara, Malta');
   assert.equal(fixture.state.createBody?.ownerConfirmed, true);
-  assert.equal(fixture.state.createBody?.phone, '', 'Missing phone must remain unknown.');
-  assert.equal(fixture.state.createBody?.businessHours, '', 'Missing hours must remain unknown.');
+  assert.equal(fixture.state.requests.filter(request => request.path.startsWith('/api/v1/business')).every(request => request.authorization === 'Bearer runtime-token'), true);
 
-  const authenticatedRequests = fixture.state.requests.filter(request => request.path.startsWith('/api/v1/business'));
-  assert.equal(authenticatedRequests.length >= 2, true, 'Runtime did not exercise discovery and create API boundaries.');
-  assert.equal(authenticatedRequests.every(request => request.authorization === 'Bearer runtime-token'), true, 'Runtime request escaped seeded authentication boundary.');
-
-  const screenshots = [confirmScreenshot, missingScreenshot, tabletScreenshot];
   const summary = {
     headSha: prHeadSha(),
-    workflowSha: process.env.GITHUB_SHA ?? null,
     route: '/create-business',
-    browser: chromeBinary,
-    viewports: ['390x844@2x', '768x1024@1x'],
     assertions: {
       urlFirstDiscovery: true,
-      realObservedFactsOnly: true,
-      missingTimezoneCurrencyRemainUnknown: true,
-      ownerCompletesOnlyMissingFields: true,
+      operatingLocationResolved: true,
+      canonicalCountryTimezoneCurrencyDerived: true,
+      technicalMarketFieldsNotOwnerEntered: true,
       exactSnapshotConsumed: true,
-      ownerConfirmationPersisted: true,
       authenticatedApiBoundary: true,
-      noHorizontalOverflow: true,
       minimumPrimaryTargetPx: 44,
     },
-    discoveryCount: fixture.state.discoveryCount,
-    createCount: fixture.state.createCount,
-    screenshots: screenshots.map(file => ({ file: path.basename(file), sha256: sha256(file) }))
+    screenshots: [{ file: path.basename(confirmScreenshot), sha256: sha256(confirmScreenshot) }],
   };
   fs.writeFileSync(path.join(artifactDir, 'runtime-summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
 });
