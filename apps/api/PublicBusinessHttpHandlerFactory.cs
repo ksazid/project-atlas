@@ -36,6 +36,8 @@ public sealed class PublicBusinessRedirectHandler : DelegatingHandler
             currentUri is null)
             throw new BusinessDiscoveryException("business_url_invalid", "Use a valid HTTPS business page URL.");
 
+        RejectGoogleMapsShortLink(currentUri);
+
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { currentUri.AbsoluteUri };
         var redirects = 0;
 
@@ -69,12 +71,24 @@ public sealed class PublicBusinessRedirectHandler : DelegatingHandler
             if (!PublicBusinessUrlPolicy.TryValidate(candidate.AbsoluteUri, out var validatedUri, out _) || validatedUri is null)
                 throw new BusinessDiscoveryException("business_source_redirect_unsafe", "That business page redirected to a location Atlas cannot access safely. Use a direct public HTTPS business URL or set up manually.");
 
+            RejectGoogleMapsShortLink(validatedUri);
+
             if (!visited.Add(validatedUri.AbsoluteUri))
                 throw new BusinessDiscoveryException("business_source_redirect_loop", "That business page is stuck in a redirect loop. Use a direct public business URL or set up manually.");
 
             currentUri = validatedUri;
             redirects++;
         }
+    }
+
+    private static void RejectGoogleMapsShortLink(Uri uri)
+    {
+        var host = uri.IdnHost.TrimEnd('.').ToLowerInvariant();
+        if (host is not "share.google" and not "maps.app.goo.gl") return;
+
+        throw new BusinessDiscoveryException(
+            "business_google_maps_short_link",
+            "Google Maps shortened links cannot be read as public business pages. Tap Set up manually instead and search the business name or address; Atlas will fill country, timezone and currency automatically.");
     }
 
     private static HttpRequestMessage CloneRequest(HttpRequestMessage request, Uri requestUri)
