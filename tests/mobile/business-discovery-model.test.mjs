@@ -33,12 +33,12 @@ test('discovery draft uses observed facts and leaves unavailable facts unknown',
   assert.equal(draft.businessHours, '');
 });
 
-test('required manual fields are explicit instead of silently assuming Malta defaults', () => {
+test('missing technical market metadata is presented to the owner as one unresolved business location', () => {
   const missing = discoveryModel.getMissingRequiredFields(discoveryModel.createDiscoveryDraft(discovery));
-  assert.deepEqual(missing, ['timezone', 'currency']);
+  assert.deepEqual(missing, ['location']);
 });
 
-test('confirmation request consumes the exact persisted discovery snapshot', () => {
+test('confirmation request consumes canonical metadata from the resolved location', () => {
   const draft = {
     ...discoveryModel.createDiscoveryDraft(discovery),
     timezone: 'Europe/Malta',
@@ -73,9 +73,12 @@ test('discovery screen respects reduced motion and exposes explicit action seman
   const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
   assert.match(source, /AccessibilityInfo/);
   assert.match(source, /isReduceMotionEnabled/);
-  for (const label of ['Discover my business', 'Set up manually instead', 'Edit details', 'Review details', 'Create business']) {
+  for (const label of ['Discover my business', 'Set up manually instead', 'Edit details', 'Review details', 'Create business', 'Confirm and continue', 'Change location', 'Search Google Maps']) {
     assert.match(source, new RegExp(`accessibilityLabel=["'{][^\\n]*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'), `Missing explicit accessibility label for ${label}`);
   }
-  assert.match(source, /const confirmLabel = missing\.length > 0 \? 'Complete missing details' : 'Confirm and continue'/);
-  assert.match(source, /accessibilityLabel=\{confirmLabel\}/);
+  assert.match(source, /Which location are you setting up\?/);
+  assert.match(source, /Find your business location/);
+  assert.doesNotMatch(source, /<Field label="Country"/);
+  assert.doesNotMatch(source, /<Field label="Timezone"/);
+  assert.doesNotMatch(source, /<Field label="Currency"/);
 });
