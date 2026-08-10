@@ -11,6 +11,7 @@ export type BusinessLocationCandidate = {
   timezone: string;
   currency: string;
   provider: string;
+  businessTypeSummary?: string | null;
 };
 
 export type LocationChoiceState =
@@ -24,17 +25,32 @@ export function toLocationChoiceState(candidates: BusinessLocationCandidate[]): 
   return { kind: 'choose', candidates: [...candidates], selected: null, canChange: true };
 }
 
-export function applyLocationToDraft<T extends Pick<DiscoveryDraft, 'primaryLocation' | 'country' | 'timezone' | 'currency'>>(
+export function isMarketplaceOrderingBoilerplate(value: string): boolean {
+  const normalized = value.trim().replace(/\s+/g, ' ').toLowerCase();
+  const bolt = normalized.startsWith('open ') && normalized.includes(' on bolt food') &&
+    (normalized.includes('order delivery') || normalized.includes('delivery or pickup') || normalized.includes('order pickup'));
+  const wolt = (normalized.startsWith('open ') || normalized.startsWith('order ')) &&
+    (normalized.includes(' on wolt') || normalized.includes(' wolt delivery'));
+  return bolt || wolt;
+}
+
+export function applyLocationToDraft<T extends Pick<DiscoveryDraft, 'primaryLocation' | 'country' | 'timezone' | 'currency'> & Partial<Pick<DiscoveryDraft, 'description'>>>(
   draft: T,
   location: BusinessLocationCandidate,
 ): T {
+  const summary = location.businessTypeSummary?.trim();
+  const currentDescription = typeof draft.description === 'string' ? draft.description : undefined;
+  const shouldUseSummary = currentDescription !== undefined && Boolean(summary) &&
+    (!currentDescription.trim() || isMarketplaceOrderingBoilerplate(currentDescription));
+
   return {
     ...draft,
     primaryLocation: location.formattedAddress,
     country: location.countryCode,
     timezone: location.timezone,
     currency: location.currency,
-  };
+    ...(shouldUseSummary ? { description: summary } : {}),
+  } as T;
 }
 
 export function displayMarket(location: BusinessLocationCandidate): string {
