@@ -3,7 +3,7 @@
   "sliceId": "VS-25",
   "title": "VS-25 — Business Media & Menu Intelligence",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-03","FR-05","FR-14","FR-16"],
@@ -19,6 +19,7 @@
       "VS-25 adds PostgreSQL persistence through the existing API architecture and forward-only migration policy.",
       "Third-party public image binaries are never copied or rehosted; only bounded remote references and provenance are retained.",
       "Structured menu facts use the generic Business Offering model with menu-item as the initial kind so Atlas Core remains industry-agnostic.",
+      "Supported marketplace semantic-HTML fallbacks operate only on the same public page already accepted by the discovery boundary and fail closed when expected markers are absent.",
       "Public media/menu observations remain unconfirmed unless explicitly confirmed by the owner in a future UI.",
       "No production deployment or production enablement is authorized."
     ]
@@ -27,13 +28,24 @@
     {"type":"scope","status":"approved","version":"VS-25@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T13:58:00+02:00","rationale":"Product Owner explicitly approved the sequence: fix readiness CTA, add restaurant/business media capture, then add structured menu/menu-price ingestion."},
     {"type":"policy","status":"approved","version":"VS-25@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T13:58:00+02:00","rationale":"Approved retention is bounded to public remote media references and factual offering metadata with provenance. Third-party binaries, private APIs, OCR and owner-upload storage remain out of scope."},
     {"type":"implementation","status":"approved","version":"VS-25@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T13:58:00+02:00","rationale":"Product Owner instructed implementation to proceed with 'Go' on the explicitly highlighted media/menu sequence."},
-    {"type":"certification","status":"pending","version":"VS-25@1.0","commitSha":null,"by":null,"at":null,"rationale":"Certification requires deterministic extraction, PostgreSQL persistence/migration, isolation and regression gates at the exact implementation SHA."},
+    {"type":"certification","status":"approved","version":"VS-25@1.0","commitSha":"298b523033dcea7294921a5fe3adf52262178a2e","by":"PES/Loop","at":"2026-08-11T14:31:42Z","rationale":"Exact implementation SHA passed CI, Security baseline, Product intake, clean PostgreSQL migration replay, persistence/materialisation coverage and the supplemental live Hasan public-source smoke. Certification does not authorize merge, release or production enablement."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": ["DEC-07"],
-  "progress": {"discovery":100,"decisions":100,"implementation":0,"testing":0,"certification":0,"release":0,"validation":0},
-  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
+  "certification": {
+    "status":"passed",
+    "commitSha":"298b523033dcea7294921a5fe3adf52262178a2e",
+    "evidence":[
+      "CI run 31500477489: exact implementation SHA green",
+      "Security baseline run 31500477617: green",
+      "Product intake run 31500478608: green",
+      "PostgreSQL 17 clean migration replay including 20260811131000_BusinessMediaMenuIntelligence",
+      "Render test deploy dep-d9tj1dad0e5s739ao9r0: atlas-api-test live on exact implementation SHA",
+      "PR #46 supplemental live Hasan smoke commit 7669f44441790c59fa1b3bb564502402f3203932 / CI run 31501492828: 294 API tests passed, 0 failed"
+    ]
+  },
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
@@ -42,7 +54,8 @@
     "implementationPr":45,
     "evidence":[
       "docs/superpowers/specs/2026-08-11-vs-25-business-media-menu-intelligence-design.md",
-      "docs/superpowers/plans/2026-08-11-vs-25-business-media-menu-intelligence.md"
+      "docs/superpowers/plans/2026-08-11-vs-25-business-media-menu-intelligence.md",
+      "docs/slices/VS-25.md"
     ]
   },
   "maxAttempts": 3
