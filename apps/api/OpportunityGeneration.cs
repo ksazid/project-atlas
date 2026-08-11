@@ -351,8 +351,8 @@ public static class OpportunityGenerationSnapshot
         return JsonSerializer.Serialize(new
         {
             schemaVersion = SchemaVersion,
-            candidate.PatternKey,
-            candidate.BundleFingerprint,
+            patternKey = candidate.PatternKey,
+            bundleFingerprint = candidate.BundleFingerprint,
             goal = new
             {
                 id = candidate.GoalId,
