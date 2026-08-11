@@ -3,7 +3,7 @@
   "sliceId": "VS-27",
   "title": "VS-27 — Business Hub & Atlas Brand Experience",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-03", "FR-05", "FR-16"],
@@ -59,13 +59,32 @@
       "at": "2026-08-11T20:38:00+02:00",
       "rationale": "Product Owner approved the VS-27 design and Superpowers implementation plan and instructed execution to proceed once VS-26 cleared PES."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-27@1.0",
+      "commitSha": "a099ff50ebe53794c8a55325051059feda56115d",
+      "by": "PES/Loop",
+      "at": "2026-08-11T21:55:00Z",
+      "rationale": "Exact implementation SHA passed CI, Security baseline and Product Intake. The Expo Go acceptance loop exercised the VS-27 Business tab/brand/navigation, surfaced the stale deleted-business selection defect, and the corrected stale-session/reset behavior then passed targeted and full deterministic gates. Test API deployment is live on the exact implementation SHA. Certification does not authorize release or production enablement."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
   "decisionIds": [],
-  "progress": {"discovery": 100, "decisions": 100, "implementation": 0, "testing": 0, "certification": 0, "release": 0, "validation": 0},
-  "certification": {"status": "not-started", "commitSha": null, "evidence": []},
+  "progress": {"discovery": 100, "decisions": 100, "implementation": 100, "testing": 100, "certification": 100, "release": 0, "validation": 0},
+  "certification": {
+    "status": "passed",
+    "commitSha": "a099ff50ebe53794c8a55325051059feda56115d",
+    "evidence": [
+      "CI run 31539348655: exact implementation SHA green; mobile preflight, .NET restore/build, EF database update, API tests and dashboard build all succeeded",
+      "Security baseline run 31539348669: green",
+      "Product Intake run 31539348666: green",
+      "Expo Go acceptance loop exercised the VS-27 Business tab, Atlas Compass brandmark and five-tab navigation and surfaced the stale deleted-business selection defect",
+      "Corrected stale Business selection and Development-only Expo demo reset behavior passed targeted tests and the full exact-head deterministic gate set",
+      "Render test deployment dep-d9tpffugekts7395sa2g: live on exact implementation SHA a099ff50ebe53794c8a55325051059feda56115d"
+    ]
+  },
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
