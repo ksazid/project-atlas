@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
@@ -106,6 +107,26 @@ public sealed record OpportunityDetailResponse(
 
 public static class OpportunityPolicy
 {
+    private static readonly string[] LegacyAssumptions =
+    [
+        "The owner-confirmed profile and selected goal remain accurate.",
+        "The recorded Knowledge Pack version is applicable to this Business."
+    ];
+
+    private static readonly string[] LegacyLimitations =
+    [
+        "Expected impact is directional, not guaranteed.",
+        "Atlas has not measured an outcome yet.",
+        "External action still requires owner review."
+    ];
+
+    private sealed record ParsedEvidence(
+        IReadOnlyList<OpportunityEvidenceItem> Evidence,
+        string GoalAlignment,
+        string? GoalTitle,
+        IReadOnlyList<string> Assumptions,
+        IReadOnlyList<string> Limitations);
+
     public static bool IsEligible(BusinessProfile? profile, IReadOnlyCollection<BusinessGoal> goals, BusinessKnowledgeAssignment? assignment) =>
         profile is { OwnerConfirmed: true } && goals.Count > 0 && assignment is { IsCurrent: true };
 
@@ -117,37 +138,23 @@ public static class OpportunityPolicy
 
     public static OpportunityDetailResponse Detail(Opportunity value, BusinessGoal? goal, DateTimeOffset now)
     {
-        var evidence = new List<OpportunityEvidenceItem>();
-        try
-        {
-            using var document = JsonDocument.Parse(value.EvidenceJson);
-            var root = document.RootElement;
-            if (root.TryGetProperty("profile", out var profile)) evidence.Add(new("business-profile", "Business Profile", profile.GetString() ?? "confirmed", "owner-confirmed"));
-            if (root.TryGetProperty("goal", out var goalValue)) evidence.Add(new("business-goal", "Priority goal", goalValue.GetString() ?? goal?.Title ?? "Selected goal", "owner-selected"));
-            if (root.TryGetProperty("PackKey", out var packKey)) evidence.Add(new("knowledge-pack", "Knowledge Pack", $"{packKey.GetString()} v{value.KnowledgePackVersion}", "published-pack"));
-        }
-        catch (JsonException)
-        {
-            evidence.Add(new("summary", "Evidence summary", value.EvidenceSummary, "recorded-evidence"));
-        }
-
-        if (evidence.Count == 0) evidence.Add(new("summary", "Evidence summary", value.EvidenceSummary, "recorded-evidence"));
+        var parsed = ParseEvidence(value, goal);
         var expired = value.ExpiresAt <= now;
         return new OpportunityDetailResponse(
             value.Id,
             value.Title,
             StatusFor(value, now),
-            goal is null ? "This Opportunity references a goal that is no longer available." : $"Aligned to priority #{goal.Priority}: {goal.Title}",
-            goal?.Title,
+            parsed.GoalAlignment,
+            parsed.GoalTitle,
             value.WhyItMatters,
             value.WhyNow,
             value.Confidence,
             value.ExpectedImpact,
             value.Effort,
-            evidence,
-            ["The owner-confirmed profile and selected goal remain accurate.", "The recorded Knowledge Pack version is applicable to this Business."],
-            ["Expected impact is directional, not guaranteed.", "Atlas has not measured an outcome yet.", "External action still requires owner review."],
-            evidence.Select(x => x.Category).Distinct().ToArray(),
+            parsed.Evidence,
+            parsed.Assumptions,
+            parsed.Limitations,
+            parsed.Evidence.Select(x => x.Category).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
             $"Review and apply the proposed action: {value.Title}",
             false,
             value.CreatedAt,
@@ -156,6 +163,157 @@ public static class OpportunityPolicy
             value.KnowledgePackKey,
             value.KnowledgePackVersion,
             value.ConcurrencyVersion);
+    }
+
+    private static ParsedEvidence ParseEvidence(Opportunity value, BusinessGoal? goal)
+    {
+        var fallbackAlignment = goal is null
+            ? "This Opportunity references a goal that is no longer available."
+            : $"Aligned to priority #{goal.Priority}: {goal.Title}";
+        var fallbackTitle = goal?.Title;
+
+        try
+        {
+            using var document = JsonDocument.Parse(value.EvidenceJson);
+            var root = document.RootElement;
+
+            if (IsVs23Snapshot(root))
+                return ParseVs23Snapshot(root, value, fallbackAlignment, fallbackTitle);
+
+            return ParseLegacySnapshot(root, value, fallbackAlignment, fallbackTitle);
+        }
+        catch (JsonException)
+        {
+            return Fallback(value, fallbackAlignment, fallbackTitle);
+        }
+        catch (InvalidOperationException)
+        {
+            return Fallback(value, fallbackAlignment, fallbackTitle);
+        }
+    }
+
+    private static bool IsVs23Snapshot(JsonElement root) =>
+        root.ValueKind == JsonValueKind.Object &&
+        root.TryGetProperty("schemaVersion", out var schemaVersion) &&
+        schemaVersion.ValueKind == JsonValueKind.Number &&
+        schemaVersion.TryGetInt32(out var version) && version == OpportunityGenerationSnapshot.SchemaVersion &&
+        root.TryGetProperty("evidence", out var evidence) && evidence.ValueKind == JsonValueKind.Array;
+
+    private static ParsedEvidence ParseVs23Snapshot(
+        JsonElement root,
+        Opportunity value,
+        string fallbackAlignment,
+        string? fallbackTitle)
+    {
+        var alignment = fallbackAlignment;
+        var title = fallbackTitle;
+        if (root.TryGetProperty("goal", out var goalValue) && goalValue.ValueKind == JsonValueKind.Object)
+        {
+            alignment = ReadString(goalValue, "alignment") ?? alignment;
+            title = ReadString(goalValue, "title") ?? title;
+        }
+
+        var evidence = new List<OpportunityEvidenceItem>();
+        var evidenceArray = root.GetProperty("evidence");
+        foreach (var item in evidenceArray.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object) continue;
+            var layer = ReadString(item, "layer");
+            var key = ReadString(item, "key");
+            var itemValue = ReadString(item, "value");
+            var source = ReadString(item, "source");
+            if (string.IsNullOrWhiteSpace(layer) || string.IsNullOrWhiteSpace(key) ||
+                string.IsNullOrWhiteSpace(itemValue) || string.IsNullOrWhiteSpace(source)) continue;
+
+            evidence.Add(new OpportunityEvidenceItem(layer, EvidenceLabel(key), itemValue, source));
+        }
+
+        if (evidence.Count == 0)
+            return Fallback(value, alignment, title);
+
+        return new ParsedEvidence(
+            evidence,
+            alignment,
+            title,
+            ReadStringArray(root, "assumptions", LegacyAssumptions),
+            ReadStringArray(root, "limitations", LegacyLimitations));
+    }
+
+    private static ParsedEvidence ParseLegacySnapshot(
+        JsonElement root,
+        Opportunity value,
+        string fallbackAlignment,
+        string? fallbackTitle)
+    {
+        if (root.ValueKind != JsonValueKind.Object)
+            return Fallback(value, fallbackAlignment, fallbackTitle);
+
+        var evidence = new List<OpportunityEvidenceItem>();
+        if (root.TryGetProperty("profile", out var profile) && profile.ValueKind == JsonValueKind.String)
+            evidence.Add(new("business-profile", "Business Profile", profile.GetString() ?? "confirmed", "owner-confirmed"));
+
+        if (root.TryGetProperty("goal", out var goalValue) && goalValue.ValueKind == JsonValueKind.String)
+            evidence.Add(new("business-goal", "Priority goal", goalValue.GetString() ?? fallbackTitle ?? "Selected goal", "owner-selected"));
+
+        var packKey = ReadString(root, "PackKey") ?? ReadString(root, "packKey");
+        if (!string.IsNullOrWhiteSpace(packKey))
+            evidence.Add(new("knowledge-pack", "Knowledge Pack", $"{packKey} v{value.KnowledgePackVersion}", "published-pack"));
+
+        if (evidence.Count == 0)
+            return Fallback(value, fallbackAlignment, fallbackTitle);
+
+        return new ParsedEvidence(evidence, fallbackAlignment, fallbackTitle, LegacyAssumptions, LegacyLimitations);
+    }
+
+    private static ParsedEvidence Fallback(Opportunity value, string alignment, string? goalTitle) => new(
+        [new OpportunityEvidenceItem("summary", "Evidence summary", value.EvidenceSummary, "recorded-evidence")],
+        alignment,
+        goalTitle,
+        LegacyAssumptions,
+        LegacyLimitations);
+
+    private static string? ReadString(JsonElement element, string property)
+    {
+        if (!element.TryGetProperty(property, out var value) || value.ValueKind != JsonValueKind.String) return null;
+        var result = value.GetString()?.Trim();
+        return string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
+    private static IReadOnlyList<string> ReadStringArray(JsonElement element, string property, IReadOnlyList<string> fallback)
+    {
+        if (!element.TryGetProperty(property, out var value) || value.ValueKind != JsonValueKind.Array) return fallback;
+        return value.EnumerateArray()
+            .Where(x => x.ValueKind == JsonValueKind.String)
+            .Select(x => x.GetString()?.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Cast<string>()
+            .ToArray();
+    }
+
+    private static string EvidenceLabel(string key)
+    {
+        var canonical = key.Trim();
+        if (canonical.Equals("primarychannels", StringComparison.OrdinalIgnoreCase)) return "Primary channels";
+        if (canonical.Equals("currentpriorities", StringComparison.OrdinalIgnoreCase)) return "Current priorities";
+        if (canonical.Equals("businessHours", StringComparison.OrdinalIgnoreCase)) return "Business hours";
+        if (canonical.Equals("openingHours", StringComparison.OrdinalIgnoreCase)) return "Opening hours";
+        if (canonical.Equals("reviewSignal", StringComparison.OrdinalIgnoreCase)) return "Review signal";
+        if (canonical.Equals("reputationSignal", StringComparison.OrdinalIgnoreCase)) return "Reputation signal";
+
+        var builder = new StringBuilder(canonical.Length + 8);
+        for (var index = 0; index < canonical.Length; index++)
+        {
+            var current = canonical[index];
+            if (current is '-' or '_')
+            {
+                if (builder.Length > 0 && builder[^1] != ' ') builder.Append(' ');
+                continue;
+            }
+            if (index > 0 && char.IsUpper(current) && builder.Length > 0 && builder[^1] != ' ') builder.Append(' ');
+            builder.Append(char.ToLowerInvariant(current));
+        }
+        var result = builder.ToString().Trim();
+        return result.Length == 0 ? "Evidence" : char.ToUpperInvariant(result[0]) + result[1..];
     }
 }
 
