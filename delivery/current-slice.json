@@ -1,59 +1,59 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-22",
-  "title": "VS-22 — Multi-Source Business Discovery & Fact Reconciliation",
+  "sliceId": "VS-23",
+  "title": "VS-23 — Evidence-Aware Restaurant/Café Opportunity Generation",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "testing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-02", "FR-03", "FR-05", "FR-16"],
+  "requirements": ["FR-05","FR-06","FR-07","FR-08","FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": [
-    "ATLAS-PRD-001",
-    "ATLAS-TRD-001",
-    "ATLAS-DESIGN-001",
-    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-20@45a91b1095eef5077c303ba75fed2eb03a988758",
-    "VS-21@52d485ae566f2192112244ff9489a177e3692f9e"
-  ],
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758"],
   "blockers": [],
-  "allowedPaths": ["apps/api/**","apps/mobile/**","tests/api/**","tests/mobile/**","delivery/**","docs/**"],
-  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
+  "allowedPaths": ["apps/api/**","tests/api/**","delivery/**","docs/**"],
+  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**","apps/mobile/**"],
   "impact": {
-    "areas":["frontend","api","database","customer-flow","architecture","sensitive-data"],
+    "areas":["architecture","api","customer-flow"],
     "notes":[
-      "Adds one primary and up to two optional secondary public Business URLs to discovery; the owner-defined row order is authoritative source priority.",
-      "Every source is canonicalised in the mobile UI and authoritatively revalidated server-side before any external request.",
-      "Strict SSRF controls remain mandatory: HTTPS/443, no credentials, no IP literals, no private/reserved destinations, DNS/connect-time public-address enforcement, no proxy and no arbitrary redirects.",
-      "Bolt/Wolt inputs must identify one Business/venue; generic marketplace routes are rejected.",
-      "Google Maps/place share links use a controlled Google-only redirect resolver and the existing Google Places boundary; Google Maps HTML is not scraped.",
-      "Reconciliation is deterministic: higher-priority values win, secondary sources fill missing facts, equivalent values corroborate, conflicts/mismatches never silently overwrite or contaminate the selected Business.",
-      "Provider/source provenance remains internal and auditable while owner-facing confirmation copy remains provider-neutral.",
-      "Large public pages are read only to a fixed safe prefix budget; an otherwise useful Wolt page is not rejected solely because its total response is larger.",
-      "The existing Confirm and continue 5xx regression is a certification blocker for this slice.",
-      "No production release, production enablement or deployment-branch modification is authorized."
+      "Parallel track approved by Product Owner; VS-23 does not modify VS-22 multi-source discovery or VS-21 onboarding/location implementation.",
+      "Retains the certified VS-15 runtime baseline explicitly and consumes the certified VS-20 ResolvedKnowledgeBundle contract directly.",
+      "Deterministic evidence-aware generation only; no external AI/provider call.",
+      "No qualifying evidence returns no-focus rather than filler.",
+      "Today’s Focus now uses evidence-aware generation and Opportunity Detail safely parses the structured evidence snapshot.",
+      "A pre-existing runtime defect was fixed by registering the already-migrated Opportunity entity in AtlasDbContext; no new migration was required.",
+      "Before merge VS-23 must update to then-current main after VS-22 and rerun exact-head certification.",
+      "No production deployment is authorized."
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-22@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T02:45:00+02:00","rationale":"Product Owner approved the written VS-22 design: one primary plus up to two optional secondary URLs, add/remove controls, strict sanitisation and validation on every source, Google Maps/place support, source precedence, duplicate/conflict protection and auditable provenance."},
-    {"type":"policy","status":"approved","version":"VS-22@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T02:45:00+02:00","rationale":"Product Owner approved the written VS-22 security and reconciliation policy, including strict server-side URL/SSRF validation, controlled Google-only redirects, provider-specific route validation, primary-source precedence and no silent conflict/mismatch overwrites."},
-    {"type":"implementation","status":"approved","version":"VS-22@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T02:45:00+02:00","rationale":"Product Owner explicitly instructed implementation to proceed on the governed feature branch, with merge to main only after tests/certification and deployment remaining a separate explicit action."},
-    {"type":"certification","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"scope","status":"approved","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner approved all remaining slices and instructed this chat to proceed fully on the parallel Opportunity Generation and E2E validation track."},
+    {"type":"policy","status":"not-required","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"VS-23 adds no new provider, external data source, AI call, retention policy or production release."},
+    {"type":"implementation","status":"approved","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner explicitly instructed implementation, fixes and thorough testing to proceed without routine checkpoints."},
+    {"type":"certification","status":"pending","version":"VS-23@1.0","commitSha":null,"by":null,"at":null,"rationale":"Exact-SHA certification approval cannot be granted before the final integrated implementation SHA exists."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
-  "decisionIds": ["DEC-06"],
-  "progress": {"discovery":100,"decisions":100,"implementation":5,"testing":0,"certification":0,"release":0,"validation":0},
-  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
+  "decisionIds": [],
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":95,"certification":0,"release":0,"validation":0},
+  "certification": {"status":"not-started","commitSha":null,"evidence":[
+    "TDD RED CI 31448681701: generator contract absent after preflight/migrations passed",
+    "Goal compatibility RED CI 31449610592",
+    "Opportunity Detail RED CI 31451234172: structured goal object reproduced legacy parser crash",
+    "GREEN CI 31451583565: 224 API tests passed plus preflight, PostgreSQL migrations, Security and Product Intake"
+  ]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification":"docs/slices/VS-22.md",
-    "implementationPr":"https://github.com/ksazid/project-atlas/pull/29",
+    "specification":"docs/slices/VS-23.md",
+    "implementationPr":"https://github.com/ksazid/project-atlas/pull/30",
     "evidence":[
-      "docs/superpowers/specs/2026-08-11-vs-22-multi-source-business-discovery-design.md",
-      "docs/superpowers/plans/2026-08-11-vs-22-multi-source-business-discovery.md"
+      "docs/superpowers/specs/2026-08-11-vs-23-evidence-aware-opportunity-generation-design.md",
+      "docs/superpowers/plans/2026-08-11-vs-23-evidence-aware-opportunity-generation.md",
+      "tests/api/OpportunityGenerationTests.cs",
+      "tests/api/OpportunityGoalMappingTests.cs",
+      "tests/api/OpportunityGenerationIntegrationTests.cs",
+      "tests/api/OpportunityGenerationDetailTests.cs"
     ]
   },
   "maxAttempts": 3

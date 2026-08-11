@@ -118,6 +118,7 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>(); public DbSet<KnowledgePack> KnowledgePacks => Set<KnowledgePack>();
     public DbSet<KnowledgePackVersion> KnowledgePackVersions => Set<KnowledgePackVersion>(); public DbSet<KnowledgeSection> KnowledgeSections => Set<KnowledgeSection>();
     public DbSet<BusinessKnowledgeAssignment> BusinessKnowledgeAssignments => Set<BusinessKnowledgeAssignment>();
+    public DbSet<Opportunity> Opportunities => Set<Opportunity>();
     public DbSet<ExecutionKit> ExecutionKits => Set<ExecutionKit>(); public DbSet<ExecutionAsset> ExecutionAssets => Set<ExecutionAsset>();
     public DbSet<ActionDecisionRecord> ActionDecisionRecords => Set<ActionDecisionRecord>();
     public DbSet<Outcome> Outcomes => Set<Outcome>(); public DbSet<BusinessMemoryItem> BusinessMemoryItems => Set<BusinessMemoryItem>();
@@ -175,6 +176,16 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.KnowledgePack).WithMany().HasForeignKey(x => x.KnowledgePackId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<BusinessKnowledgeAssignment>().HasOne(x => x.KnowledgePackVersion).WithMany().HasForeignKey(x => x.KnowledgePackVersionId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<BusinessKnowledgeAssignment>().HasIndex(x => x.BusinessId).IsUnique().HasFilter("\"IsCurrent\" = TRUE");
+
+        modelBuilder.Entity<Opportunity>().Property(x => x.ConcurrencyVersion).IsRowVersion();
+        modelBuilder.Entity<Opportunity>().Property(x => x.EvidenceJson).HasColumnType("jsonb");
+        modelBuilder.Entity<Opportunity>().HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Opportunity>().HasOne<KnowledgePackVersion>().WithMany().HasForeignKey(x => x.KnowledgePackVersionId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Opportunity>().HasOne<BusinessGoal>().WithMany().HasForeignKey(x => x.GoalId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<Opportunity>().HasIndex(x => new { x.BusinessId, x.CreatedAt });
+        modelBuilder.Entity<Opportunity>().HasIndex(x => x.KnowledgePackVersionId);
+        modelBuilder.Entity<Opportunity>().HasIndex(x => x.GoalId);
+        modelBuilder.Entity<Opportunity>().HasIndex(x => x.BusinessId).IsUnique().HasFilter("\"Status\" = 'available'");
 
         modelBuilder.Entity<ExecutionKit>().Property(x => x.ConcurrencyVersion).IsRowVersion();
         modelBuilder.Entity<ExecutionAsset>().Property(x => x.ConcurrencyVersion).IsRowVersion();
