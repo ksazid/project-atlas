@@ -34,8 +34,17 @@ export type DiscoveryDraft = {
   language: string;
 };
 
+export type ConfirmedOperatingContext = {
+  providerRef: string;
+  operatingChannels: string[];
+  reservable: boolean | null;
+  servicePeriods: string[];
+  pricePosition: string | null;
+};
+
 export type CreateBusinessFromDiscoveryRequest = DiscoveryDraft & {
   ownerConfirmed: true;
+  confirmedOperatingContext?: ConfirmedOperatingContext;
 };
 
 export function getDiscoveryFact(discovery: BusinessDiscovery, key: string): DiscoveryFact | undefined {
@@ -77,7 +86,10 @@ export function canConfirmDiscovery(draft: DiscoveryDraft): boolean {
   return getMissingRequiredFields(draft).length === 0;
 }
 
-export function buildCreateBusinessFromDiscoveryRequest(draft: DiscoveryDraft): CreateBusinessFromDiscoveryRequest {
+export function buildCreateBusinessFromDiscoveryRequest(
+  draft: DiscoveryDraft,
+  confirmedOperatingContext?: ConfirmedOperatingContext,
+): CreateBusinessFromDiscoveryRequest {
   return {
     snapshotId: draft.snapshotId,
     name: draft.name.trim(),
@@ -94,5 +106,6 @@ export function buildCreateBusinessFromDiscoveryRequest(draft: DiscoveryDraft): 
     businessHours: draft.businessHours.trim(),
     language: draft.language.trim(),
     ownerConfirmed: true,
+    ...(confirmedOperatingContext ? { confirmedOperatingContext } : {}),
   };
 }
