@@ -1,8 +1,10 @@
 import { env } from '@/lib/env';
 import type { BusinessDiscovery, CreateBusinessFromDiscoveryRequest } from '@/features/business-discovery/discovery-model';
 import type { BusinessLocationCandidate } from '@/features/business-discovery/location-model';
+import type { BusinessPlaceEnrichmentResponse } from '@/features/business-discovery/place-enrichment-model';
 
 export type { BusinessDiscovery } from '@/features/business-discovery/discovery-model';
+export type { BusinessPlaceEnrichmentResponse } from '@/features/business-discovery/place-enrichment-model';
 
 export type BusinessLocationSearchResponse = {
   state: 'search' | 'preselected' | 'choose';
@@ -76,6 +78,24 @@ export async function searchBusinessLocations(
 
   if (!response.ok) return problemFor(response, 'Atlas could not search business locations.');
   return (await response.json()) as BusinessLocationSearchResponse;
+}
+
+export async function enrichBusinessPlace(
+  accessToken: string,
+  snapshotId: string,
+  providerRef: string,
+): Promise<BusinessPlaceEnrichmentResponse> {
+  const response = await fetch(
+    `${env.apiUrl}/api/v1/business-discovery/${encodeURIComponent(snapshotId)}/place-enrichment`,
+    {
+      method: 'POST',
+      headers: headers(accessToken),
+      body: JSON.stringify({ providerRef }),
+    },
+  );
+
+  if (!response.ok) return problemFor(response, 'Atlas could not add extra public details.');
+  return (await response.json()) as BusinessPlaceEnrichmentResponse;
 }
 
 export async function createBusinessFromDiscovery(
