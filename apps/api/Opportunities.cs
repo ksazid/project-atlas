@@ -172,36 +172,6 @@ public static class OpportunityEndpoints
         return membership?.UserAccount;
     }
 
-    private static async Task<Opportunity?> CreateDeterministicFocus(Guid businessId, UserAccount account, AtlasDbContext db, CancellationToken ct)
-    {
-        var profile = await db.BusinessProfiles.SingleOrDefaultAsync(x => x.BusinessId == businessId, ct);
-        var goals = await db.BusinessGoals.Where(x => x.BusinessId == businessId).OrderBy(x => x.Priority).ToListAsync(ct);
-        var assignment = await db.BusinessKnowledgeAssignments.SingleOrDefaultAsync(x => x.BusinessId == businessId && x.IsCurrent, ct);
-        if (!OpportunityPolicy.IsEligible(profile, goals, assignment)) return null;
-
-        var primaryGoal = goals[0];
-        var now = DateTimeOffset.UtcNow;
-        var focus = new Opportunity
-        {
-            Id = Guid.NewGuid(), BusinessId = businessId,
-            Title = $"Review one practical action for {primaryGoal.Title}",
-            WhyItMatters = $"This supports your highest-priority goal: {primaryGoal.Title}.",
-            WhyNow = "Your profile, goal and active Knowledge Pack provide enough confirmed context for a focused review.",
-            ExpectedImpact = "Clarify one measurable next action without committing to an unsupported result.",
-            Effort = "Low", Confidence = "Medium",
-            EvidenceSummary = $"Confirmed business profile; priority goal #{primaryGoal.Priority}; active {assignment!.PackKey} Knowledge Pack v{assignment.ExactVersion}.",
-            EvidenceJson = JsonSerializer.Serialize(new { profile = "owner-confirmed", goalId = primaryGoal.Id, goal = primaryGoal.Title, assignment.PackKey, assignment.ExactVersion }),
-            Status = OpportunityStatuses.Available,
-            KnowledgePackKey = assignment.PackKey, KnowledgePackVersion = assignment.ExactVersion,
-            KnowledgePackVersionId = assignment.KnowledgePackVersionId, GoalId = primaryGoal.Id,
-            CreatedAt = now, ExpiresAt = now.AddDays(1)
-        };
-        db.Set<Opportunity>().Add(focus);
-        db.AuditRecords.Add(AuditRecord.Create(account.Id, businessId, $"opportunity.created:{focus.Id}"));
-        await db.SaveChangesAsync(ct);
-        return focus;
-    }
-
     public static IEndpointRouteBuilder MapOpportunityEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/v1/businesses/{businessId:guid}/today-focus", async (Guid businessId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
@@ -209,20 +179,17 @@ public static class OpportunityEndpoints
             var account = await OwnerAccount(businessId, user, db, ct);
             if (account is null) return Results.NotFound();
 
-            var now = DateTimeOffset.UtcNow;
-            var current = await db.Set<Opportunity>().Where(x => x.BusinessId == businessId && x.Status == OpportunityStatuses.Available)
-                .OrderByDescending(x => x.CreatedAt).FirstOrDefaultAsync(ct);
-            if (current is not null && current.ExpiresAt <= now)
+            var result = await OpportunityFocusService.GenerateAsync(db, businessId, account.Id, DateTimeOffset.UtcNow, ct);
+            return result.State switch
             {
-                current.Status = OpportunityStatuses.Expired;
-                await db.SaveChangesAsync(ct);
-                current = null;
-            }
-
-            current ??= await CreateDeterministicFocus(businessId, account, db, ct);
-            if (current is null)
-                return Results.Ok(new { state = "insufficient-context", message = "Confirm your Business Profile, choose at least one goal and keep an active Knowledge Pack to receive Today’s Focus." });
-            return Results.Ok(new { state = "ready", opportunity = TodayFocusResponse.From(current) });
+                OpportunityFocusGenerationStates.Ready when result.Opportunity is not null =>
+                    Results.Ok(new { state = OpportunityFocusGenerationStates.Ready, opportunity = TodayFocusResponse.From(result.Opportunity) }),
+                OpportunityFocusGenerationStates.InsufficientContext =>
+                    Results.Ok(new { state = OpportunityFocusGenerationStates.InsufficientContext, code = result.Code, message = result.Message }),
+                OpportunityFocusGenerationStates.NoFocus =>
+                    Results.Ok(new { state = OpportunityFocusGenerationStates.NoFocus, code = result.Code, message = result.Message }),
+                _ => Results.Ok(new { state = OpportunityFocusGenerationStates.Degraded, code = result.Code, message = result.Message })
+            };
         }).RequireAuthorization("BusinessOwner");
 
         app.MapGet("/api/v1/businesses/{businessId:guid}/opportunities/{opportunityId:guid}", async (Guid businessId, Guid opportunityId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
