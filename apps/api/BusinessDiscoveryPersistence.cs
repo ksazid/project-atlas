@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -14,8 +15,145 @@ public sealed class BusinessDiscoverySnapshot
     public DateTimeOffset? ConsumedAt { get; set; }
     public Guid? BusinessId { get; set; }
     public ICollection<BusinessDiscoveryFact> Facts { get; set; } = [];
+    public ICollection<BusinessDiscoverySource> Sources { get; set; } = [];
+    public ICollection<BusinessDiscoveryEvidence> Evidence { get; set; } = [];
 
     public static BusinessDiscoverySnapshot Create(Guid accountId, PublicBusinessSnapshot snapshot)
+    {
+        var normalized = NormalizeSnapshot(snapshot);
+        var entity = CreateBase(accountId, normalized);
+        var source = new BusinessDiscoverySource
+        {
+            Id = Guid.NewGuid(),
+            SnapshotId = entity.Id,
+            Snapshot = entity,
+            Order = 0,
+            IsPrimary = true,
+            Provider = normalized.Provider,
+            CanonicalUrl = normalized.SourceUrl,
+            ObservedAt = normalized.ObservedAt,
+            Status = "success",
+            AssociationStatus = "anchor"
+        };
+        entity.Sources.Add(source);
+        entity.Facts = SelectedFacts(entity, normalized.Facts);
+        entity.Evidence = normalized.Facts.Select(fact => new BusinessDiscoveryEvidence
+        {
+            Id = Guid.NewGuid(),
+            SnapshotId = entity.Id,
+            Snapshot = entity,
+            SourceId = source.Id,
+            Source = source,
+            SourceOrder = 0,
+            Provider = normalized.Provider,
+            CanonicalUrl = normalized.SourceUrl,
+            Key = fact.Key,
+            Value = fact.Value,
+            ObservedAt = fact.ObservedAt,
+            Confidence = fact.Confidence,
+            EvidenceClass = fact.EvidenceClass,
+            ReconciliationState = "selected",
+            AssociationStatus = "anchor"
+        }).ToList();
+        source.Evidence = entity.Evidence.ToList();
+        return entity;
+    }
+
+    public static BusinessDiscoverySnapshot Create(Guid accountId, BusinessDiscoveryReconciliationResult reconciliation)
+    {
+        ArgumentNullException.ThrowIfNull(reconciliation);
+        var normalized = NormalizeSnapshot(reconciliation.Snapshot);
+        var entity = CreateBase(accountId, normalized);
+        entity.Facts = SelectedFacts(entity, normalized.Facts);
+
+        var sources = reconciliation.SourceResults
+            .OrderBy(x => x.Order)
+            .Select(result => new BusinessDiscoverySource
+            {
+                Id = Guid.NewGuid(),
+                SnapshotId = entity.Id,
+                Snapshot = entity,
+                Order = result.Order,
+                IsPrimary = result.IsPrimary,
+                Provider = result.Provider,
+                CanonicalUrl = result.CanonicalUrl,
+                ObservedAt = result.ObservedAt,
+                Status = result.Status,
+                WarningCode = result.WarningCode,
+                AssociationStatus = result.AssociationStatus
+            })
+            .ToList();
+        entity.Sources = sources;
+        var byOrder = sources.ToDictionary(x => x.Order);
+
+        entity.Evidence = reconciliation.Evidence
+            .Where(candidate => byOrder.ContainsKey(candidate.SourceOrder))
+            .Select(candidate =>
+            {
+                var source = byOrder[candidate.SourceOrder];
+                return new BusinessDiscoveryEvidence
+                {
+                    Id = Guid.NewGuid(),
+                    SnapshotId = entity.Id,
+                    Snapshot = entity,
+                    SourceId = source.Id,
+                    Source = source,
+                    SourceOrder = candidate.SourceOrder,
+                    Provider = candidate.Provider,
+                    CanonicalUrl = candidate.CanonicalUrl,
+                    Key = candidate.Key,
+                    Value = candidate.Value,
+                    ObservedAt = candidate.ObservedAt,
+                    Confidence = candidate.Confidence,
+                    EvidenceClass = candidate.EvidenceClass,
+                    ReconciliationState = candidate.ReconciliationState,
+                    AssociationStatus = candidate.AssociationStatus
+                };
+            })
+            .ToList();
+
+        foreach (var source in sources)
+            source.Evidence = entity.Evidence.Where(x => x.SourceId == source.Id).ToList();
+
+        return entity;
+    }
+
+    public bool CanBeConsumedBy(Guid accountId) => UserAccountId == accountId && ConsumedAt is null && BusinessId is null;
+
+    public void MarkConsumed(Guid businessId, DateTimeOffset consumedAt)
+    {
+        if (ConsumedAt is not null || BusinessId is not null) throw new InvalidOperationException("Discovery snapshot has already been consumed.");
+        BusinessId = businessId;
+        ConsumedAt = consumedAt;
+    }
+
+    private static BusinessDiscoverySnapshot CreateBase(Guid accountId, PublicBusinessSnapshot snapshot) => new()
+    {
+        Id = Guid.NewGuid(),
+        UserAccountId = accountId,
+        Provider = snapshot.Provider,
+        SourceUrl = snapshot.SourceUrl,
+        ObservedAt = snapshot.ObservedAt,
+        CreatedAt = DateTimeOffset.UtcNow
+    };
+
+    private static List<BusinessDiscoveryFact> SelectedFacts(BusinessDiscoverySnapshot snapshot, IReadOnlyList<PublicBusinessFact> facts) =>
+        facts.Select(fact => new BusinessDiscoveryFact
+        {
+            Id = Guid.NewGuid(),
+            SnapshotId = snapshot.Id,
+            Snapshot = snapshot,
+            Key = fact.Key,
+            Value = fact.Value,
+            Source = fact.Source,
+            SourceUrl = fact.SourceUrl,
+            ObservedAt = fact.ObservedAt,
+            Confidence = fact.Confidence,
+            EvidenceClass = fact.EvidenceClass,
+            OwnerConfirmed = fact.OwnerConfirmed
+        }).ToList();
+
+    private static PublicBusinessSnapshot NormalizeSnapshot(PublicBusinessSnapshot snapshot)
     {
         var normalizedFacts = snapshot.Facts.ToList();
         if (snapshot.Provider is "bolt-food" or "wolt" && Uri.TryCreate(snapshot.SourceUrl, UriKind.Absolute, out var sourceUri))
@@ -39,37 +177,46 @@ public sealed class BusinessDiscoverySnapshot
             }
         }
 
-        return new BusinessDiscoverySnapshot
-        {
-            Id = Guid.NewGuid(),
-            UserAccountId = accountId,
-            Provider = snapshot.Provider,
-            SourceUrl = snapshot.SourceUrl,
-            ObservedAt = snapshot.ObservedAt,
-            CreatedAt = DateTimeOffset.UtcNow,
-            Facts = normalizedFacts.Select(fact => new BusinessDiscoveryFact
-            {
-                Id = Guid.NewGuid(),
-                Key = fact.Key,
-                Value = fact.Value,
-                Source = fact.Source,
-                SourceUrl = fact.SourceUrl,
-                ObservedAt = fact.ObservedAt,
-                Confidence = fact.Confidence,
-                EvidenceClass = fact.EvidenceClass,
-                OwnerConfirmed = fact.OwnerConfirmed
-            }).ToList()
-        };
+        return snapshot with { Facts = normalizedFacts };
     }
+}
 
-    public bool CanBeConsumedBy(Guid accountId) => UserAccountId == accountId && ConsumedAt is null && BusinessId is null;
+[Index(nameof(SnapshotId), nameof(Order), IsUnique = true)]
+public sealed class BusinessDiscoverySource
+{
+    public Guid Id { get; set; }
+    public Guid SnapshotId { get; set; }
+    public int Order { get; set; }
+    public bool IsPrimary { get; set; }
+    [MaxLength(80)] public required string Provider { get; set; }
+    [MaxLength(2000)] public required string CanonicalUrl { get; set; }
+    public DateTimeOffset ObservedAt { get; set; }
+    [MaxLength(40)] public required string Status { get; set; }
+    [MaxLength(120)] public string? WarningCode { get; set; }
+    [MaxLength(40)] public required string AssociationStatus { get; set; }
+    public BusinessDiscoverySnapshot Snapshot { get; set; } = null!;
+    public ICollection<BusinessDiscoveryEvidence> Evidence { get; set; } = [];
+}
 
-    public void MarkConsumed(Guid businessId, DateTimeOffset consumedAt)
-    {
-        if (ConsumedAt is not null || BusinessId is not null) throw new InvalidOperationException("Discovery snapshot has already been consumed.");
-        BusinessId = businessId;
-        ConsumedAt = consumedAt;
-    }
+[Index(nameof(SnapshotId), nameof(Key))]
+[Index(nameof(SourceId))]
+public sealed class BusinessDiscoveryEvidence
+{
+    public Guid Id { get; set; }
+    public Guid SnapshotId { get; set; }
+    public Guid SourceId { get; set; }
+    public int SourceOrder { get; set; }
+    [MaxLength(80)] public required string Provider { get; set; }
+    [MaxLength(2000)] public required string CanonicalUrl { get; set; }
+    [MaxLength(80)] public required string Key { get; set; }
+    [MaxLength(4000)] public required string Value { get; set; }
+    public DateTimeOffset ObservedAt { get; set; }
+    [MaxLength(20)] public required string Confidence { get; set; }
+    [MaxLength(40)] public required string EvidenceClass { get; set; }
+    [MaxLength(40)] public required string ReconciliationState { get; set; }
+    [MaxLength(40)] public required string AssociationStatus { get; set; }
+    public BusinessDiscoverySnapshot Snapshot { get; set; } = null!;
+    public BusinessDiscoverySource Source { get; set; } = null!;
 }
 
 public sealed class BusinessDiscoveryFact
