@@ -19,6 +19,10 @@ export async function saveSession(session: Session): Promise<void> {
   if (session.businessId) await SecureStore.setItemAsync(BUSINESS_ID_KEY, session.businessId);
 }
 
+export async function clearBusinessSelection(): Promise<void> {
+  await SecureStore.deleteItemAsync(BUSINESS_ID_KEY);
+}
+
 export async function clearSession(): Promise<void> {
   await Promise.all([
     SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
