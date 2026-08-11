@@ -85,7 +85,9 @@ export function canonicalizeBusinessUrlInput(rawValue: string): BusinessUrlInput
   if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, '');
   canonicalizeQuery(url, kind, host);
 
-  const value = url.toString();
+  const value = url.pathname === '/' && !url.search
+    ? `https://${url.host}`
+    : url.toString();
   if (value.length > MAX_URL_CHARACTERS) return invalid(original, 'Business page URL is too long.');
 
   return { value, complete: true, error: null };
