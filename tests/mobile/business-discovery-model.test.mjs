@@ -78,10 +78,11 @@ test('approved discovery screen contains no fabricated Starbucks demo facts', ()
   assert.doesNotMatch(source, /reviews,\s*social profiles/i);
 });
 
-test('discovery URL can be cleared in one accessible action', () => {
+test('primary discovery URL can be cleared in one accessible action', () => {
   const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
   assert.match(source, /accessibilityLabel="Clear business page URL"/);
-  assert.match(source, /setUrl\(''\)/);
+  assert.match(source, /accessibilityHint="Clear primary business page URL"/);
+  assert.match(source, /removeSourceUrl\(0\)/);
   assert.match(source, />×<\/Text>/);
 });
 
