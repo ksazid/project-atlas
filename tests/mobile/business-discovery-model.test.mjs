@@ -53,6 +53,27 @@ test('confirmation request consumes canonical metadata from the resolved locatio
   assert.equal(request.currency, 'EUR');
 });
 
+test('confirmation request carries only explicitly confirmed operating context', () => {
+  const draft = {
+    ...discoveryModel.createDiscoveryDraft(discovery),
+    timezone: 'Europe/Malta',
+    currency: 'EUR',
+  };
+  const confirmedOperatingContext = {
+    providerRef: 'ChIJAtlas123',
+    operatingChannels: ['Dine in', 'Takeaway', 'Delivery'],
+    reservable: true,
+    servicePeriods: ['Lunch', 'Dinner'],
+    pricePosition: 'Moderate',
+  };
+
+  const withContext = discoveryModel.buildCreateBusinessFromDiscoveryRequest(draft, confirmedOperatingContext);
+  assert.deepEqual(withContext.confirmedOperatingContext, confirmedOperatingContext);
+
+  const withoutContext = discoveryModel.buildCreateBusinessFromDiscoveryRequest(draft);
+  assert.equal(withoutContext.confirmedOperatingContext, undefined);
+});
+
 test('fact lookup preserves provenance for trust presentation', () => {
   const name = discoveryModel.getDiscoveryFact(discovery, 'name');
   assert.equal(name?.source, 'website');
