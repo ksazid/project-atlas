@@ -150,6 +150,7 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<BusinessDiscoverySnapshot>().Property(x => x.SourceUrl).HasMaxLength(2000);
         modelBuilder.Entity<BusinessDiscoverySnapshot>().HasIndex(x => new { x.UserAccountId, x.CreatedAt });
         modelBuilder.Entity<BusinessDiscoverySnapshot>().HasIndex(x => x.BusinessId);
+        modelBuilder.Entity<BusinessDiscoverySource>().ToTable("BusinessDiscoverySources");
         modelBuilder.Entity<BusinessDiscoveryFact>().Property(x => x.Key).HasMaxLength(80);
         modelBuilder.Entity<BusinessDiscoveryFact>().Property(x => x.Value).HasMaxLength(4000);
         modelBuilder.Entity<BusinessDiscoveryFact>().Property(x => x.Source).HasMaxLength(80);
