@@ -14,6 +14,7 @@ public sealed class OpportunityReadinessRegressionTests
             .UseInMemoryDatabase($"readiness-{Guid.NewGuid():N}")
             .Options;
         await using var db = new AtlasDbContext(options);
+        var core = GenericBusinessKnowledgeManifestV2.Create();
 
         var account = new UserAccount
         {
@@ -47,8 +48,8 @@ public sealed class OpportunityReadinessRegressionTests
             BusinessId = business.Id,
             KnowledgePackId = Guid.NewGuid(),
             KnowledgePackVersionId = Guid.NewGuid(),
-            PackKey = GenericBusinessKnowledgeManifestV2.PackKey,
-            ExactVersion = GenericBusinessKnowledgeManifestV2.Version,
+            PackKey = core.PackKey,
+            ExactVersion = core.ExactVersion,
             IsCurrent = true,
             AssignedByUserAccountId = account.Id,
             AssignedAt = now,
