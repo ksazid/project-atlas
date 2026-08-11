@@ -78,11 +78,18 @@ test('approved discovery screen contains no fabricated Starbucks demo facts', ()
   assert.doesNotMatch(source, /reviews,\s*social profiles/i);
 });
 
+test('discovery URL can be cleared in one accessible action', () => {
+  const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
+  assert.match(source, /accessibilityLabel="Clear business page URL"/);
+  assert.match(source, /setUrl\(''\)/);
+  assert.match(source, />×<\/Text>/);
+});
+
 test('discovery screen respects reduced motion and exposes explicit action semantics', () => {
   const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
   assert.match(source, /AccessibilityInfo/);
   assert.match(source, /isReduceMotionEnabled/);
-  for (const label of ['Discover my business', 'Set up manually instead', 'Edit details', 'Review details', 'Create business', 'Confirm and continue', 'Change location', 'Search Google Maps']) {
+  for (const label of ['Discover my business', 'Clear business page URL', 'Set up manually instead', 'Edit details', 'Review details', 'Create business', 'Confirm and continue', 'Change location', 'Search Google Maps']) {
     assert.match(source, new RegExp(`accessibilityLabel=["'{][^\\n]*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'), `Missing explicit accessibility label for ${label}`);
   }
   assert.match(source, /Which location are you setting up\?/);
