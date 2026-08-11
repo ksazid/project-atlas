@@ -6,7 +6,7 @@ import { clearBusinessSelection, loadSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
 import { BusinessContextStatus } from '@/features/business-hub/BusinessContextStatus';
 import { BusinessHero } from '@/features/business-hub/BusinessHero';
-import { loadBusinessHub } from '@/features/business-hub/business-hub-api';
+import { getBusinessHubState } from '@/features/business-hub/business-hub-api';
 import { BusinessMediaPreview } from '@/features/business-hub/BusinessMediaPreview';
 import { BusinessSnapshotCard } from '@/features/business-hub/BusinessSnapshotCard';
 import { MenuIntelligenceCard } from '@/features/business-hub/MenuIntelligenceCard';
@@ -32,7 +32,7 @@ export function BusinessHubScreen() {
         setState('missing');
         return;
       }
-      const result = await loadBusinessHub(session.accessToken, session.businessId);
+      const result = await getBusinessHubState(session.accessToken, session.businessId);
       if (result.state === 'missing') {
         await clearBusinessSelection();
         setHub(null);
