@@ -147,7 +147,6 @@ public static class BusinessMediaMenuPersistence
         DateTimeOffset createdAt) =>
         snapshot.Media.Select(item => new BusinessMediaReference
         {
-            Id = Guid.NewGuid(),
             BusinessId = business.Id,
             Business = business,
             SourceSnapshotId = snapshot.Id,
@@ -171,7 +170,6 @@ public static class BusinessMediaMenuPersistence
         DateTimeOffset createdAt) =>
         snapshot.Offerings.Select(item => new BusinessOffering
         {
-            Id = Guid.NewGuid(),
             BusinessId = business.Id,
             Business = business,
             SourceSnapshotId = snapshot.Id,
