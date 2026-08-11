@@ -81,13 +81,17 @@ public sealed class BusinessDiscoveryPolicyTests
     }
 
     [Fact]
-    public async Task HtmlReader_RejectsOversizedResponses()
+    public async Task HtmlReader_BoundsLargeMarketplacePages_AndPreservesUsefulPrefix()
     {
-        using var content = new StringContent(new string('x', PublicBusinessHtmlReader.MaxCharacters + 1));
+        const string metadata = "<html><head><meta property=\"og:title\" content=\"Large Wolt Kitchen\" /></head><body>";
+        using var content = new StringContent(metadata + new string('x', PublicBusinessHtmlReader.MaxCharacters + 1_000));
 
-        var error = await Assert.ThrowsAsync<BusinessDiscoveryException>(() => PublicBusinessHtmlReader.ReadAsync(content, CancellationToken.None));
+        var html = await PublicBusinessHtmlReader.ReadAsync(content, CancellationToken.None);
 
-        Assert.Equal("business_source_too_large", error.Code);
+        Assert.Equal(PublicBusinessHtmlReader.MaxCharacters, html.Length);
+        Assert.StartsWith(metadata, html);
+        var snapshot = PublicBusinessExtractor.Extract("wolt", new Uri("https://wolt.com/en/mlt/malta/restaurant/large-wolt-kitchen"), html, DateTimeOffset.UtcNow);
+        Assert.Equal("Large Wolt Kitchen", snapshot.Facts.Single(x => x.Key == "name").Value);
     }
 
     [Fact]

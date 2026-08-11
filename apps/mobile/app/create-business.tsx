@@ -314,7 +314,7 @@ export default function CreateBusinessScreen() {
             </View>
             {form.category ? <View style={s.categoryPill}><Text style={s.categoryPillText}>{humanize(form.category)}</Text></View> : null}
             <Text style={s.rating}>{discovery.facts.length} public facts ready for review</Text>
-            <Text numberOfLines={1} style={s.site}>⊕  {providerLabel(discovery.provider)} · {sourceHost(discovery.sourceUrl)}</Text>
+            <Text numberOfLines={1} style={s.site}>⊕  Public business page</Text>
           </View>
         </View>
 
@@ -325,7 +325,7 @@ export default function CreateBusinessScreen() {
           {form.phone.trim() ? <Detail icon="☎" text={form.phone.trim()} /> : null}
           {form.businessHours.trim() ? <Detail icon="◷" text={form.businessHours.trim()} /> : null}
           {form.description.trim() ? <Detail icon="≡" text={form.description.trim()} /> : null}
-          <Detail icon="⊕" text={`Observed from ${providerLabel(discovery.provider)}`} />
+          <Detail icon="⊕" text="Observed from public business page" />
           <View style={s.divider} />
           <Text style={s.sectionTitle}>Categories</Text>
           <View style={s.chipRow}>
@@ -376,10 +376,8 @@ function Check({ text, done = false }: { text: string; done?: boolean }) { retur
 function Detail({ icon, text }: { icon: string; text: string }) { return <View style={s.detail}><Text style={s.detailIcon}>{icon}</Text><Text style={s.detailText}>{text}</Text></View>; }
 function Chip({ text }: { text: string }) { return <View style={s.chip}><Text style={s.chipText}>{text}</Text></View>; }
 function Field({ label, value, onChange, hint, multiline = false }: { label: string; value: string; onChange: (value: string) => void; hint?: string; multiline?: boolean }) { return <View><Text style={s.fieldLabel}>{label}</Text><TextInput accessibilityLabel={label} multiline={multiline} placeholder={hint} placeholderTextColor="#7A8781" textAlignVertical={multiline ? 'top' : 'center'} value={value} onChangeText={onChange} style={[s.fieldInput, multiline && s.fieldInputMultiline]} /></View>; }
-function providerLabel(provider: string) { return provider === 'bolt-food' ? 'Bolt Food' : provider === 'wolt' ? 'Wolt' : 'Website'; }
 function humanize(value: string) { return value.split('-').filter(Boolean).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' '); }
 function humanizeField(value: string) { return value === 'location' ? 'Business location' : value.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, char => char.toUpperCase()); }
-function sourceHost(value: string) { try { return new URL(value).hostname; } catch { return 'public source'; } }
 
 const s = StyleSheet.create({
   container: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 57, paddingBottom: 30, gap: 15, backgroundColor: '#FFF' },
