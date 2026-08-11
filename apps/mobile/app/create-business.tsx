@@ -272,7 +272,24 @@ export default function CreateBusinessScreen() {
       <View style={s.url}>
         <Text style={s.urlIcon}>⊕</Text>
         <TextInput accessibilityLabel="Business page URL" autoCapitalize="none" autoCorrect={false} keyboardType="url" returnKeyType="go" onSubmitEditing={analyse} value={url} onChangeText={setUrl} placeholder="https://yourbusiness.com" placeholderTextColor="#6F7974" style={s.urlInput} />
-        {busy ? <ActivityIndicator color={GREEN} /> : <View style={s.spinner} />}
+        {busy ? (
+          <ActivityIndicator color={GREEN} />
+        ) : url.length > 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Clear business page URL"
+            hitSlop={8}
+            onPress={() => {
+              setUrl('');
+              setError(null);
+            }}
+            style={({ pressed }) => [s.urlClear, pressed && s.pressed]}
+          >
+            <Text style={s.urlClearText}>×</Text>
+          </Pressable>
+        ) : (
+          <View style={s.spinner} />
+        )}
       </View>
       <View style={s.orbitWrap}>
         <Animated.View style={[s.orbitOuter, { opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [.40, .85] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [.98, 1.025] }) }] }]} />
@@ -383,7 +400,7 @@ const s = StyleSheet.create({
   container: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 57, paddingBottom: 30, gap: 15, backgroundColor: '#FFF' },
   back: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: -6 }, backText: { fontSize: 28, color: '#15231E' },
   eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: .7, color: GREEN }, title: { fontFamily: 'Georgia', fontSize: 33, lineHeight: 38, fontWeight: '800', letterSpacing: -.45, color: '#0A2F25' }, body: { fontSize: 13.5, lineHeight: 20.5, color: '#3E4D47', maxWidth: 330 },
-  url: { minHeight: 54, borderRadius: 10, borderWidth: 1, borderColor: '#E0E6E2', backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, shadowColor: '#173B2A', shadowOpacity: .035, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 1 }, urlIcon: { fontSize: 16, color: '#626F69' }, urlInput: { flex: 1, fontSize: 13, color: '#23322C' }, spinner: { width: 19, height: 19, borderRadius: 10, borderWidth: 2, borderColor: '#A5D9C0', borderRightColor: GREEN },
+  url: { minHeight: 54, borderRadius: 10, borderWidth: 1, borderColor: '#E0E6E2', backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, shadowColor: '#173B2A', shadowOpacity: .035, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 1 }, urlIcon: { fontSize: 16, color: '#626F69' }, urlInput: { flex: 1, fontSize: 13, color: '#23322C' }, spinner: { width: 19, height: 19, borderRadius: 10, borderWidth: 2, borderColor: '#A5D9C0', borderRightColor: GREEN }, urlClear: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1F4F2' }, urlClearText: { fontSize: 18, lineHeight: 20, color: '#52615A', fontWeight: '700' },
   orbitWrap: { height: 245, alignItems: 'center', justifyContent: 'center' }, orbitOuter: { position: 'absolute', width: 214, height: 214, borderRadius: 107, borderWidth: 1.5, borderColor: '#67C49B' }, orbitMid: { position: 'absolute', width: 156, height: 156, borderRadius: 78, borderWidth: 1, borderColor: '#A9DCC6' }, orbitInner: { position: 'absolute', width: 104, height: 104, borderRadius: 52, backgroundColor: '#F1FAF5', borderWidth: 1, borderColor: '#D9EFE4' },
   bot: { width: 81, height: 70, borderRadius: 27, backgroundColor: '#0D3A30', alignItems: 'center', justifyContent: 'center', borderWidth: 8, borderColor: '#F4FBF7', shadowColor: '#1B5B44', shadowOpacity: .13, shadowRadius: 10, elevation: 3 }, botCap: { position: 'absolute', top: -12, width: 18, height: 12, borderTopLeftRadius: 8, borderTopRightRadius: 8, backgroundColor: '#8CCEB0' }, botFace: { fontSize: 13, lineHeight: 19, textAlign: 'center', color: '#36D78B', fontWeight: '900' },
   bubble: { position: 'absolute', width: 42, height: 42, borderRadius: 21, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#173B2A', shadowOpacity: .08, shadowRadius: 9, shadowOffset: { width: 0, height: 4 }, elevation: 2 }, bubbleText: { fontSize: 18, color: GREEN, fontWeight: '800' }, b1: { left: 15, top: 72 }, b2: { right: 15, top: 72 }, b3: { left: 28, bottom: 28 }, b4: { right: 28, bottom: 28 },
