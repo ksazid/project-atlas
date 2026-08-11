@@ -140,8 +140,8 @@ public static class BusinessHubReader
         var prices = singleCurrency is null
             ? new List<decimal>()
             : pricedOfferings.Select(x => x.Price!.Value).ToList();
-        var minPrice = prices.Count == 0 ? null : prices.Min();
-        var maxPrice = prices.Count == 0 ? null : prices.Max();
+        decimal? minPrice = prices.Count == 0 ? null : prices.Min();
+        decimal? maxPrice = prices.Count == 0 ? null : prices.Max();
 
         var preview = offerings
             .Take(5)
