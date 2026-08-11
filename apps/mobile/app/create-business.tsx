@@ -448,7 +448,7 @@ export default function CreateBusinessScreen() {
   );
 }
 
-function validateSourceUrls(values: string[]): Array<string | null> {
+function validateSourceUrls(values: string[]): (string | null)[] {
   const errors = values.map(value => {
     if (!value.trim()) return null;
     return canonicalizeBusinessUrlInput(value).error;
@@ -467,7 +467,13 @@ function validateSourceUrls(values: string[]): Array<string | null> {
   return errors;
 }
 
-function Back() { return <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} style={({ pressed }) => [s.back, pressed && s.pressed]}><Text style={s.backText}>←</Text></Pressable>; }
+function Back() {
+  const goBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/sign-in');
+  };
+  return <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={goBack} style={({ pressed }) => [s.back, pressed && s.pressed]}><Text style={s.backText}>←</Text></Pressable>;
+}
 function Bubble({ icon, pos }: { icon: string; pos: object }) { return <View style={[s.bubble, pos]}><Text style={s.bubbleText}>{icon}</Text></View>; }
 function Check({ text, done = false }: { text: string; done?: boolean }) { return <View style={s.check}><Text style={s.checkIcon}>◎</Text><Text style={s.checkText}>{text}</Text><View style={[s.state, done && s.stateDone]}><Text style={s.stateText}>{done ? '✓' : ''}</Text></View></View>; }
 function Detail({ icon, text }: { icon: string; text: string }) { return <View style={s.detail}><Text style={s.detailIcon}>{icon}</Text><Text style={s.detailText}>{text}</Text></View>; }
