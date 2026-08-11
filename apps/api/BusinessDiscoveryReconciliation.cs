@@ -11,7 +11,9 @@ public sealed record BusinessSourceObservation(
     string CanonicalUrl,
     string Status,
     IReadOnlyList<PublicBusinessFact> Facts,
-    string? WarningCode = null);
+    string? WarningCode = null,
+    IReadOnlyList<PublicBusinessMedia>? Media = null,
+    IReadOnlyList<PublicBusinessOffering>? Offerings = null);
 
 public sealed record BusinessSourceResult(
     int Order,
@@ -93,6 +95,9 @@ public static partial class BusinessDiscoveryReconciler
         }
 
         var selected = new Dictionary<string, (PublicBusinessFact Fact, BusinessSourceObservation Source)>(StringComparer.OrdinalIgnoreCase);
+        var selectedMedia = new Dictionary<string, PublicBusinessMedia>(StringComparer.OrdinalIgnoreCase);
+        var selectedOfferings = new Dictionary<string, PublicBusinessOffering>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var (source, association) in acceptedSources.OrderBy(x => x.Source.Order))
         {
             foreach (var fact in source.Facts.Where(IsUsableFact))
@@ -119,6 +124,32 @@ public static partial class BusinessDiscoveryReconciler
                 evidence.Add(Evidence(source, canonicalFact, "conflict", association));
                 warnings.Add("business_source_conflict");
             }
+
+            foreach (var media in (source.Media ?? []).Take(PublicBusinessMediaMenuExtractor.MaxMediaPerSource))
+            {
+                if (string.IsNullOrWhiteSpace(media.RemoteUrl)) continue;
+                var canonical = media with
+                {
+                    Source = source.Provider,
+                    SourceUrl = source.CanonicalUrl,
+                    SourceOrder = source.Order,
+                    OwnerConfirmed = false
+                };
+                selectedMedia.TryAdd(canonical.RemoteUrl.Trim(), canonical);
+            }
+
+            foreach (var offering in (source.Offerings ?? []).Take(PublicBusinessMediaMenuExtractor.MaxOfferingsPerSource))
+            {
+                if (string.IsNullOrWhiteSpace(offering.Kind) || string.IsNullOrWhiteSpace(offering.Name)) continue;
+                var canonical = offering with
+                {
+                    Source = source.Provider,
+                    SourceUrl = source.CanonicalUrl,
+                    SourceOrder = source.Order,
+                    OwnerConfirmed = false
+                };
+                selectedOfferings.TryAdd(OfferingKey(canonical), canonical);
+            }
         }
 
         if (selected.Count == 0)
@@ -129,7 +160,11 @@ public static partial class BusinessDiscoveryReconciler
             anchor.Provider,
             anchor.CanonicalUrl,
             observedAt,
-            selected.Values.Select(x => x.Fact).ToList());
+            selected.Values.Select(x => x.Fact).ToList())
+        {
+            Media = selectedMedia.Values.ToList(),
+            Offerings = selectedOfferings.Values.ToList()
+        };
 
         return new BusinessDiscoveryReconciliationResult(
             snapshot,
@@ -159,7 +194,11 @@ public static partial class BusinessDiscoveryReconciler
             association);
 
     private static DateTimeOffset SourceObservedAt(BusinessSourceObservation source) =>
-        source.Facts.Where(IsUsableFact).Select(x => x.ObservedAt).DefaultIfEmpty(DateTimeOffset.UtcNow).Min();
+        source.Facts.Where(IsUsableFact).Select(x => x.ObservedAt)
+            .Concat((source.Media ?? []).Select(x => x.ObservedAt))
+            .Concat((source.Offerings ?? []).Select(x => x.ObservedAt))
+            .DefaultIfEmpty(DateTimeOffset.UtcNow)
+            .Min();
 
     private static bool IsUsableSource(BusinessSourceObservation source) =>
         source.Status.Equals(Success, StringComparison.OrdinalIgnoreCase) && source.Facts.Any(IsUsableFact);
@@ -206,6 +245,13 @@ public static partial class BusinessDiscoveryReconciler
 
     private static bool Equivalent(string left, string right) =>
         Normalize(left).Equals(Normalize(right), StringComparison.Ordinal);
+
+    private static string OfferingKey(PublicBusinessOffering offering) => string.Join("|",
+        offering.Kind.Trim().ToLowerInvariant(),
+        offering.Section?.Trim().ToLowerInvariant() ?? string.Empty,
+        offering.Name.Trim().ToLowerInvariant(),
+        offering.Price?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
+        offering.Currency?.Trim().ToUpperInvariant() ?? string.Empty);
 
     private static string Normalize(string? value)
     {
