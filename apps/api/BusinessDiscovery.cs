@@ -248,10 +248,10 @@ public static class PublicBusinessExtractor
     public const int MaxFactValueCharacters = BusinessDiscoveryProvenance.MaxValueCharacters;
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
     private static readonly Regex JsonLdRegex = new(@"<script[^>]+type=[""']application/ld\+json[""'][^>]*>(.*?)</script>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
-    private static readonly Regex OgTitleRegex = new(@"<meta[^>]+property=[""']og:title[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex OgTitleRegex = new(@"<meta[^>]+property=[""']og:title[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex TitleRegex = new(@"<title[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
-    private static readonly Regex OgDescriptionRegex = new(@"<meta[^>]+property=[""']og:description[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
-    private static readonly Regex MetaDescriptionRegex = new(@"<meta[^>]+name=[""']description[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex OgDescriptionRegex = new(@"<meta[^>]+property=[""']og:description[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex MetaDescriptionRegex = new(@"<meta[^>]+name=[""']description[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex StreetAddressRegex = new(@"[""']streetAddress[""']\s*:\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
 
     public static PublicBusinessSnapshot Extract(string provider, Uri sourceUri, string html, DateTimeOffset observedAt)
@@ -405,7 +405,9 @@ public static class PublicBusinessExtractor
     private static string? FirstMatch(Regex regex, string value)
     {
         var match = regex.Match(value);
-        return match.Success ? match.Groups[1].Value.Trim() : null;
+        if (!match.Success) return null;
+        var namedValue = match.Groups["value"];
+        return (namedValue.Success ? namedValue.Value : match.Groups[1].Value).Trim();
     }
 
     private static string? Decode(string? value) => string.IsNullOrWhiteSpace(value) ? null : WebUtility.HtmlDecode(value).Trim();
@@ -425,7 +427,7 @@ public static class PublicBusinessExtractor
     }
 }
 
-public sealed record DiscoverBusinessRequest(string Url);
+public sealed record DiscoverBusinessRequest(string Url, IReadOnlyList<string>? AdditionalUrls = null);
 public sealed record BusinessDiscoveryResponse(Guid SnapshotId, string Provider, string SourceUrl, DateTimeOffset ObservedAt, IReadOnlyList<PublicBusinessFact> Facts)
 {
     public static BusinessDiscoveryResponse From(BusinessDiscoverySnapshot snapshot) => new(
@@ -488,7 +490,14 @@ public static class BusinessDiscoveryEndpoints
             fallback = BusinessCategoryTaxonomy.Generic
         })).RequireAuthorization("BusinessOwner");
 
-        app.MapPost("/api/v1/business-discovery", async (DiscoverBusinessRequest request, ClaimsPrincipal user, BusinessDiscoveryService discovery, AtlasDbContext db, CancellationToken ct) =>
+        app.MapPost("/api/v1/business-discovery", async (
+            DiscoverBusinessRequest request,
+            ClaimsPrincipal user,
+            BusinessDiscoveryService pageDiscovery,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration,
+            AtlasDbContext db,
+            CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(request.Url))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Url)] = ["Business page URL is required."] });
@@ -496,7 +505,9 @@ public static class BusinessDiscoveryEndpoints
             if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
             try
             {
-                var publicSnapshot = await discovery.DiscoverAsync(request.Url, ct);
+                var discovery = new MultiSourceBusinessDiscoveryService(pageDiscovery, httpClientFactory, configuration);
+                var reconciliation = await discovery.DiscoverAsync(request.Url, request.AdditionalUrls, ct);
+                var publicSnapshot = reconciliation.Snapshot;
                 var account = await db.UserAccounts.SingleOrDefaultAsync(x => x.ProviderSubject == subject, ct);
                 if (account is null)
                 {
