@@ -77,6 +77,22 @@ public sealed class OpportunityGenerationIntegrationTests
     }
 
     [Fact]
+    public async Task Different_business_owner_cannot_generate_or_read_target_business_focus_through_service()
+    {
+        await using var db = CreateDb();
+        var target = SeedBusiness(db, category: "restaurant-cafe", goalType: "revenue", contextKey: "primarychannels", contextValue: "Takeaway");
+        var other = SeedBusiness(db, category: "retail", goalType: "revenue");
+        await db.SaveChangesAsync();
+
+        var result = await OpportunityFocusService.GenerateAsync(db, target.Business.Id, other.Account.Id, Now, CancellationToken.None);
+
+        Assert.Equal(OpportunityFocusGenerationStates.Degraded, result.State);
+        Assert.Equal("business_access_unavailable", result.Code);
+        Assert.Null(result.Opportunity);
+        Assert.Empty(await db.Set<Opportunity>().ToListAsync());
+    }
+
+    [Fact]
     public async Task Bundle_resolution_failure_degrades_without_server_side_generation_or_row()
     {
         await using var db = CreateDb();
