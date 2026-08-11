@@ -2,87 +2,108 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the existing Atlas mobile experience device-adaptive and native-feeling across modern iOS and Android, with safe-area-correct geometry, restrained interruptible motion, and selective iOS 26 Liquid Glass on floating chrome while preserving the approved Atlas visual identity and current route semantics.
+**Goal:** Make the current Atlas mobile experience device-adaptive and native-feeling on modern iOS and Android, with safe-area-correct geometry, restrained interruptible motion, and selective iOS 26 Liquid Glass on floating chrome while preserving Atlas product behavior, brand identity, and route semantics.
 
-**Architecture:** Add one pure layout-policy module, one app-wide accessibility preference provider, and three focused presentation primitives (`AtlasScreen`, `AtlasMaterialSurface`, `AtlasPressable`). The existing Expo Router stack and five-tab shell remain structurally intact; screens migrate from fixed top/bottom page padding to the shared safe-area contract. Native stack transitions remain system-owned, Reanimated handles local direct-feedback motion, and Liquid Glass is an optional iOS presentation path with a solid Atlas fallback.
+**Architecture:** Introduce one pure layout-policy module, one app-wide accessibility preference provider, and three small presentation primitives: `AtlasScreen`, `AtlasMaterialSurface`, and `AtlasPressable`. Keep Expo Router/native screens responsible for push/pop navigation. Migrate current first-party screens away from fixed page-edge padding into the shared safe-area contract. Use Reanimated 4 only for local interaction/state feedback. Treat Liquid Glass as an optional iOS presentation path; the solid Atlas material is always a complete fallback.
 
-**Tech Stack:** Expo SDK 54, Expo Router 6, React Native 0.81, React 19, React Native Reanimated 4, `react-native-safe-area-context`, `react-native-screens`, `AccessibilityInfo`, optional Expo-compatible `expo-glass-effect`, Node 22 `node:test`, PES/Loop governance.
+**Tech Stack:** Expo SDK 54, Expo Router 6, React Native 0.81, React 19, React Native Reanimated 4, `react-native-safe-area-context`, `react-native-screens`, React Native `AccessibilityInfo`, Expo-compatible `expo-glass-effect`, Node 22 `node:test`, PES/Loop governance.
 
 ## Global Constraints
 
-- `ATLAS-DESIGN-001` v1.2 remains the visual authority. Emil Kowalski Apple Design pinned at commit `78761e1b57f97dce65b983d640c70a68f39e8163` is a secondary motion/material reference only.
-- Preserve the certified five-tab runtime routes exactly: `index`, `profile`, `goals`, `context`, `settings`. VS-28 does not resolve the four-vs-five destination product decision.
-- Before runtime activation, record a fresh typed decision preserving the certified five-tab shell for this slice only and deferring navigation alignment to a separate governed slice.
-- Glass is limited to floating/structural chrome: bottom navigation, already-approved sheets/modal overlays, and real floating controls. Ordinary content cards remain solid Atlas surfaces.
-- `expo-glass-effect` is the only new runtime dependency permitted, and it must be installed with `npx expo install expo-glass-effect` after Expo compatibility verification.
-- Use existing Reanimated 4 for local motion. Do not introduce another animation or gesture library.
-- Normal UI motion is critically damped/no-overshoot by default. Bounce is reserved for genuine momentum-driven gestures.
-- Reduce Motion suppresses spatial/elastic effects; Reduce Transparency forces a solid Atlas material fallback. These preferences are independent.
-- Screen geometry must derive from real safe-area insets and viewport/font-scale inputs. Do not solve iPhone 17 Pro Max alignment with device-name checks or new one-device magic numbers.
-- Android uses the same safe-area geometry contract and a stable solid/elevated material fallback in VS-28; do not add experimental blur for parity.
-- Do not change API, database, authentication/session, business-domain, provider, recommendation, Goals, Context, Business Hub, or navigation semantics.
+- `ATLAS-DESIGN-001` v1.2 is the visual authority.
+- Emil Kowalski Apple Design pinned at `78761e1b57f97dce65b983d640c70a68f39e8163` is a secondary interaction/motion/material reference only.
+- Preserve the certified runtime tab routes and order exactly: `index`, `profile`, `goals`, `context`, `settings`.
+- VS-28 does not resolve the approved-design four-destination versus inherited-runtime five-tab mismatch. The typed VS-28 decision preserves five tabs only for this bounded polish slice and leaves structural navigation alignment to a separate governed slice.
+- Glass is restricted to floating/structural chrome: bottom navigation, existing/approved sheets or modal overlays, and a real floating control if one exists. Ordinary Today, Business, Goals, Context, form, menu, evidence, and content cards stay solid Atlas surfaces.
+- `expo-glass-effect` is the only new runtime dependency allowed by this plan. Install it through `npx expo install expo-glass-effect`; never force an incompatible version.
+- Keep existing Reanimated 4 and Gesture Handler. Do not add another animation or gesture library.
+- Default interaction motion is critically damped/no-overshoot. Bounce is reserved for genuine momentum-driven gestures.
+- Reduce Motion and Reduce Transparency are independent. Reduced motion removes spatial/elastic effects; reduced transparency forces solid material.
+- Safe-area geometry comes from actual insets, viewport width, and font scale. Never branch on an iPhone model name or add a one-device notch constant.
+- Android uses the same safe-area geometry contract and a stable solid/elevated Atlas material. Do not add experimental Android blur just for parity.
+- Do not alter APIs, persistence, authentication/session contracts, provider behavior, Goals logic, Context logic, Business Hub data behavior, Today Focus eligibility, or product navigation semantics.
 - No production release, EAS build/submit, OTA update, production enablement, or production deployment is authorized.
-- Runtime implementation must branch from the then-current `main`, not from the documentation branch. If `main` has moved from `48bbafb07494e41cfb351643459ce4c6552de378`, re-read the changed mobile/governance files and reconcile before activating VS-28.
+- Runtime implementation must branch from then-current `main`, not from `atlas/vs28-device-adaptive-native-polish-design`.
+- If `main` moves from the approved planning baseline `48bbafb07494e41cfb351643459ce4c6552de378`, inspect all changed `apps/mobile/**`, `tests/mobile/**`, `delivery/**`, and `product/DESIGN.md` paths before activating VS-28.
+
+## Planned File Structure
+
+### New files
+
+- `apps/mobile/src/theme/native-layout.ts` — pure device/safe-area geometry.
+- `apps/mobile/src/lib/accessibility-policy.ts` — pure motion/material policy.
+- `apps/mobile/src/components/AtlasAccessibilityProvider.tsx` — Reduce Motion / Reduce Transparency state and subscriptions.
+- `apps/mobile/src/components/AtlasScreen.tsx` — safe-area-aware scroll/static screen shell.
+- `apps/mobile/src/components/AtlasMaterialSurface.tsx` — selective iOS Liquid Glass and solid fallback.
+- `apps/mobile/src/components/AtlasPressable.tsx` — immediate interruptible press feedback.
+- `tests/mobile/native-layout-model.test.mjs` — geometry tests.
+- `tests/mobile/native-material-policy.test.mjs` — accessibility/material tests.
+- `tests/mobile/native-tab-shell.test.mjs` — tab route/geometry/material contract.
+- `tests/mobile/native-motion.test.mjs` — motion/press contract.
+- `tests/mobile/native-screen-shell.test.mjs` — whole-app safe-area migration contract.
+- `docs/slices/VS-28.md` — governed slice scope and factual evidence record.
+
+### Existing files expected to change
+
+- `apps/mobile/package.json` and the repository lockfile actually used by the install workflow.
+- `apps/mobile/app/_layout.tsx`.
+- `apps/mobile/app/(tabs)/_layout.tsx`.
+- `apps/mobile/src/theme/tokens.ts`.
+- `apps/mobile/src/features/today-focus/TodayFocusScreen.tsx`.
+- `apps/mobile/src/features/business-hub/BusinessHubScreen.tsx`.
+- `apps/mobile/app/(tabs)/goals.tsx`.
+- `apps/mobile/app/(tabs)/context.tsx`.
+- `apps/mobile/app/(tabs)/settings.tsx`.
+- `apps/mobile/app/create-business.tsx`.
+- `apps/mobile/app/welcome.tsx`.
+- `apps/mobile/app/sign-in.tsx`.
+- `apps/mobile/app/progressive-questions.tsx`.
+- `apps/mobile/app/edit-business.tsx`.
+- `apps/mobile/src/features/business-hub/BusinessMenuScreen.tsx`.
+- `apps/mobile/src/features/opportunity-detail/OpportunityDetailScreen.tsx`.
+- `apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx`.
+- `apps/mobile/src/features/history/HistoryScreen.tsx`.
+- `apps/mobile/src/features/weekly-review/WeeklyReviewScreen.tsx`.
+- `apps/mobile/src/features/notifications/NotificationCenterScreen.tsx`.
+- `delivery/decisions.json` and `delivery/current-slice.json` on the runtime branch.
 
 ---
 
-## File Structure
+## Task 1 — Establish the governed VS-28 runtime branch and green baseline
 
-### New focused files
+**Files**
 
-- `apps/mobile/src/theme/native-layout.ts` — pure safe-area/tab-bar geometry functions; no React or domain dependencies.
-- `apps/mobile/src/lib/accessibility-policy.ts` — pure decisions for full/reduced motion and glass/solid material selection.
-- `apps/mobile/src/components/AtlasAccessibilityProvider.tsx` — app-wide Reduce Motion / Reduce Transparency state and subscriptions.
-- `apps/mobile/src/components/AtlasScreen.tsx` — shared safe-area-aware scroll/static screen shell.
-- `apps/mobile/src/components/AtlasMaterialSurface.tsx` — selective native iOS glass with solid Atlas fallback.
-- `apps/mobile/src/components/AtlasPressable.tsx` — immediate, interruptible Reanimated press feedback with reduced-motion behavior.
-- `tests/mobile/native-layout-model.test.mjs` — pure geometry contract.
-- `tests/mobile/native-material-policy.test.mjs` — material/accessibility policy plus source boundary checks.
-- `tests/mobile/native-tab-shell.test.mjs` — tab routes, geometry integration, material background, no fixed 76-point shell.
-- `tests/mobile/native-motion.test.mjs` — press feedback and reduced-motion/source contract.
-- `tests/mobile/native-screen-shell.test.mjs` — migrated first-party screen coverage and regression checks for fixed page offsets.
-- `docs/slices/VS-28.md` — governed scope, acceptance, evidence placeholders populated only with facts available at each lifecycle stage.
+- Create: `docs/slices/VS-28.md`
+- Modify: `delivery/decisions.json`
+- Modify: `delivery/current-slice.json`
+- Carry unchanged from planning branch:
+  - `docs/superpowers/specs/2026-08-12-vs-28-device-adaptive-native-polish-motion-design.md`
+  - `docs/superpowers/plans/2026-08-12-vs-28-device-adaptive-native-polish-motion.md`
 
-### Existing files modified by the implementation
+**Interfaces**
 
-- `apps/mobile/package.json` — add Expo-compatible `expo-glass-effect` only.
-- package-manager lockfile generated by the repository's normal install workflow, if present after `npx expo install`.
-- `apps/mobile/app/_layout.tsx` — install accessibility provider around the existing native Stack; retain SafeAreaProvider/GestureHandlerRootView.
-- `apps/mobile/app/(tabs)/_layout.tsx` — preserve five routes; derive tab geometry and use `AtlasMaterialSurface` for chrome.
-- `apps/mobile/src/theme/tokens.ts` — add only reusable native shell/material/motion token values needed by the new primitives.
-- Core screens: `apps/mobile/src/features/today-focus/TodayFocusScreen.tsx`, `apps/mobile/src/features/business-hub/BusinessHubScreen.tsx`, `apps/mobile/app/(tabs)/goals.tsx`, `apps/mobile/app/(tabs)/context.tsx`, `apps/mobile/app/(tabs)/settings.tsx`, `apps/mobile/app/create-business.tsx`.
-- Remaining first-party screens: `apps/mobile/app/welcome.tsx`, `apps/mobile/app/sign-in.tsx`, `apps/mobile/app/progressive-questions.tsx`, `apps/mobile/app/edit-business.tsx`, `apps/mobile/src/features/business-hub/BusinessMenuScreen.tsx`, `apps/mobile/src/features/opportunity-detail/OpportunityDetailScreen.tsx`, `apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx`, `apps/mobile/src/features/history/HistoryScreen.tsx`, `apps/mobile/src/features/weekly-review/WeeklyReviewScreen.tsx`, `apps/mobile/src/features/notifications/NotificationCenterScreen.tsx`.
-- `delivery/decisions.json`, `delivery/current-slice.json` — typed decision and active VS-28 state on the runtime branch only.
+- Consumes: current `main`, certified VS-27, `ATLAS-DESIGN-001`, approved VS-28 spec, this plan.
+- Produces: isolated runtime branch `atlas/vs28-device-adaptive-native-polish`, approved typed navigation-preservation decision, active runtime-enabled VS-28 record, green pre-change baseline.
 
----
+- [ ] **Step 1: Re-check `main` and concurrent work**
 
-### Task 1: Establish the governed VS-28 runtime branch and green baseline
-
-**Files:**
-- Create on runtime branch: `docs/slices/VS-28.md`
-- Modify on runtime branch: `delivery/decisions.json`
-- Modify on runtime branch: `delivery/current-slice.json`
-- Carry from approved documentation branch: `docs/superpowers/specs/2026-08-12-vs-28-device-adaptive-native-polish-motion-design.md`
-- Carry from approved documentation branch: `docs/superpowers/plans/2026-08-12-vs-28-device-adaptive-native-polish-motion.md`
-
-**Interfaces:**
-- Consumes: current `main`; certified VS-27 state; `ATLAS-DESIGN-001` v1.2; approved VS-28 spec and this plan.
-- Produces: an isolated runtime branch `atlas/vs28-device-adaptive-native-polish`, one approved typed navigation-preservation decision, active VS-28 governance with runtime implementation permission, and a verified green pre-change baseline.
-
-- [ ] **Step 1: Re-check live `main` and concurrent Atlas work**
-
-Run through the connected GitHub surface:
+Through the connected GitHub surface:
 
 ```text
-1. Read the exact `main` SHA.
-2. Inspect open Atlas PRs and branches for VS-28 or overlapping mobile-shell work.
-3. Re-read `delivery/current-slice.json`, `delivery/decisions.json`, `AGENTS.md`, `product/DESIGN.md`.
-4. If `main` != 48bbafb07494e41cfb351643459ce4c6552de378, compare the moved range and specifically inspect every changed `apps/mobile/**`, `tests/mobile/**`, `delivery/**`, and `product/DESIGN.md` file before continuing.
+Read the exact main SHA.
+Read delivery/current-slice.json and delivery/decisions.json from main.
+Inspect open Atlas PRs and VS-28-like branches.
+Inspect overlapping mobile-shell PR file lists if any exist.
+Re-read AGENTS.md and product/DESIGN.md.
 ```
 
-Expected: no unreviewed concurrent runtime slice owns the same mobile shell files. If there is overlap, stop with `HUMAN_DECISION_REQUIRED` rather than creating a competing active slice.
+Expected: no unreviewed concurrent active slice owns the same mobile shell files. If there is overlapping active runtime work, stop with `HUMAN_DECISION_REQUIRED`.
 
-- [ ] **Step 2: Create the isolated runtime branch from exact current `main`**
+If `main` is not `48bbafb07494e41cfb351643459ce4c6552de378`, compare the moved range and review every changed mobile/governance/design file before continuing.
+
+- [ ] **Step 2: Create the runtime branch from exact current `main`**
+
+Local-git path:
 
 ```bash
 git switch main
@@ -90,11 +111,13 @@ git pull --ff-only
 git switch -c atlas/vs28-device-adaptive-native-polish
 ```
 
-When GitHub connector execution is the only available git surface, create `atlas/vs28-device-adaptive-native-polish` directly from the exact current `main` SHA. Do not branch runtime work from `atlas/vs28-device-adaptive-native-polish-design`.
+Connector-only path: create `atlas/vs28-device-adaptive-native-polish` directly from the exact current `main` SHA.
 
-- [ ] **Step 3: Carry only the approved VS-28 spec and plan onto the runtime branch**
+Do not branch runtime work from the design branch.
 
-The runtime branch must contain these exact approved documents before activation:
+- [ ] **Step 3: Carry only the approved VS-28 spec and plan**
+
+The runtime branch must contain exactly the approved documents at these paths before activation:
 
 ```text
 docs/superpowers/specs/2026-08-12-vs-28-device-adaptive-native-polish-motion-design.md
@@ -109,19 +132,19 @@ git add docs/superpowers/specs/2026-08-12-vs-28-device-adaptive-native-polish-mo
 git commit -m "docs(vs28): carry approved native polish design and plan"
 ```
 
-- [ ] **Step 4: Transition certified VS-27 to `superseded` without rewriting its certification evidence**
-
-Run the governed transition command on the runtime branch:
+- [ ] **Step 4: Supersede certified VS-27 without rewriting its evidence**
 
 ```bash
 npm run slice:transition -- superseded
 ```
 
-Expected: the VS-27 record preserves its exact certification SHA/evidence while no longer remaining the active implementation slice.
+Expected: the VS-27 certification SHA/evidence stays intact and its lifecycle advances only through the permitted transition.
 
-- [ ] **Step 5: Record the fresh navigation-preservation decision**
+- [ ] **Step 5: Record the typed navigation-preservation decision**
 
-Append the next available decision ID (expected `DEC-09`; use the actual next ID if main has added a decision) to `delivery/decisions.json` with this content:
+Current `main` ends at DEC-08, so the expected ID is `DEC-09`. If Step 1 finds a newer decision on main, use the next available ID and update every VS-28 reference consistently.
+
+The approved decision content is:
 
 ```json
 {
@@ -137,18 +160,28 @@ Append the next available decision ID (expected `DEC-09`; use the actual next ID
   "decision": "Preserve the certified five-tab shell for VS-28 only. Keep route names, ordering and destination meaning unchanged, and keep the four-vs-five destination alignment deferred to a separate governed navigation slice.",
   "blocks": [],
   "decidedBy": "ksazid",
-  "decidedAt": "<the actual approval timestamp for this execution>",
+  "decidedAt": "2026-08-12T01:01:00+02:00",
   "rationale": "The Product Owner approved the VS-28 written design for device-adaptive native polish without a navigation redesign. DEC-02 and DEC-03 already identified the inherited mismatch and deferred structural alignment; VS-28 makes that preservation explicit rather than silently overriding ATLAS-DESIGN-001."
 }
 ```
 
-Use the actual next decision ID and actual execution timestamp; do not fabricate either if main has moved.
+The timestamp above is the written-spec approval time supplied for this conversation. Do not replace it with a fabricated later time.
 
-- [ ] **Step 6: Create and activate the VS-28 slice record**
+- [ ] **Step 6: Create `docs/slices/VS-28.md`**
 
-Create `docs/slices/VS-28.md` with the approved outcome, in-scope/non-goals, dependency on the merged VS-27 baseline, DEC-09 reference, test/device acceptance requirements, and release boundary from the spec.
+Write the approved outcome and acceptance contract from the spec. Include:
 
-Set `delivery/current-slice.json` to a runtime-enabled VS-28 record with:
+```text
+Authority: ATLAS-PRD-001, ATLAS-TRD-001, ATLAS-DESIGN-001@1.2, VS-27 merge 48bbafb07494e41cfb351643459ce4c6552de378, DEC-09.
+In scope: safe areas, native shell geometry, selective glass, restrained motion, reduced-motion/transparency behavior, whole-app first-party screen migration, device acceptance.
+Out of scope: navigation restructuring, domain/API/data behavior, ordinary-card glass, experimental Android blur, production release/deployment.
+Acceptance: deterministic gates plus iPhone 17 Pro Max, compact iPhone, Android, Reduce Motion, Reduce Transparency, Dynamic Type checks.
+Evidence: begin empty/pending and add only evidence that has actually run.
+```
+
+- [ ] **Step 7: Activate VS-28 with typed approvals only after the execution handoff is accepted**
+
+Use the repository's existing `schemaVersion: 2` shape. The fixed core values are:
 
 ```json
 {
@@ -165,28 +198,37 @@ Set `delivery/current-slice.json` to a runtime-enabled VS-28 record with:
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-27@<exact current merged main SHA containing PR #49>"
+    "VS-27@48bbafb07494e41cfb351643459ce4c6552de378"
   ],
   "decisionIds": ["DEC-09"]
 }
 ```
 
-Populate the rest from the repository's schema/pattern, with allowed paths limited to `apps/mobile/**`, `tests/mobile/**`, `delivery/**`, and `docs/**`; protect release/infrastructure/payment/upload paths; record scope + implementation as approved by `ksazid`; record policy as `not-required`; leave certification/release/production-enable pending. The implementation approval timestamp must correspond to the user's execution authorization after this plan handoff, not the earlier written-spec approval.
+If Step 1 found a newer decision ID, substitute that real ID consistently. The VS-27 dependency remains its merge commit above even when unrelated commits later advance main.
 
-The impact notes must explicitly say this is presentation/accessibility/runtime-shell work only and does not change domain/API/session/navigation semantics.
+Use allowed paths:
 
-- [ ] **Step 7: Validate governance before runtime code**
+```text
+apps/mobile/**
+tests/mobile/**
+delivery/**
+docs/**
+```
 
-Run:
+Preserve the repository's protected release/infrastructure/payment/upload paths. Record scope approval by `ksazid`, policy as `not-required`, and implementation approval only after the user selects an execution approach for this plan. Use the real timestamp of that execution authorization. Keep certification/release/production-enable pending.
+
+Impact notes must say this is presentation/accessibility/runtime-shell work only; no domain/API/session/navigation semantics change.
+
+- [ ] **Step 8: Prove the activated baseline is green before runtime code**
 
 ```bash
 npm run governance:validate
 npm run preflight
 ```
 
-Expected: both PASS on the exact activated VS-28 head. If either fails, use `systematic-debugging`; do not begin Task 2 until the baseline is green.
+Expected: PASS. If either fails, invoke `superpowers:systematic-debugging` and fix only the baseline/governance defect before Task 2.
 
-- [ ] **Step 8: Commit the governed activation**
+- [ ] **Step 9: Commit Task 1**
 
 ```bash
 git add delivery/decisions.json delivery/current-slice.json docs/slices/VS-28.md
@@ -195,9 +237,10 @@ git commit -m "chore(vs28): activate native polish slice"
 
 ---
 
-### Task 2: Add deterministic safe-area geometry and accessibility preference policy
+## Task 2 — Add deterministic safe-area geometry and accessibility preference policy
 
-**Files:**
+**Files**
+
 - Create: `apps/mobile/src/theme/native-layout.ts`
 - Create: `apps/mobile/src/lib/accessibility-policy.ts`
 - Create: `apps/mobile/src/components/AtlasAccessibilityProvider.tsx`
@@ -207,9 +250,7 @@ git commit -m "chore(vs28): activate native polish slice"
 - Test: `tests/mobile/native-layout-model.test.mjs`
 - Test: `tests/mobile/native-material-policy.test.mjs`
 
-**Interfaces:**
-- Consumes: `tokens.spacing`, `tokens.touchTarget`, `SafeAreaInsets`, `useWindowDimensions()`, React Native `AccessibilityInfo`.
-- Produces:
+**Interfaces**
 
 ```ts
 export type AtlasTabBarMetricsInput = {
@@ -247,11 +288,13 @@ export function getAtlasScreenMetrics(input: AtlasScreenMetricsInput): AtlasScre
 
 export type AtlasMaterialMode = 'glass' | 'solid';
 export type AtlasMotionMode = 'full' | 'reduced';
+
 export function resolveMaterialMode(input: {
-  platform: 'ios' | 'android' | 'web' | string;
+  platform: string;
   glassAvailable: boolean;
   reduceTransparency: boolean;
 }): AtlasMaterialMode;
+
 export function resolveMotionMode(reduceMotion: boolean): AtlasMotionMode;
 
 export type AtlasAccessibilityPreferences = {
@@ -259,6 +302,7 @@ export type AtlasAccessibilityPreferences = {
   reduceTransparency: boolean;
   ready: boolean;
 };
+
 export function useAtlasAccessibility(): AtlasAccessibilityPreferences;
 
 export type AtlasScreenProps = {
@@ -270,10 +314,11 @@ export type AtlasScreenProps = {
   showsVerticalScrollIndicator?: boolean;
   keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
 };
+
 export function AtlasScreen(props: AtlasScreenProps): React.ReactElement;
 ```
 
-- [ ] **Step 1: Write the failing pure geometry tests**
+- [ ] **Step 1: Write the failing geometry tests**
 
 Create `tests/mobile/native-layout-model.test.mjs`:
 
@@ -302,7 +347,7 @@ test('comfortable modern iPhone geometry follows real insets', () => {
   });
 });
 
-test('compact iPhone uses edge material and compact horizontal rhythm', () => {
+test('compact iPhone geometry uses edge chrome and compact horizontal rhythm', () => {
   assert.deepEqual(getAtlasTabBarMetrics({ width: 320, bottomInset: 34, fontScale: 1 }), {
     mode: 'edge',
     horizontalInset: 0,
@@ -319,7 +364,7 @@ test('compact iPhone uses edge material and compact horizontal rhythm', () => {
   });
 });
 
-test('Android geometry uses the same semantic contract without iPhone constants', () => {
+test('Android uses the same semantic inset contract', () => {
   assert.deepEqual(getAtlasTabBarMetrics({ width: 412, bottomInset: 24, fontScale: 1 }), {
     mode: 'floating',
     horizontalInset: 12,
@@ -336,22 +381,20 @@ test('Android geometry uses the same semantic contract without iPhone constants'
   });
 });
 
-test('large text increases the interactive tab row instead of clipping labels', () => {
+test('large text grows the tab row instead of clipping labels', () => {
   assert.equal(getAtlasTabBarMetrics({ width: 440, bottomInset: 34, fontScale: 1.4 }).frameHeight, 64);
 });
 ```
 
-- [ ] **Step 2: Run the geometry tests and verify RED**
-
-Run:
+- [ ] **Step 2: Run RED**
 
 ```bash
 node --test tests/mobile/native-layout-model.test.mjs
 ```
 
-Expected: FAIL because `apps/mobile/src/theme/native-layout.ts` does not exist.
+Expected: FAIL because `native-layout.ts` does not exist.
 
-- [ ] **Step 3: Implement the minimal pure geometry module**
+- [ ] **Step 3: Implement the minimum geometry module**
 
 Create `apps/mobile/src/theme/native-layout.ts`:
 
@@ -383,15 +426,25 @@ export function getAtlasTabBarMetrics({ width, bottomInset, fontScale }: AtlasTa
   if (width < COMPACT_WIDTH) {
     const frameHeight = rowHeight + bottomInset;
     return {
-      mode: 'edge', horizontalInset: 0, bottomOffset: 0, frameHeight,
-      paddingBottom: bottomInset, borderRadius: 0, obstructionHeight: frameHeight,
+      mode: 'edge',
+      horizontalInset: 0,
+      bottomOffset: 0,
+      frameHeight,
+      paddingBottom: bottomInset,
+      borderRadius: 0,
+      obstructionHeight: frameHeight,
     };
   }
   const horizontalInset = width >= 430 ? 16 : 12;
   const bottomOffset = Math.max(8, bottomInset - 8);
   return {
-    mode: 'floating', horizontalInset, bottomOffset, frameHeight: rowHeight,
-    paddingBottom: 0, borderRadius: 24, obstructionHeight: rowHeight + bottomOffset,
+    mode: 'floating',
+    horizontalInset,
+    bottomOffset,
+    frameHeight: rowHeight,
+    paddingBottom: 0,
+    borderRadius: 24,
+    obstructionHeight: rowHeight + bottomOffset,
   };
 }
 
@@ -407,9 +460,9 @@ export function getAtlasScreenMetrics({ width, topInset, bottomInset, fontScale,
 }
 ```
 
-These constants are viewport/layout breakpoints and Atlas spacing decisions, not device-model identifiers.
+These are viewport/layout breakpoints and Atlas spacing values, not device-model constants.
 
-- [ ] **Step 4: Run the geometry tests and verify GREEN**
+- [ ] **Step 4: Run GREEN**
 
 ```bash
 node --test tests/mobile/native-layout-model.test.mjs
@@ -417,7 +470,7 @@ node --test tests/mobile/native-layout-model.test.mjs
 
 Expected: PASS all four tests.
 
-- [ ] **Step 5: Write failing accessibility/material policy tests**
+- [ ] **Step 5: Write the failing accessibility/material policy tests**
 
 Create `tests/mobile/native-material-policy.test.mjs`:
 
@@ -430,19 +483,19 @@ import { resolveMaterialMode, resolveMotionMode } from '../../apps/mobile/src/li
 const rootSource = readFileSync(new URL('../../apps/mobile/app/_layout.tsx', import.meta.url), 'utf8');
 const providerSource = readFileSync(new URL('../../apps/mobile/src/components/AtlasAccessibilityProvider.tsx', import.meta.url), 'utf8');
 
-test('material policy only allows glass on supported iOS when transparency is allowed', () => {
+test('glass is allowed only on supported iOS when transparency is allowed', () => {
   assert.equal(resolveMaterialMode({ platform: 'ios', glassAvailable: true, reduceTransparency: false }), 'glass');
   assert.equal(resolveMaterialMode({ platform: 'ios', glassAvailable: true, reduceTransparency: true }), 'solid');
   assert.equal(resolveMaterialMode({ platform: 'android', glassAvailable: true, reduceTransparency: false }), 'solid');
   assert.equal(resolveMaterialMode({ platform: 'ios', glassAvailable: false, reduceTransparency: false }), 'solid');
 });
 
-test('motion policy is independent from transparency', () => {
+test('motion preference is independent from transparency', () => {
   assert.equal(resolveMotionMode(false), 'full');
   assert.equal(resolveMotionMode(true), 'reduced');
 });
 
-test('root owns one app-wide accessibility preference provider', () => {
+test('root owns one accessibility preference provider', () => {
   assert.match(rootSource, /AtlasAccessibilityProvider/);
   assert.match(providerSource, /isReduceMotionEnabled/);
   assert.match(providerSource, /reduceMotionChanged/);
@@ -451,15 +504,15 @@ test('root owns one app-wide accessibility preference provider', () => {
 });
 ```
 
-- [ ] **Step 6: Run the policy tests and verify RED**
+- [ ] **Step 6: Run RED**
 
 ```bash
 node --test tests/mobile/native-material-policy.test.mjs
 ```
 
-Expected: FAIL because `accessibility-policy.ts` and `AtlasAccessibilityProvider.tsx` do not exist and root layout is not wired.
+Expected: FAIL because the policy/provider do not exist and root is not wired.
 
-- [ ] **Step 7: Implement the pure accessibility policy**
+- [ ] **Step 7: Implement the pure policy**
 
 Create `apps/mobile/src/lib/accessibility-policy.ts`:
 
@@ -480,28 +533,28 @@ export function resolveMotionMode(reduceMotion: boolean): AtlasMotionMode {
 }
 ```
 
-- [ ] **Step 8: Implement the conservative app-wide accessibility provider**
+- [ ] **Step 8: Implement `AtlasAccessibilityProvider` conservatively**
 
-Create `apps/mobile/src/components/AtlasAccessibilityProvider.tsx` with a context default of:
+Initial state:
 
 ```ts
 { reduceMotion: true, reduceTransparency: true, ready: false }
 ```
 
-On mount:
+On mount, query:
 
 ```ts
-const [reduceMotion, reduceTransparency] = await Promise.all([
+const [motion, transparency] = await Promise.all([
   AccessibilityInfo.isReduceMotionEnabled(),
   Platform.OS === 'ios' ? AccessibilityInfo.isReduceTransparencyEnabled() : Promise.resolve(false),
 ]);
 ```
 
-Then subscribe once to `reduceMotionChanged` and, on iOS, `reduceTransparencyChanged`. On query failure keep the conservative initial values rather than blocking the app. Export `useAtlasAccessibility()` and remove both subscriptions on unmount.
+Then subscribe once to `reduceMotionChanged`; on iOS also subscribe to `reduceTransparencyChanged`. Remove both subscriptions on unmount. If initial queries reject, keep the conservative state and mark the provider usable rather than blocking navigation.
 
-- [ ] **Step 9: Add the provider to the existing native root shell**
+- [ ] **Step 9: Wire the provider into the native root**
 
-Modify `apps/mobile/app/_layout.tsx` so the hierarchy remains:
+Modify `apps/mobile/app/_layout.tsx` to preserve the existing shell and add the provider:
 
 ```tsx
 <GestureHandlerRootView style={{ flex: 1 }}>
@@ -513,13 +566,13 @@ Modify `apps/mobile/app/_layout.tsx` so the hierarchy remains:
 </GestureHandlerRootView>
 ```
 
-Do not add JavaScript page transitions. The Stack remains the native navigation owner.
+Do not implement bespoke JavaScript page transitions.
 
-- [ ] **Step 10: Implement the shared `AtlasScreen`**
+- [ ] **Step 10: Implement `AtlasScreen`**
 
-Create `apps/mobile/src/components/AtlasScreen.tsx` using `useSafeAreaInsets()` and `useWindowDimensions()`. Compute `getAtlasScreenMetrics({ width, topInset: insets.top, bottomInset: insets.bottom, fontScale, hasTabBar })` on every render.
+Use `useSafeAreaInsets()` and `useWindowDimensions()`. Compute `getAtlasScreenMetrics()` every render.
 
-For `mode="scroll"`, render a `ScrollView` whose `contentContainerStyle` combines:
+For `mode="scroll"`, render `ScrollView` with this style ordering:
 
 ```ts
 [
@@ -533,31 +586,26 @@ For `mode="scroll"`, render a `ScrollView` whose `contentContainerStyle` combine
 ]
 ```
 
-The computed safe-area padding must come after `contentStyle`, so legacy/fixed page padding cannot override the shared contract during migration.
+Computed safe-area padding must come after caller content styles so a legacy fixed page-edge padding cannot override the shell. Forward `refreshControl`, `showsVerticalScrollIndicator`, and `keyboardShouldPersistTaps` in scroll mode.
 
-For `mode="static"`, use the same ordering on a `View` with `{ flex: 1 }`.
+For `mode="static"`, render `View` with `{ flex: 1 }` and the same safe-area ordering.
 
-Forward `refreshControl`, `showsVerticalScrollIndicator`, and `keyboardShouldPersistTaps` only for scroll mode.
+- [ ] **Step 11: Add only reusable native tokens**
 
-- [ ] **Step 11: Add only reusable shell tokens**
-
-Extend `apps/mobile/src/theme/tokens.ts` without changing existing token meanings:
+Extend `apps/mobile/src/theme/tokens.ts` with a `native` section for values genuinely shared by the primitives:
 
 ```ts
 native: {
   tabRowHeight: 58,
   tabRowHeightLargeText: 64,
   floatingDockRadius: 24,
-  screenTopGapCompact: 8,
-  screenTopGap: 12,
-  screenBottomGap: 16,
   pressScale: 0.985,
 }
 ```
 
-If the implementation can reuse the existing spacing/radius/touchTarget tokens for any value, do so instead of duplicating it.
+Reuse existing spacing/radius/touch-target tokens instead of duplicating equivalent values.
 
-- [ ] **Step 12: Run targeted and repository validation**
+- [ ] **Step 12: Run Task-2 gates**
 
 ```bash
 node --test tests/mobile/native-layout-model.test.mjs tests/mobile/native-material-policy.test.mjs
@@ -565,7 +613,7 @@ npm run mobile:typecheck
 npm run mobile:lint
 ```
 
-Expected: all PASS.
+Expected: PASS.
 
 - [ ] **Step 13: Commit Task 2**
 
@@ -583,20 +631,19 @@ git commit -m "feat(vs28): add device-adaptive native shell policy"
 
 ---
 
-### Task 3: Add selective iOS material and safe-area-derived tab navigation
+## Task 3 — Add selective iOS material and safe-area-derived tab chrome
 
-**Files:**
+**Files**
+
 - Modify: `apps/mobile/package.json`
-- Modify: package-manager lockfile generated by Expo install, if the repository uses one
+- Modify: the package-manager lockfile that actually changes during Expo install.
 - Create: `apps/mobile/src/components/AtlasMaterialSurface.tsx`
 - Modify: `apps/mobile/app/(tabs)/_layout.tsx`
 - Modify: `tests/mobile/native-material-policy.test.mjs`
 - Create: `tests/mobile/native-tab-shell.test.mjs`
 - Preserve: `tests/mobile/atlas-brand-navigation.test.mjs`
 
-**Interfaces:**
-- Consumes: `getAtlasTabBarMetrics`, `useAtlasAccessibility`, `resolveMaterialMode`, Expo `GlassView`, `isLiquidGlassAvailable`, `isGlassEffectAPIAvailable`.
-- Produces:
+**Interfaces**
 
 ```ts
 export type AtlasMaterialSurfaceProps = {
@@ -604,12 +651,13 @@ export type AtlasMaterialSurfaceProps = {
   kind: 'navigation' | 'sheet' | 'floating';
   style?: StyleProp<ViewStyle>;
 };
+
 export function AtlasMaterialSurface(props: AtlasMaterialSurfaceProps): React.ReactElement;
 ```
 
-The tab shell keeps exactly the five existing `Tabs.Screen` names and local `AtlasIcon` mapping.
+Consumes `getAtlasTabBarMetrics`, `useAtlasAccessibility`, `resolveMaterialMode`, and Expo GlassEffect APIs. Produces a complete glass-or-solid floating surface without changing tab routes.
 
-- [ ] **Step 1: Write the failing tab-shell contract test**
+- [ ] **Step 1: Write the failing tab-shell test**
 
 Create `tests/mobile/native-tab-shell.test.mjs`:
 
@@ -620,13 +668,13 @@ import test from 'node:test';
 
 const source = readFileSync(new URL('../../apps/mobile/app/(tabs)/_layout.tsx', import.meta.url), 'utf8');
 
-test('VS-28 preserves the certified five tab routes', () => {
+test('VS-28 preserves all five certified routes', () => {
   for (const route of ['index', 'profile', 'goals', 'context', 'settings']) {
     assert.match(source, new RegExp(`name="${route}"`));
   }
 });
 
-test('tab shell derives geometry and uses the bounded material surface', () => {
+test('tab shell derives safe-area geometry and uses bounded material chrome', () => {
   assert.match(source, /getAtlasTabBarMetrics/);
   assert.match(source, /useSafeAreaInsets/);
   assert.match(source, /useWindowDimensions/);
@@ -636,12 +684,12 @@ test('tab shell derives geometry and uses the bounded material surface', () => {
 });
 ```
 
-Extend `tests/mobile/native-material-policy.test.mjs` with source checks:
+Add this source test to `native-material-policy.test.mjs`:
 
 ```js
 const materialSource = readFileSync(new URL('../../apps/mobile/src/components/AtlasMaterialSurface.tsx', import.meta.url), 'utf8');
 
-test('native material is guarded and always has a solid fallback', () => {
+test('material surface guards Liquid Glass and includes a solid fallback', () => {
   assert.match(materialSource, /isLiquidGlassAvailable/);
   assert.match(materialSource, /isGlassEffectAPIAvailable/);
   assert.match(materialSource, /resolveMaterialMode/);
@@ -651,17 +699,15 @@ test('native material is guarded and always has a solid fallback', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tab/material tests and verify RED**
+- [ ] **Step 2: Run RED while preserving the existing navigation test**
 
 ```bash
 node --test tests/mobile/native-tab-shell.test.mjs tests/mobile/native-material-policy.test.mjs tests/mobile/atlas-brand-navigation.test.mjs
 ```
 
-Expected: `native-tab-shell` and material-source assertions FAIL; existing brand/navigation test remains GREEN.
+Expected: new tests FAIL; existing VS-27 route/icon test stays GREEN.
 
-- [ ] **Step 3: Verify and install the Expo-compatible glass package**
-
-From the repository root:
+- [ ] **Step 3: Verify and install GlassEffect through Expo**
 
 ```bash
 cd apps/mobile
@@ -670,18 +716,17 @@ cd ../..
 npm run mobile:dependencies
 ```
 
-Expected: Expo selects the SDK-54-compatible package; dependency validation passes. If Expo reports incompatibility, stop the native glass path and implement only the already-approved solid fallback rather than forcing a version.
+Expected: Expo installs its SDK-54-compatible version. If Expo rejects compatibility, do not force a package version; keep the solid Atlas fallback and record the native-glass path as blocked for that runtime.
 
 - [ ] **Step 4: Implement `AtlasMaterialSurface`**
 
-Create `apps/mobile/src/components/AtlasMaterialSurface.tsx`.
-
-Use:
+Compute native-glass eligibility:
 
 ```ts
 const glassAvailable = Platform.OS === 'ios'
   && isGlassEffectAPIAvailable()
   && isLiquidGlassAvailable();
+
 const mode = resolveMaterialMode({
   platform: Platform.OS,
   glassAvailable,
@@ -689,13 +734,13 @@ const mode = resolveMaterialMode({
 });
 ```
 
-When `mode === 'glass'`, render `GlassView` with the package's supported regular/clear effect appropriate to structural navigation and a light interactive style only if the API supports that use. Do **not** set sub-1 opacity on the GlassView or a wrapper whose opacity affects it.
+When mode is `glass`, render `GlassView` using supported `regular` or `clear` style appropriate for structural navigation. Never set sub-1 opacity on `GlassView` or a parent whose opacity affects it. Use the documented glass animation API only if material arrival itself must animate.
 
-Otherwise render a normal `View` with an opaque/near-opaque Atlas surface, border/elevation adequate to separate floating chrome, and the same geometry/touch layout.
+Otherwise render a normal `View` using Atlas surface/border/elevation tokens. The solid path must preserve identical geometry and touch layout.
 
-`kind` may select small differences in radius/elevation, but must not turn this into a generic glass card wrapper.
+`kind` may select bounded radius/elevation differences for navigation/sheet/floating chrome. It must never make the component a general content-card wrapper.
 
-- [ ] **Step 5: Replace fixed tab geometry with safe-area-derived geometry**
+- [ ] **Step 5: Replace the fixed 76-point tab bar**
 
 Modify `apps/mobile/app/(tabs)/_layout.tsx`:
 
@@ -705,7 +750,7 @@ const { width, fontScale } = useWindowDimensions();
 const metrics = getAtlasTabBarMetrics({ width, bottomInset: insets.bottom, fontScale });
 ```
 
-Configure the tab bar with absolute/floating geometry derived from `metrics`, not fixed `height: 76`:
+Configure presentation from `metrics`:
 
 ```tsx
 <Tabs
@@ -725,16 +770,19 @@ Configure the tab bar with absolute/floating geometry derived from `metrics`, no
       elevation: 0,
       shadowOpacity: 0,
     },
-    tabBarBackground: () => <AtlasMaterialSurface kind="navigation" style={{ flex: 1, borderRadius: metrics.borderRadius }} />,
+    tabBarBackground: () => (
+      <AtlasMaterialSurface
+        kind="navigation"
+        style={{ flex: 1, borderRadius: metrics.borderRadius }}
+      />
+    ),
   }}
 >
 ```
 
-If React Navigation's tab background requires clipping/radius on a wrapper, keep the radius on the material container; do not make ordinary screen content translucent.
+Preserve all five `Tabs.Screen` names, order, titles, and `AtlasIcon` mappings exactly.
 
-Preserve route names, order, titles and `AtlasIcon` mappings exactly.
-
-- [ ] **Step 6: Run exact targeted tests**
+- [ ] **Step 6: Run GREEN and compile gates**
 
 ```bash
 node --test tests/mobile/native-tab-shell.test.mjs tests/mobile/native-material-policy.test.mjs tests/mobile/atlas-brand-navigation.test.mjs
@@ -743,32 +791,27 @@ npm run mobile:lint
 npm run mobile:dependencies
 ```
 
-Expected: all PASS.
+Expected: PASS.
 
 - [ ] **Step 7: Commit Task 3**
 
+Stage `apps/mobile/package.json`, the lockfile that actually changed, `AtlasMaterialSurface.tsx`, tab layout, and targeted tests. Review the staged diff, then:
+
 ```bash
-git add apps/mobile/package.json apps/mobile/src/components/AtlasMaterialSurface.tsx \
-        apps/mobile/app/'(tabs)'/_layout.tsx \
-        tests/mobile/native-material-policy.test.mjs tests/mobile/native-tab-shell.test.mjs \
-        package-lock.json npm-shrinkwrap.json 2>/dev/null || true
 git commit -m "feat(vs28): add adaptive material tab shell"
 ```
 
-Stage only the lockfile that actually exists/changed; do not create an empty lockfile merely to satisfy this example command.
-
 ---
 
-### Task 4: Add immediate, interruptible press motion and remove decorative looping motion
+## Task 4 — Add immediate interruptible press feedback and remove decorative looping motion
 
-**Files:**
+**Files**
+
 - Create: `apps/mobile/src/components/AtlasPressable.tsx`
 - Modify: `apps/mobile/app/create-business.tsx`
 - Test: `tests/mobile/native-motion.test.mjs`
 
-**Interfaces:**
-- Consumes: Reanimated 4, `useAtlasAccessibility()`, `tokens.native.pressScale`, React Native `PressableProps`.
-- Produces:
+**Interfaces**
 
 ```ts
 export type AtlasPressableProps = Omit<PressableProps, 'style'> & {
@@ -776,10 +819,11 @@ export type AtlasPressableProps = Omit<PressableProps, 'style'> & {
   pressedScale?: number;
   pressedOpacity?: number;
 };
+
 export function AtlasPressable(props: AtlasPressableProps): React.ReactElement;
 ```
 
-Default `pressedScale` is `0.985`; default `pressedOpacity` is `0.92`.
+Default `pressedScale = 0.985`; default `pressedOpacity = 0.92`. Preserve all Pressable semantics and accessibility props.
 
 - [ ] **Step 1: Write the failing motion contract test**
 
@@ -793,7 +837,7 @@ import test from 'node:test';
 const pressable = readFileSync(new URL('../../apps/mobile/src/components/AtlasPressable.tsx', import.meta.url), 'utf8');
 const createBusiness = readFileSync(new URL('../../apps/mobile/app/create-business.tsx', import.meta.url), 'utf8');
 
-test('AtlasPressable responds on touch-down with Reanimated and returns with a no-overshoot spring', () => {
+test('AtlasPressable responds on touch-down and settles with a no-overshoot spring', () => {
   assert.match(pressable, /onPressIn/);
   assert.match(pressable, /withTiming/);
   assert.match(pressable, /withSpring/);
@@ -801,36 +845,36 @@ test('AtlasPressable responds on touch-down with Reanimated and returns with a n
   assert.match(pressable, /useAtlasAccessibility/);
 });
 
-test('reduced motion suppresses scale while preserving immediate feedback', () => {
+test('reduced motion suppresses scale while retaining immediate feedback', () => {
   assert.match(pressable, /reduceMotion/);
   assert.match(pressable, /pressedOpacity/);
 });
 
-test('business discovery no longer runs decorative looping pulse motion', () => {
+test('business discovery has no decorative looping pulse', () => {
   assert.doesNotMatch(createBusiness, /Animated\.loop/);
 });
 ```
 
-- [ ] **Step 2: Run the motion test and verify RED**
+- [ ] **Step 2: Run RED**
 
 ```bash
 node --test tests/mobile/native-motion.test.mjs
 ```
 
-Expected: FAIL because `AtlasPressable.tsx` does not exist and `create-business.tsx` still contains `Animated.loop`.
+Expected: FAIL because `AtlasPressable.tsx` is absent and Create Business still contains `Animated.loop`.
 
-- [ ] **Step 3: Implement `AtlasPressable`**
+- [ ] **Step 3: Implement `AtlasPressable` with Reanimated 4**
 
-Use `Animated.createAnimatedComponent(Pressable)` from Reanimated, one shared `scale` and `opacity` value, and an animated transform/opacity style.
+Use Reanimated's animated Pressable wrapper plus shared `scale` and `opacity` values.
 
-On touch-down in full-motion mode:
+Full-motion touch-down:
 
 ```ts
 scale.value = withTiming(pressedScale, { duration: 70 });
 opacity.value = withTiming(pressedOpacity, { duration: 70 });
 ```
 
-On release/cancel:
+Release/cancel:
 
 ```ts
 scale.value = withSpring(1, {
@@ -842,17 +886,15 @@ scale.value = withSpring(1, {
 opacity.value = withTiming(1, { duration: 100 });
 ```
 
-When `reduceMotion` is true, leave scale at `1` and use the same immediate opacity feedback. Invoke any caller-provided `onPressIn` / `onPressOut` handlers after updating the presentation value; preserve every semantic/accessibility prop from `PressableProps`.
+Reduced-motion touch-down keeps scale at `1` while applying immediate opacity feedback. New input must retarget current shared values; never disable input merely because the spring is settling.
 
-Do not disable the component merely because its feedback animation is still settling; new touches retarget from the current shared value.
+Invoke caller-provided `onPressIn` and `onPressOut` after updating feedback. Spread semantic/accessibility props without hiding them.
 
-- [ ] **Step 4: Remove the decorative discovery pulse loop**
+- [ ] **Step 4: Remove the Create Business decorative pulse loop**
 
-In `apps/mobile/app/create-business.tsx`, remove React Native `Animated`, the `pulse` ref, and the effect that runs `Animated.loop` while `busy`.
+Delete React Native `Animated` from the import, the `pulse` ref, and the effect that starts/stops `Animated.loop` while discovery is busy. Keep the existing `ActivityIndicator`, busy copy, state semantics, and reduced-motion behavior. Do not replace it with another loop.
 
-Keep the existing `ActivityIndicator`/busy semantics and any static progress copy. Do not replace the loop with another decorative loop.
-
-- [ ] **Step 5: Run targeted motion tests and mobile compile checks**
+- [ ] **Step 5: Run GREEN and compile checks**
 
 ```bash
 node --test tests/mobile/native-motion.test.mjs
@@ -860,7 +902,7 @@ npm run mobile:typecheck
 npm run mobile:lint
 ```
 
-Expected: all PASS.
+Expected: PASS.
 
 - [ ] **Step 6: Commit Task 4**
 
@@ -871,33 +913,46 @@ git commit -m "feat(vs28): add restrained native press motion"
 
 ---
 
-### Task 5: Migrate every first-party Atlas screen to the shared safe-area shell
+## Task 5 — Migrate every current first-party screen to the shared safe-area shell
 
-**Files:**
-- Modify: `apps/mobile/src/features/today-focus/TodayFocusScreen.tsx`
-- Modify: `apps/mobile/src/features/business-hub/BusinessHubScreen.tsx`
-- Modify: `apps/mobile/app/(tabs)/goals.tsx`
-- Modify: `apps/mobile/app/(tabs)/context.tsx`
-- Modify: `apps/mobile/app/(tabs)/settings.tsx`
-- Modify: `apps/mobile/app/create-business.tsx`
-- Modify: `apps/mobile/app/welcome.tsx`
-- Modify: `apps/mobile/app/sign-in.tsx`
-- Modify: `apps/mobile/app/progressive-questions.tsx`
-- Modify: `apps/mobile/app/edit-business.tsx`
-- Modify: `apps/mobile/src/features/business-hub/BusinessMenuScreen.tsx`
-- Modify: `apps/mobile/src/features/opportunity-detail/OpportunityDetailScreen.tsx`
-- Modify: `apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx`
-- Modify: `apps/mobile/src/features/history/HistoryScreen.tsx`
-- Modify: `apps/mobile/src/features/weekly-review/WeeklyReviewScreen.tsx`
-- Modify: `apps/mobile/src/features/notifications/NotificationCenterScreen.tsx`
-- Test: `tests/mobile/native-screen-shell.test.mjs`
-- Modify as needed: existing source-contract tests whose only expectation was the replaced fixed page-padding implementation; do not weaken route/domain/accessibility assertions.
+**Files**
 
-**Interfaces:**
-- Consumes: `AtlasScreen`, `AtlasPressable`, existing feature state/data models, existing `RefreshControl` and keyboard behavior.
-- Produces: every current first-party user-facing screen uses the same safe-area-derived page geometry; core controls use the shared immediate press feedback where practical; feature/domain behavior and route semantics remain unchanged.
+Core persistent destinations:
 
-- [ ] **Step 1: Write the failing first-party screen-shell regression test**
+- `apps/mobile/src/features/today-focus/TodayFocusScreen.tsx`
+- `apps/mobile/src/features/business-hub/BusinessHubScreen.tsx`
+- `apps/mobile/app/(tabs)/goals.tsx`
+- `apps/mobile/app/(tabs)/context.tsx`
+- `apps/mobile/app/(tabs)/settings.tsx`
+
+Setup/onboarding:
+
+- `apps/mobile/app/create-business.tsx`
+- `apps/mobile/app/welcome.tsx`
+- `apps/mobile/app/sign-in.tsx`
+- `apps/mobile/app/progressive-questions.tsx`
+- `apps/mobile/app/edit-business.tsx`
+
+Detail/support:
+
+- `apps/mobile/src/features/business-hub/BusinessMenuScreen.tsx`
+- `apps/mobile/src/features/opportunity-detail/OpportunityDetailScreen.tsx`
+- `apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx`
+- `apps/mobile/src/features/history/HistoryScreen.tsx`
+- `apps/mobile/src/features/weekly-review/WeeklyReviewScreen.tsx`
+- `apps/mobile/src/features/notifications/NotificationCenterScreen.tsx`
+
+Test:
+
+- Create: `tests/mobile/native-screen-shell.test.mjs`
+- Narrowly modify existing source-contract tests only when they assert the replaced fixed-padding implementation. Never weaken route/domain/accessibility assertions.
+
+**Interfaces**
+
+- Consumes: `AtlasScreen`, `AtlasPressable`, existing feature state/data/API behavior.
+- Produces: one safe-area geometry contract across every current first-party user-facing screen, with preserved feature and route semantics.
+
+- [ ] **Step 1: Write the failing whole-app shell regression test**
 
 Create `tests/mobile/native-screen-shell.test.mjs`:
 
@@ -927,7 +982,7 @@ const files = [
 
 const sources = files.map(path => [path, readFileSync(new URL(path, import.meta.url), 'utf8')]);
 
-test('all current first-party screens use the shared safe-area shell', () => {
+test('every current first-party screen uses AtlasScreen', () => {
   for (const [path, source] of sources) {
     assert.match(source, /AtlasScreen/, `${path} must use AtlasScreen`);
   }
@@ -935,98 +990,84 @@ test('all current first-party screens use the shared safe-area shell', () => {
 
 test('migrated screens do not retain known one-device page offsets', () => {
   for (const [path, source] of sources) {
-    assert.doesNotMatch(source, /paddingTop:\s*(54|57|58)\b/, `${path} still has a legacy fixed page top offset`);
+    assert.doesNotMatch(source, /paddingTop:\s*(54|57|58)\b/, `${path} retains legacy page top padding`);
   }
 });
 ```
 
-- [ ] **Step 2: Run the shell regression test and verify RED**
+- [ ] **Step 2: Run RED**
 
 ```bash
 node --test tests/mobile/native-screen-shell.test.mjs
 ```
 
-Expected: FAIL on the current screens because they do not yet all use `AtlasScreen`, and the known fixed offsets remain in Today/Business/Goals/Context/Create Business.
+Expected: FAIL on existing screens and fixed offsets.
 
-- [ ] **Step 3: Migrate the five persistent tab destinations first**
+- [ ] **Step 3: Migrate the five persistent destinations first**
 
-Migrate:
+Use `AtlasScreen hasTabBar` for Today, Business, Goals, Context, Settings. Preserve each screen's inner content composition, max width, refresh control, feature state, data loading, copy, and routes.
 
-```text
-Today       apps/mobile/src/features/today-focus/TodayFocusScreen.tsx
-Business    apps/mobile/src/features/business-hub/BusinessHubScreen.tsx
-Goals       apps/mobile/app/(tabs)/goals.tsx
-Context     apps/mobile/app/(tabs)/context.tsx
-Settings    apps/mobile/app/(tabs)/settings.tsx
-```
-
-For tabbed screens use:
+Typical ready-state structure:
 
 ```tsx
 <AtlasScreen
   hasTabBar
   mode="scroll"
   contentStyle={styles.contentContainer}
-  refreshControl={existingRefreshControlWhenPresent}
+  refreshControl={refreshControl}
   showsVerticalScrollIndicator={false}
 >
-  ...existing feature content unchanged...
+  {children}
 </AtlasScreen>
 ```
 
-Move only non-safe-area layout rules into `contentStyle`, such as `alignItems`, `gap`, `maxWidth`, or page background. Remove page-level fixed `paddingTop`, fixed `paddingBottom`, and fixed outer horizontal padding now owned by `AtlasScreen`.
+Static loading/error/missing states use:
 
-For loading/error state wrappers that are static, use `<AtlasScreen hasTabBar mode="static" contentStyle={...}>` so they also clear the system chrome and tab obstruction.
+```tsx
+<AtlasScreen hasTabBar mode="static" contentStyle={styles.stateContent}>
+  {children}
+</AtlasScreen>
+```
 
-Do not change copy, feature state transitions, API calls, routes, or data semantics.
+Remove only outer page-edge `paddingTop`, `paddingBottom`, and `paddingHorizontal` now owned by `AtlasScreen`. Retain local card/section spacing.
 
-- [ ] **Step 4: Convert eligible core pressables to `AtlasPressable` without changing semantics**
+- [ ] **Step 4: Apply `AtlasPressable` to eligible core actions**
 
-On the five persistent destinations, replace the ad-hoc `pressed: { opacity, transform }` presentation on primary navigation/action buttons with `AtlasPressable` where the component is a normal button/card activation.
+On the five persistent destinations, replace ad-hoc `pressed: { opacity, transform }` feedback for ordinary action/navigation buttons with `AtlasPressable` where practical.
 
 Preserve:
 
 ```text
-accessibilityRole / accessibilityLabel / accessibilityState
-onPress / disabled
-minimum 44-point target
-existing colors/radii/layout
+accessibilityRole
+accessibilityLabel
+accessibilityState
+onPress
+disabled
+existing minHeight >= 44
+the approved Atlas color/radius/layout
 ```
 
-Do not convert text inputs, pull-to-refresh gestures, or controls whose native gesture behavior already owns continuous motion.
+Do not wrap text inputs, pull-to-refresh, or native/continuous gesture controls.
 
-- [ ] **Step 5: Migrate onboarding/setup screens**
+- [ ] **Step 5: Migrate setup/onboarding screens**
 
-Migrate:
+Use `AtlasScreen` without `hasTabBar` for Welcome, Sign In, Create Business, Progressive Questions, Edit Business. Forward `keyboardShouldPersistTaps` where the existing screen requires it.
+
+Create Business specifically removes the old outer page constants:
 
 ```text
-apps/mobile/app/welcome.tsx
-apps/mobile/app/sign-in.tsx
-apps/mobile/app/create-business.tsx
-apps/mobile/app/progressive-questions.tsx
-apps/mobile/app/edit-business.tsx
+paddingHorizontal: 26
+paddingTop: 57
+paddingBottom: 30
 ```
 
-These screens are not behind the persistent tab bar, so use `hasTabBar={false}` (or omit it if false is the default). Preserve existing keyboard/scroller behavior; pass `keyboardShouldPersistTaps` through `AtlasScreen` when the existing screen requires it.
-
-Specifically in `create-business.tsx`, remove the legacy `container` page padding `paddingHorizontal: 26`, `paddingTop: 57`, `paddingBottom: 30`; retain its internal component/card spacing and staged discovery behavior.
+Do not modify its discovery, owner confirmation, location, enrichment, Goals-first routing, or error semantics.
 
 - [ ] **Step 6: Migrate detail/support screens**
 
-Migrate:
+Use non-tabbed `AtlasScreen` for Business Menu, Opportunity Detail, Execution Kit, History, Weekly Review, and Notification Center. Preserve existing back routing and wrapper routes.
 
-```text
-apps/mobile/src/features/business-hub/BusinessMenuScreen.tsx
-apps/mobile/src/features/opportunity-detail/OpportunityDetailScreen.tsx
-apps/mobile/src/features/execution-kit/ExecutionKitScreen.tsx
-apps/mobile/src/features/history/HistoryScreen.tsx
-apps/mobile/src/features/weekly-review/WeeklyReviewScreen.tsx
-apps/mobile/src/features/notifications/NotificationCenterScreen.tsx
-```
-
-Use `hasTabBar={false}` because these are pushed/detail routes outside the persistent tab shell. Preserve native back behavior and existing route wrappers.
-
-- [ ] **Step 7: Verify the shell regression test is GREEN**
+- [ ] **Step 7: Run shell GREEN**
 
 ```bash
 node --test tests/mobile/native-screen-shell.test.mjs
@@ -1034,7 +1075,7 @@ node --test tests/mobile/native-screen-shell.test.mjs
 
 Expected: PASS.
 
-- [ ] **Step 8: Run the complete mobile test suite and fix only real regressions**
+- [ ] **Step 8: Run the entire mobile validation surface**
 
 ```bash
 npm run mobile:test
@@ -1043,75 +1084,67 @@ npm run mobile:lint
 npm run mobile:dependencies
 ```
 
-Expected: all PASS. If an existing source-contract test fails only because it asserted a legacy fixed padding implementation, update that assertion to the new semantic safe-area contract. Do not remove or weaken route, behavior, accessibility, owner-authority, or domain assertions.
+Expected: PASS. If a pre-existing source-contract test fails only because it encoded fixed page padding, update it to assert `AtlasScreen`/safe-area semantics. Do not delete or relax behavioral, route, owner-authority, security, or accessibility assertions.
 
-- [ ] **Step 9: Run repository preflight**
+- [ ] **Step 9: Run repository gates**
 
 ```bash
 npm run governance:validate
 npm run preflight
 ```
 
-Expected: PASS on the exact Task-5 head.
+Expected: PASS on exact Task-5 head.
 
 - [ ] **Step 10: Commit Task 5**
 
+Review the staged diff and exclude unrelated generated files, then:
+
 ```bash
-git add apps/mobile/app apps/mobile/src/features tests/mobile/native-screen-shell.test.mjs tests/mobile
+git add apps/mobile/app apps/mobile/src/features tests/mobile
 git commit -m "feat(vs28): apply native shell across Atlas mobile"
 ```
 
-Review the staged diff before commit and exclude unrelated generated files. `tests/mobile` is staged because existing source-contract tests may need narrow semantic updates; no unrelated test weakening is allowed.
-
 ---
 
-### Task 6: Validate native transitions, accessibility fallbacks, device acceptance, and certification readiness
+## Task 6 — Validate native transitions, accessibility fallbacks, devices, and certification readiness
 
-**Files:**
-- Modify only if a verified defect is found: `apps/mobile/app/_layout.tsx`, `apps/mobile/src/components/AtlasAccessibilityProvider.tsx`, `apps/mobile/src/components/AtlasMaterialSurface.tsx`, `apps/mobile/src/components/AtlasPressable.tsx`, migrated screen files.
-- Modify: `docs/slices/VS-28.md`
-- Modify: `delivery/current-slice.json`
-- Evidence paths according to the repository's existing convention under `docs/evidence/VS-28/` if governance requires files rather than inline evidence entries.
+**Files**
 
-**Interfaces:**
-- Consumes: completed Tasks 1–5, Expo Go runtime, iOS 26-class iPhone 17 Pro Max acceptance, compact iPhone profile, representative Android profile, accessibility settings.
-- Produces: exact-head deterministic evidence, device/accessibility evidence, lifecycle transition to certification only when all required gates are green, and a human merge-ready handoff. It does not produce a release/deployment authorization.
+- Modify only when a verified defect requires it: root/tab layout, `AtlasAccessibilityProvider`, `AtlasMaterialSurface`, `AtlasPressable`, `AtlasScreen`, or migrated screen files.
+- Modify: `docs/slices/VS-28.md` with factual evidence.
+- Modify: `delivery/current-slice.json` through governed lifecycle/certification updates.
+- Add `docs/evidence/VS-28/**` only if the repository's evidence convention requires files for captured acceptance evidence.
 
-- [ ] **Step 1: Prove native stack ownership and absence of peer-tab page slides**
+**Interfaces**
 
-Inspect `apps/mobile/app/_layout.tsx` and `apps/mobile/app/(tabs)/_layout.tsx` and run:
+- Consumes: completed Tasks 1–5, Expo Go test runtime, iPhone 17 Pro Max/iOS 26-class device, compact iPhone profile, representative Android profile, OS accessibility preferences.
+- Produces: exact-head deterministic and device evidence, certification-ready SHA, human merge handoff. Produces no release/deployment authorization.
+
+- [ ] **Step 1: Prove native transition ownership and direct peer-tab switching**
 
 ```bash
 node --test tests/mobile/native-tab-shell.test.mjs tests/mobile/atlas-brand-navigation.test.mjs
 npm run mobile:typecheck
 ```
 
-Expected:
+Verify from source:
 
 ```text
-Root detail navigation remains Expo Router Stack / react-native-screens owned.
-No custom JavaScript page transition library exists.
-Five peer tabs remain direct tab switches; there is no horizontal page-slide implementation between them.
+Root detail navigation is still Expo Router Stack / native screens owned.
+No second JavaScript page-transition framework exists.
+Peer tabs switch directly; VS-28 adds no horizontal whole-page slide between tabs.
+Push and back remain symmetric/system-owned where the platform supports them.
 ```
 
-- [ ] **Step 2: Prove accessibility fallback logic deterministically**
-
-Run:
+- [ ] **Step 2: Prove accessibility fallbacks deterministically**
 
 ```bash
 node --test tests/mobile/native-material-policy.test.mjs tests/mobile/native-motion.test.mjs tests/mobile/native-layout-model.test.mjs
 ```
 
-Expected: PASS, including:
+Expected: PASS for glass/solid policy, motion policy, geometry, and no-overshoot press feedback.
 
-```text
-Reduce Transparency + iOS glass availability => solid
-Android + glass availability => solid
-Reduce Motion => reduced
-full motion => critically damped press return
-```
-
-- [ ] **Step 3: Run the full exact-head deterministic gate set before device testing**
+- [ ] **Step 3: Run the full pre-device exact-head gates**
 
 ```bash
 npm run mobile:validate
@@ -1119,37 +1152,37 @@ npm run governance:validate
 npm run preflight
 ```
 
-Expected: PASS. Record the exact 40-character commit SHA being tested.
+Record the exact 40-character head SHA. Device evidence later must correspond to code descended from this head; any device-found fix requires a new exact-head gate run.
 
-- [ ] **Step 4: Start the real Expo Go test path without an EAS/prod build**
-
-From the mobile workspace:
+- [ ] **Step 4: Start the existing Expo Go test path**
 
 ```bash
 npm run mobile:start
 ```
 
-Use the existing approved development/test API/session path. Do not trigger EAS build, submit, OTA update, production API deploy, or production enablement.
+Use the already-approved development/test API and session path. Do not trigger EAS build, EAS submit, OTA update, production API deploy, or production enablement.
 
-- [ ] **Step 5: Run the iPhone 17 Pro Max / iOS 26-class acceptance checklist**
+- [ ] **Step 5: iPhone 17 Pro Max / iOS 26-class acceptance**
 
-On the real device, verify each item and record pass/fail evidence:
+Record pass/fail for every item:
 
 ```text
-[ ] No header, logo, back button or first content collides with the Dynamic Island/status region.
-[ ] Today, Business, Goals, Context and Settings share a coherent top rhythm.
-[ ] Create Business, sign-in/onboarding and pushed detail screens use the same safe top contract.
-[ ] Bottom navigation clears the home indicator and remains reachable with all five labels/icons balanced.
-[ ] Normal cards remain solid Atlas surfaces; glass is limited to the floating navigation/approved chrome.
-[ ] Press feedback begins on touch-down and feels restrained; controls remain tappable while motion settles.
-[ ] Push/back transitions feel native and reversible; peer tabs do not slide whole pages.
-[ ] Long scroll content reaches its final actionable control without hiding beneath the dock/home indicator.
-[ ] Atlas still uses the approved warm-neutral/green identity and Compass Orbit brand.
+[ ] No header, logo, back control, or first content collides with Dynamic Island/status safe area.
+[ ] Today, Business, Goals, Context, and Settings share coherent top rhythm.
+[ ] Create Business and pushed/detail screens use the same safe top contract.
+[ ] Bottom dock clears the home indicator and all five labels/icons remain balanced/reachable.
+[ ] Ordinary cards remain solid Atlas surfaces.
+[ ] Glass is limited to approved floating/structural chrome.
+[ ] Touch feedback begins immediately and remains restrained.
+[ ] Controls can be re-tapped while motion is settling.
+[ ] Push/back transitions feel native/reversible; peer tabs do not slide whole pages.
+[ ] Final scroll actions remain reachable above the dock/home indicator.
+[ ] Atlas retains the approved warm-neutral/green identity and Compass Orbit brand.
 ```
 
-- [ ] **Step 6: Validate Reduce Motion and Reduce Transparency separately on iOS**
+- [ ] **Step 6: Test Reduce Motion independently**
 
-With **Reduce Motion ON**:
+With iOS Reduce Motion enabled:
 
 ```text
 [ ] Press/state feedback remains visible.
@@ -1157,49 +1190,60 @@ With **Reduce Motion ON**:
 [ ] Navigation remains immediate and usable.
 ```
 
-With **Reduce Transparency ON**:
+Disable it again and confirm the full-motion path returns through the change subscription without requiring an app restart when React Native exposes the event.
+
+- [ ] **Step 7: Test Reduce Transparency independently**
+
+With iOS Reduce Transparency enabled:
 
 ```text
 [ ] Bottom navigation uses the solid Atlas fallback.
-[ ] Geometry/touch targets do not change.
-[ ] Text/icons retain sufficient contrast.
+[ ] Geometry and touch targets stay unchanged.
+[ ] Text/icons retain clear contrast.
 ```
 
-Turn each setting back off after its independent check and verify the full presentation returns without restarting the app when React Native exposes the change event.
+Disable it again and confirm the eligible glass path returns through the change subscription when supported.
 
-- [ ] **Step 7: Validate compact iPhone, Android, and Dynamic Type**
+- [ ] **Step 8: Test compact iPhone, Android, and Dynamic Type**
 
-Use a compact iPhone simulator/device profile and a representative Android phone profile:
+Compact iPhone:
 
 ```text
-[ ] Compact width selects edge-style navigation when needed for five labels/44-point targets.
-[ ] Android cutout/status/navigation insets are respected.
-[ ] Android uses solid/elevated Atlas chrome; lack of Liquid Glass does not degrade usability.
+[ ] Navigation selects the edge presentation when needed for five labels and >=44-point targets.
+[ ] Content does not inherit excessive large-phone whitespace.
 ```
 
-Increase text size / font scale:
+Representative Android:
+
+```text
+[ ] Status/cutout/navigation insets are respected.
+[ ] Solid/elevated Atlas chrome is complete without Liquid Glass.
+[ ] No iOS-only API crash occurs.
+```
+
+Increased text size/font scale:
 
 ```text
 [ ] Tab row grows to the large-text metric instead of clipping labels.
-[ ] Critical headers/actions wrap or expand without horizontal overflow.
-[ ] Primary actions remain reachable and at least ~44 points high.
+[ ] Critical headings/actions wrap or expand without horizontal overflow.
+[ ] Primary actions remain reachable and >=44 points high.
 ```
 
-- [ ] **Step 8: Fix verified runtime defects using TDD/regression tests**
+- [ ] **Step 9: Fix each verified device defect through a regression loop**
 
-For every defect found in Steps 5–7:
+For each defect:
 
 ```text
-1. Add the smallest deterministic test reproducing the policy/geometry/source regression when possible.
-2. Run it RED.
-3. Implement the minimum fix.
-4. Run the targeted test GREEN.
-5. Re-run the affected device acceptance item.
+Add the smallest deterministic regression test when the issue can be represented in geometry/policy/source.
+Run the regression RED.
+Implement the minimum fix.
+Run the targeted test GREEN.
+Repeat the affected device acceptance item.
 ```
 
-Do not make speculative aesthetic changes outside the approved spec during this step.
+Do not add speculative aesthetic changes outside the approved VS-28 spec.
 
-- [ ] **Step 9: Re-run all exact-head gates after the final device fix**
+- [ ] **Step 10: Re-run all exact-head gates after the last device fix**
 
 ```bash
 npm run mobile:validate
@@ -1207,26 +1251,24 @@ npm run governance:validate
 npm run preflight
 ```
 
-Then require CI, Security baseline, and Product Intake to pass on that same exact head SHA.
+Require CI, Security baseline, and Product Intake to pass on the same exact head SHA.
 
-Expected: every required gate GREEN on one exact SHA.
+- [ ] **Step 11: Transition through testing and certification only through PES**
 
-- [ ] **Step 10: Transition through testing/certification using repository governance**
-
-Use only permitted lifecycle transitions, for example:
+Use only repository-permitted transitions:
 
 ```bash
 npm run slice:transition -- testing
 npm run slice:transition -- certification
 ```
 
-Populate `delivery/current-slice.json` certification evidence with factual references to:
+Populate certification evidence only with completed facts:
 
 ```text
 exact implementation SHA
-CI run
-Security baseline run
-Product Intake run
+CI run and verdict
+Security baseline run and verdict
+Product Intake run and verdict
 mobile deterministic gates
 iPhone 17 Pro Max Expo Go acceptance
 compact iPhone acceptance
@@ -1236,30 +1278,41 @@ Reduce Transparency acceptance
 Dynamic Type acceptance
 ```
 
-Certification approval must bind the exact 40-character SHA. Do not mark release or production-enable approved.
+Certification approval must bind the exact 40-character implementation SHA. Release and production-enable remain pending/not authorized.
 
-- [ ] **Step 11: Run verification-before-completion and branch-finishing workflow**
+- [ ] **Step 12: Run completion/branch review skills**
 
-Invoke the required Superpowers skills:
+Invoke:
 
 ```text
 superpowers:verification-before-completion
 superpowers:finishing-a-development-branch
 ```
 
-Confirm there are no unresolved blockers/review threads, the PR head equals the certified SHA, and the PR is mergeable against current `main`.
+Confirm:
 
-- [ ] **Step 12: Stop at the human merge gate**
+```text
+no unresolved blocker
+no unresolved required review thread
+PR head equals certified SHA
+PR base is current enough to merge
+CI/Security/Product green on certified head
+no release/deployment authorization was added
+```
 
-Report only:
+- [ ] **Step 13: Stop at the human merge gate**
+
+Final readiness handoff contains only factual status:
 
 ```text
 PR number
 exact certified head SHA
-CI / Security / Product verdicts
-device acceptance verdict
+CI verdict
+Security verdict
+Product Intake verdict
+device/accessibility acceptance verdict
 mergeability/base freshness
-release/deployment status = NOT AUTHORIZED
+release/deployment = NOT AUTHORIZED
 ```
 
 Do not merge automatically. Do not release, deploy, submit, or publish an OTA update.
