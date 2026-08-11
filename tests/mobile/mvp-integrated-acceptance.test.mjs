@@ -5,6 +5,12 @@ import test from 'node:test';
 const read = path => fs.readFileSync(path, 'utf8');
 const readJson = path => JSON.parse(read(path));
 
+function effectiveProfileSource() {
+  const route = read('apps/mobile/app/(tabs)/profile.tsx');
+  assert.match(route, /BusinessHubScreen/, 'Business tab must delegate to the governed Business Hub screen');
+  return read('apps/mobile/src/features/business-hub/BusinessHubScreen.tsx');
+}
+
 test('certified VS-15 evidence remains the integrated MVP baseline while later slices may be active', () => {
   const slice = readJson('delivery/current-slice.json');
 
@@ -42,19 +48,21 @@ test('integrated owner journey retains the implemented Atlas routes', () => {
 });
 
 test('Profile Goals and Context share the approved Atlas visual primitives', () => {
-  for (const path of [
-    'apps/mobile/app/(tabs)/profile.tsx',
-    'apps/mobile/app/(tabs)/goals.tsx',
-    'apps/mobile/app/(tabs)/context.tsx'
-  ]) {
-    const source = read(path);
+  const sources = [
+    effectiveProfileSource(),
+    read('apps/mobile/app/(tabs)/goals.tsx'),
+    read('apps/mobile/app/(tabs)/context.tsx')
+  ];
+
+  for (const source of sources) {
     assert.match(source, /BrandMark/);
     assert.match(source, /tokens/);
     assert.doesNotMatch(source, /upload\.wikimedia\.org|Starbucks_Corporation_Logo|starbucks/i);
   }
 
   const brandMark = read('apps/mobile/src/components/BrandMark.tsx');
-  assert.match(brandMark, /PROTOTYPE_MARK_URI/);
+  assert.match(brandMark, /Atlas brand mark/);
+  assert.doesNotMatch(brandMark, /PROTOTYPE_MARK_URI|upload\.wikimedia\.org|starbucks/i);
 });
 
 test('integrated acceptance keeps focused model and authentic runtime evidence in the gate set', () => {

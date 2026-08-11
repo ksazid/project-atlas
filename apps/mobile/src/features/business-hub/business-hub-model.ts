@@ -22,7 +22,7 @@ export type MenuGroup = {
   items: BusinessMenuItem[];
 };
 
-export function getHeroPresentation(media: Array<Pick<BusinessHubMedia, 'remoteUrl' | 'altText'>>): HeroPresentation {
+export function getHeroPresentation(media: Pick<BusinessHubMedia, 'remoteUrl' | 'altText'>[]): HeroPresentation {
   const first = media.find(item => isHttpsUrl(item.remoteUrl));
   return first
     ? { kind: 'image', uri: first.remoteUrl, altText: first.altText ?? null }

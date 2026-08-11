@@ -58,7 +58,7 @@ export function BusinessHubScreen() {
         <View style={styles.header}>
           <BrandMark size={48} />
           <Text style={styles.eyebrow}>BUSINESS</Text>
-          <Text style={styles.heading}>This is the business Atlas understands today.</Text>
+          <Text accessibilityRole="header" style={styles.heading}>This is the business Atlas understands today.</Text>
           <Text style={styles.subheading}>Review the real operating picture behind your recommendations, then edit only when something has changed.</Text>
         </View>
 
@@ -81,19 +81,19 @@ export function BusinessHubScreen() {
 
 function HubState({ state, onRetry, onContinue }: { state: ScreenState; onRetry: () => void; onContinue: () => void }) {
   if (state === 'loading') return <View style={styles.stateScreen}><BrandMark size={56} /><ActivityIndicator color={tokens.color.green} /><Text style={styles.stateCopy}>Loading your business…</Text></View>;
-  if (state === 'missing') return <View style={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>No business selected</Text><Text style={styles.stateCopy}>Choose or create a business before opening the Business Hub.</Text><Pressable accessibilityRole="button" onPress={onContinue} style={styles.stateButton}><Text style={styles.stateButtonText}>Choose or create a business</Text></Pressable></View>;
-  return <View style={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Business Hub is temporarily unavailable</Text><Text style={styles.stateCopy}>Your saved business information is unchanged. Try loading it again.</Text><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={onRetry} style={styles.stateButton}><Text style={styles.stateButtonText}>Try again</Text></Pressable></View>;
+  if (state === 'missing') return <View style={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>No business selected</Text><Text style={styles.stateCopy}>Choose or create a business before opening the Business Hub.</Text><Pressable accessibilityRole="button" onPress={onContinue} style={({ pressed }) => [styles.stateButton, pressed && styles.pressed]}><Text style={styles.stateButtonText}>Choose or create a business</Text></Pressable></View>;
+  return <View style={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Business Hub is temporarily unavailable</Text><Text style={styles.stateCopy}>Your saved business information is unchanged. Try loading it again.</Text><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={onRetry} style={({ pressed }) => [styles.stateButton, pressed && styles.pressed]}><Text style={styles.stateButtonText}>Try again</Text></Pressable></View>;
 }
 
 function formatDate(value: string): string { const date = new Date(value); return Number.isNaN(date.getTime()) ? 'recently' : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); }
 
 const styles = StyleSheet.create({
-  container: { alignItems: 'center', backgroundColor: tokens.color.canvas, flexGrow: 1, paddingBottom: 38, paddingHorizontal: 28, paddingTop: 54 },
+  container: { alignItems: 'center', backgroundColor: tokens.color.surface, flexGrow: 1, paddingBottom: 38, paddingHorizontal: 28, paddingTop: 54 },
   content: { gap: 18, maxWidth: 680, width: '100%' }, header: { gap: 7, marginBottom: 2 },
   eyebrow: { color: tokens.color.green, fontSize: 11, fontWeight: '900', letterSpacing: 1.2, marginTop: 7 },
   heading: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 31, fontWeight: '800', letterSpacing: -.45, lineHeight: 37 },
   subheading: { color: tokens.color.muted, fontSize: 14.5, lineHeight: 22 },
   editButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 52, paddingHorizontal: 22 }, editButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
-  freshness: { color: tokens.color.muted, fontSize: 11.5, lineHeight: 17, textAlign: 'center' }, pressed: { opacity: .86 },
-  stateScreen: { alignItems: 'center', backgroundColor: tokens.color.canvas, flex: 1, gap: 14, justifyContent: 'center', padding: 28 }, stateTitle: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 27, fontWeight: '800', lineHeight: 33, textAlign: 'center' }, stateCopy: { color: tokens.color.muted, fontSize: 14, lineHeight: 21, maxWidth: 380, textAlign: 'center' }, stateButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 48, paddingHorizontal: 20 }, stateButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
+  freshness: { color: tokens.color.muted, fontSize: 11.5, lineHeight: 17, textAlign: 'center' }, pressed: { opacity: .86, transform: [{ scale: .99 }] },
+  stateScreen: { alignItems: 'center', backgroundColor: tokens.color.surface, flex: 1, gap: 14, justifyContent: 'center', padding: 28 }, stateTitle: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 27, fontWeight: '800', lineHeight: 33, textAlign: 'center' }, stateCopy: { color: tokens.color.muted, fontSize: 14, lineHeight: 21, maxWidth: 380, textAlign: 'center' }, stateButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 48, paddingHorizontal: 20 }, stateButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
 });

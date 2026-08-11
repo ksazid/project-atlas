@@ -12,6 +12,7 @@
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
+    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "VS-25@170ff58125b6efcf299191117d01f09dd0270896",
     "VS-26@7c07d0f94cef157484d91ff7710460a6f0f4e49a"
   ],
@@ -70,7 +71,7 @@
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
     "specification": "docs/slices/VS-27.md",
-    "implementationPr": null,
+    "implementationPr": 49,
     "evidence": [
       "docs/superpowers/specs/2026-08-11-vs-27-business-hub-atlas-brand-experience-design.md",
       "docs/superpowers/plans/2026-08-11-vs-27-business-hub-atlas-brand-experience.md",
