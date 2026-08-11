@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getBusinessHub, type BusinessHub } from '@/api/atlas-client';
-import { loadSession } from '@/auth/session';
+import type { BusinessHub } from '@/api/atlas-client';
+import { clearBusinessSelection, loadSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
 import { BusinessContextStatus } from '@/features/business-hub/BusinessContextStatus';
 import { BusinessHero } from '@/features/business-hub/BusinessHero';
+import { loadBusinessHub } from '@/features/business-hub/business-hub-api';
 import { BusinessMediaPreview } from '@/features/business-hub/BusinessMediaPreview';
 import { BusinessSnapshotCard } from '@/features/business-hub/BusinessSnapshotCard';
 import { MenuIntelligenceCard } from '@/features/business-hub/MenuIntelligenceCard';
@@ -31,8 +32,14 @@ export function BusinessHubScreen() {
         setState('missing');
         return;
       }
-      const next = await getBusinessHub(session.accessToken, session.businessId);
-      setHub(next);
+      const result = await loadBusinessHub(session.accessToken, session.businessId);
+      if (result.state === 'missing') {
+        await clearBusinessSelection();
+        setHub(null);
+        setState('missing');
+        return;
+      }
+      setHub(result.hub);
       setHeroFailed(false);
       setState('ready');
     } catch {
@@ -45,7 +52,7 @@ export function BusinessHubScreen() {
   useEffect(() => { void load(); }, [load]);
 
   if (state !== 'ready' || !hub) {
-    return <HubState state={state} onRetry={() => void load()} onContinue={() => router.replace({ pathname: '/', params: { sessionEntry: '1' } })} />;
+    return <HubState state={state} onRetry={() => void load()} onContinue={() => router.replace('/create-business')} />;
   }
 
   return (
@@ -81,7 +88,7 @@ export function BusinessHubScreen() {
 
 function HubState({ state, onRetry, onContinue }: { state: ScreenState; onRetry: () => void; onContinue: () => void }) {
   if (state === 'loading') return <View style={styles.stateScreen}><BrandMark size={56} /><ActivityIndicator color={tokens.color.green} /><Text style={styles.stateCopy}>Loading your business…</Text></View>;
-  if (state === 'missing') return <View style={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>No business selected</Text><Text style={styles.stateCopy}>Choose or create a business before opening the Business Hub.</Text><Pressable accessibilityRole="button" onPress={onContinue} style={({ pressed }) => [styles.stateButton, pressed && styles.pressed]}><Text style={styles.stateButtonText}>Choose or create a business</Text></Pressable></View>;
+  if (state === 'missing') return <View style={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Set up your business</Text><Text style={styles.stateCopy}>Atlas does not have a business for this account yet. Start setup to add one.</Text><Pressable accessibilityRole="button" accessibilityLabel="Set up your business" onPress={onContinue} style={({ pressed }) => [styles.stateButton, pressed && styles.pressed]}><Text style={styles.stateButtonText}>Set up your business</Text></Pressable></View>;
   return <View style={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Business Hub is temporarily unavailable</Text><Text style={styles.stateCopy}>Your saved business information is unchanged. Try loading it again.</Text><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={onRetry} style={({ pressed }) => [styles.stateButton, pressed && styles.pressed]}><Text style={styles.stateButtonText}>Try again</Text></Pressable></View>;
 }
 
