@@ -246,6 +246,8 @@ public static class BusinessHubReader
 
 public static class BusinessHubEndpoints
 {
+    private const string ExpoDemoSubject = "atlas-expo-go-demo-owner";
+
     public static void MapBusinessHubEndpoints(this WebApplication app)
     {
         app.MapGet("/api/v1/businesses/{businessId:guid}/hub", async (
@@ -279,6 +281,57 @@ public static class BusinessHubEndpoints
             var menu = await BusinessHubReader.ReadMenuAsync(db, businessId, subject, ct);
             return menu is null ? Results.NotFound() : Results.Ok(menu);
         }).RequireAuthorization("BusinessOwner");
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapPost("/api/v1/dev/reset-business", async (
+                ClaimsPrincipal user,
+                AtlasDbContext db,
+                CancellationToken ct) =>
+            {
+                var subject = Subject(user);
+                if (!string.Equals(subject, ExpoDemoSubject, StringComparison.Ordinal)) return Results.NotFound();
+
+                var businessIds = await db.BusinessMemberships
+                    .AsNoTracking()
+                    .Where(x => x.UserAccount.ProviderSubject == ExpoDemoSubject && x.Role == MembershipRoles.BusinessOwner)
+                    .Select(x => x.BusinessId)
+                    .Distinct()
+                    .ToListAsync(ct);
+
+                await using var transaction = await db.Database.BeginTransactionAsync(ct);
+                foreach (var businessId in businessIds)
+                {
+                    await DeleteDemoBusinessAsync(db, businessId, ct);
+                }
+                await transaction.CommitAsync(ct);
+
+                return Results.Ok(new { status = "reset", businessCount = businessIds.Count });
+            }).RequireAuthorization("BusinessOwner");
+        }
+    }
+
+    private static async Task DeleteDemoBusinessAsync(AtlasDbContext db, Guid businessId, CancellationToken ct)
+    {
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"ActionDecisionRecords\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"Outcomes\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"ExecutionKits\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"NotificationRecords\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"NotificationPreferences\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessMemoryItems\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"Opportunities\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessGoals\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessContextEntries\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessProfileFields\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessProfiles\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessQuestionProgress\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessMediaReferences\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessOfferings\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessKnowledgeAssignments\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessDiscoverySnapshots\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"AuditRecords\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"BusinessMemberships\" WHERE \"BusinessId\" = {businessId}", ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM \"Businesses\" WHERE \"Id\" = {businessId}", ct);
     }
 
     private static string? Subject(ClaimsPrincipal user) =>
