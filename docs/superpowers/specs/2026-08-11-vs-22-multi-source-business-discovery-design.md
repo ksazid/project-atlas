@@ -63,18 +63,20 @@ Once a complete absolute URL is recognisable, Atlas immediately rewrites the fie
 
 Sanitisation includes:
 
-- trim whitespace and control characters;
+- trim whitespace and ASCII/Unicode control characters;
 - require HTTPS;
 - remove URL fragments;
 - reject credentials/user-info;
 - reject non-standard ports;
 - lowercase/canonicalise host representation;
-- enforce maximum canonical URL length;
+- enforce the existing 2,000-character canonical URL limit;
 - remove known tracking parameters such as `utm_*`, `gclid`, `fbclid`, `msclkid`, share/referral analytics parameters and Google `g_st`;
 - provider-specific query allowlisting where the provider path already identifies the Business;
 - preserve unknown non-tracking query parameters only for ordinary websites where they may be required to identify the page;
 - canonicalise trailing separators where safe;
 - detect canonical duplicates across all three rows before discovery.
+
+If a newly pasted canonical URL duplicates an earlier row, Atlas clears/removes the later duplicate row and announces `That business page is already added.` The earlier higher-priority row is preserved.
 
 A URL that becomes empty, generic or ambiguous after sanitisation is rejected.
 
@@ -115,7 +117,7 @@ Tracking/share parameters are removed when the venue path already identifies the
 Accepted Google source forms include:
 
 - `maps.app.goo.gl/<token>` specific place share links;
-- Google Maps place URLs that identify one establishment;
+- `google.com/maps/place/...` or `www.google.com/maps/place/...` URLs that identify one establishment;
 - canonical Google place identifiers resolved by the existing Google Places adapter.
 
 Generic Google Search URLs such as `google.com/search?q=...`, map-area links, broad directions links without one resolved establishment, and search-result pages are rejected as authoritative Business sources.
@@ -130,13 +132,15 @@ The resolver:
 
 1. validates the initial `maps.app.goo.gl` URL;
 2. disables automatic redirects;
-3. follows at most a small fixed redirect count;
+3. follows a maximum of four redirects;
 4. revalidates every redirect target;
-5. allows only approved Google Maps/Google hosts in the redirect chain;
+5. allows redirect hosts only within this exact initial allowlist: `maps.app.goo.gl`, `google.com`, `www.google.com`, `maps.google.com`;
 6. resolves DNS and rejects private, loopback, link-local, reserved or otherwise non-public addresses at every hop;
 7. requires HTTPS and standard port at every hop;
-8. rejects cross-provider redirects;
+8. rejects any redirect to a host outside the allowlist;
 9. extracts/resolves the specific place and then calls the approved Google Places adapter.
+
+The allowlist may be expanded only when an observed legitimate Google Maps redirect requires it and a regression/security test is added for that exact host class.
 
 No arbitrary redirect following is added for ordinary websites, Bolt or Wolt.
 
@@ -150,6 +154,7 @@ Before fetching any non-Google webpage Atlas must enforce:
 - no credentials;
 - standard HTTPS port only;
 - no localhost/internal/test/local hostnames;
+- no IP-literal Business URLs;
 - no private, loopback, link-local, carrier-grade NAT, documentation, multicast or reserved addresses;
 - DNS resolution before connect and public-address enforcement on the actual connected address;
 - no proxy routing;
@@ -169,7 +174,7 @@ IP-literal Business URLs are rejected in VS-22 even when the literal is public b
 
 A valid public restaurant page must not fail merely because its total response is larger than Atlas needs.
 
-Atlas reads only a strict safe prefix budget and stops consuming the response when that budget is reached. It never downloads an unbounded page into memory. Extraction operates on the bounded content already read.
+Atlas keeps the existing `750,000` decoded-character extraction budget as the hard maximum, reads at most that safe prefix and then stops consuming the response. It never downloads an unbounded page into memory. Extraction operates only on the bounded content already read.
 
 If useful metadata exists inside the safe prefix, discovery may succeed even when the remote response is larger. If useful facts are not found inside the bounded content, the source degrades to `no useful facts` and later sources may still provide the missing data.
 
@@ -195,7 +200,7 @@ Rules:
 - `additionalUrls` contains zero to two values;
 - blank optional values are discarded;
 - all values are server-sanitised and revalidated;
-- canonical duplicates are rejected/ignored deterministically;
+- canonical duplicates after the first source are discarded deterministically and reported as duplicate-source validation detail;
 - source order is retained.
 
 The discovery response remains centred on one reconciled Business snapshot and also returns provider-neutral source status/warnings required by the mobile review flow.
@@ -216,11 +221,13 @@ An invalid or unsafe URL is a validation error, not a degradable network warning
 
 Before a secondary source contributes facts, Atlas checks that it refers to the same Business identity as the current anchor.
 
-Evidence may include normalised Business name, marketplace merchant identity, resolved Google Place/display name and location/address signals when available.
+The matcher uses normalised Business names, marketplace merchant identity, resolved Google Place/display name and location/address signals when available.
+
+A strong name match is deterministic: normalised names are equal, or the shorter normalised name contains at least two non-generic tokens and every shorter token appears in the longer name. If both sources expose country/locality signals, those signals must not conflict. Provider boilerplate is removed before comparison.
 
 - Strong match: source may contribute according to precedence.
-- Ambiguous match: source facts are retained as unmerged evidence and the owner is warned.
-- Clear mismatch: source is excluded from reconciliation.
+- Ambiguous match: some identity evidence overlaps but the strong rule is not met; source facts are retained as unmerged evidence and the owner is warned.
+- Clear mismatch: no meaningful identity overlap or conflicting country/locality; source is excluded from reconciliation.
 
 If the primary yields no identity, the first successful secondary becomes the temporary identity anchor for that discovery snapshot.
 
@@ -237,7 +244,7 @@ For each supported fact key:
 5. never fabricate a merged value;
 6. never allow a lower-priority source to overwrite a selected higher-priority fact automatically.
 
-Location, country, timezone and currency continue through the VS-21 canonical location-resolution flow. Arbitrary marketplace text cannot override canonical market metadata.
+Material owner-review conflict keys in VS-22 are `name`, `primaryLocation`/address, `phone`, `openingHours`, `category` and `subcategory`. Different descriptions are treated as alternate evidence rather than a blocking conflict. Country, timezone and currency remain derived by the VS-21 canonical location-resolution flow and are not reconciled from arbitrary marketplace text.
 
 ## Provenance persistence
 
@@ -334,7 +341,7 @@ Tests cover:
 - every populated row has one-tap `×` clear/remove;
 - pasted share text becomes the canonical URL in the visible input;
 - invalid row shows an accessible inline error;
-- duplicate source is blocked;
+- duplicate source is removed/reported without changing the earlier priority;
 - provider-neutral confirmation copy;
 - reduced motion and touch/accessibility semantics.
 
