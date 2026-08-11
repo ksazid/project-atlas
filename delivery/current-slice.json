@@ -1,32 +1,49 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-20",
-  "title": "VS-20 — Automatic Knowledge Bundle Resolution",
+  "sliceId": "VS-23",
+  "title": "VS-23 — Evidence-Aware Restaurant/Café Opportunity Generation",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "implementing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-06"],
+  "requirements": ["FR-05","FR-06","FR-07","FR-08","FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-19@beb5774a6fb4af78fa76734000f532858df62e91"],
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758"],
   "blockers": [],
   "allowedPaths": ["apps/api/**","tests/api/**","delivery/**","docs/**"],
-  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
-  "impact": {"areas":["architecture","api"],"notes":["Automatically composes exact Core, applicable packaged Category intelligence, confirmed Business Context, Local/Market facts and Business Memory.","Subcategory is accepted only from owner-confirmed canonical Business Profile evidence; the resolver does not re-infer it.","Valid TDD RED was proven on 42887b9a68121f5c54102cf8551e6a034ca16f79 after correcting a test-authoring defect on the earlier head.","Implementation f602451cd5b79d76e91c950fdb1662918856565e passed CI 31347434598, Security 31347434600 and Product Intake 31347434594.","No persistence migration, provider dependency, release or production enablement is included."]},
+  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**","apps/mobile/**"],
+  "impact": {
+    "areas":["architecture","api","customer-flow"],
+    "notes":[
+      "Parallel track approved by Product Owner; VS-23 must not modify VS-22 multi-source discovery or VS-21 onboarding/location implementation.",
+      "Consumes the certified VS-20 ResolvedKnowledgeBundle contract directly.",
+      "Deterministic evidence-aware generation only; no external AI/provider call.",
+      "No qualifying evidence returns no-focus rather than filler.",
+      "Before merge VS-23 must update to then-current main after VS-22 and rerun exact-head certification.",
+      "No production deployment is authorized."
+    ]
+  },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-20@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T02:34:00+02:00","rationale":"Product Owner approved the next five Atlas slices; VS-20 is the third slice."},
-    {"type":"policy","status":"not-required","version":"VS-20@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T02:34:00+02:00","rationale":"No policy waiver, connector, provider commitment or new data-collection surface."},
-    {"type":"implementation","status":"approved","version":"VS-20@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T02:34:00+02:00","rationale":"Product Owner authorized implementation, fixes and merge for the next five slices."},
-    {"type":"certification","status":"approved","version":"VS-20@1.0","commitSha":"f602451cd5b79d76e91c950fdb1662918856565e","by":"ksazid","at":"2026-08-10T03:39:00+02:00","rationale":"Exact implementation head passed CI, Security baseline and Product Intake. Release and production remain unauthorized."},
+    {"type":"scope","status":"approved","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner approved all remaining slices and instructed this chat to proceed fully on the parallel Opportunity Generation and E2E validation track."},
+    {"type":"policy","status":"not-required","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"VS-23 adds no new provider, external data source, AI call, retention policy or production release."},
+    {"type":"implementation","status":"approved","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner explicitly instructed implementation, fixes and thorough testing to proceed without routine checkpoints."},
+    {"type":"certification","status":"pending","version":"VS-23@1.0","commitSha":null,"by":null,"at":null,"rationale":"Exact-SHA certification approval cannot be granted before the final implementation SHA exists."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
-  "certification": {"status":"passed","commitSha":"f602451cd5b79d76e91c950fdb1662918856565e","evidence":["CI run 31347434598","Security baseline run 31347434600","Product Intake run 31347434594","TDD RED CI run 31347205720","docs/evidence/VS-20-CERTIFICATION-2026-08-10.md"]},
+  "progress": {"discovery":100,"decisions":100,"implementation":10,"testing":0,"certification":0,"release":0,"validation":0},
+  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-  "links": {"specification":"docs/slices/VS-20.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/27","evidence":["docs/superpowers/specs/2026-08-10-vs-20-automatic-knowledge-bundle-resolution-design.md","docs/superpowers/plans/2026-08-10-vs-20-automatic-knowledge-bundle-resolution.md","tests/api/KnowledgeBundleResolverTests.cs","docs/evidence/VS-20-CERTIFICATION-2026-08-10.md"]},
+  "links": {
+    "specification":"docs/slices/VS-23.md",
+    "implementationPr":null,
+    "evidence":[
+      "docs/superpowers/specs/2026-08-11-vs-23-evidence-aware-opportunity-generation-design.md",
+      "docs/superpowers/plans/2026-08-11-vs-23-evidence-aware-opportunity-generation.md"
+    ]
+  },
   "maxAttempts": 3
 }
