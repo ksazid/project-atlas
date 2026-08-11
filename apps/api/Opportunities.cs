@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
@@ -106,6 +107,26 @@ public sealed record OpportunityDetailResponse(
 
 public static class OpportunityPolicy
 {
+    private static readonly string[] LegacyAssumptions =
+    [
+        "The owner-confirmed profile and selected goal remain accurate.",
+        "The recorded Knowledge Pack version is applicable to this Business."
+    ];
+
+    private static readonly string[] LegacyLimitations =
+    [
+        "Expected impact is directional, not guaranteed.",
+        "Atlas has not measured an outcome yet.",
+        "External action still requires owner review."
+    ];
+
+    private sealed record ParsedEvidence(
+        IReadOnlyList<OpportunityEvidenceItem> Evidence,
+        string GoalAlignment,
+        string? GoalTitle,
+        IReadOnlyList<string> Assumptions,
+        IReadOnlyList<string> Limitations);
+
     public static bool IsEligible(BusinessProfile? profile, IReadOnlyCollection<BusinessGoal> goals, BusinessKnowledgeAssignment? assignment) =>
         profile is { OwnerConfirmed: true } && goals.Count > 0 && assignment is { IsCurrent: true };
 
@@ -117,37 +138,23 @@ public static class OpportunityPolicy
 
     public static OpportunityDetailResponse Detail(Opportunity value, BusinessGoal? goal, DateTimeOffset now)
     {
-        var evidence = new List<OpportunityEvidenceItem>();
-        try
-        {
-            using var document = JsonDocument.Parse(value.EvidenceJson);
-            var root = document.RootElement;
-            if (root.TryGetProperty("profile", out var profile)) evidence.Add(new("business-profile", "Business Profile", profile.GetString() ?? "confirmed", "owner-confirmed"));
-            if (root.TryGetProperty("goal", out var goalValue)) evidence.Add(new("business-goal", "Priority goal", goalValue.GetString() ?? goal?.Title ?? "Selected goal", "owner-selected"));
-            if (root.TryGetProperty("PackKey", out var packKey)) evidence.Add(new("knowledge-pack", "Knowledge Pack", $"{packKey.GetString()} v{value.KnowledgePackVersion}", "published-pack"));
-        }
-        catch (JsonException)
-        {
-            evidence.Add(new("summary", "Evidence summary", value.EvidenceSummary, "recorded-evidence"));
-        }
-
-        if (evidence.Count == 0) evidence.Add(new("summary", "Evidence summary", value.EvidenceSummary, "recorded-evidence"));
+        var parsed = ParseEvidence(value, goal);
         var expired = value.ExpiresAt <= now;
         return new OpportunityDetailResponse(
             value.Id,
             value.Title,
             StatusFor(value, now),
-            goal is null ? "This Opportunity references a goal that is no longer available." : $"Aligned to priority #{goal.Priority}: {goal.Title}",
-            goal?.Title,
+            parsed.GoalAlignment,
+            parsed.GoalTitle,
             value.WhyItMatters,
             value.WhyNow,
             value.Confidence,
             value.ExpectedImpact,
             value.Effort,
-            evidence,
-            ["The owner-confirmed profile and selected goal remain accurate.", "The recorded Knowledge Pack version is applicable to this Business."],
-            ["Expected impact is directional, not guaranteed.", "Atlas has not measured an outcome yet.", "External action still requires owner review."],
-            evidence.Select(x => x.Category).Distinct().ToArray(),
+            parsed.Evidence,
+            parsed.Assumptions,
+            parsed.Limitations,
+            parsed.Evidence.Select(x => x.Category).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
             $"Review and apply the proposed action: {value.Title}",
             false,
             value.CreatedAt,
@@ -156,6 +163,157 @@ public static class OpportunityPolicy
             value.KnowledgePackKey,
             value.KnowledgePackVersion,
             value.ConcurrencyVersion);
+    }
+
+    private static ParsedEvidence ParseEvidence(Opportunity value, BusinessGoal? goal)
+    {
+        var fallbackAlignment = goal is null
+            ? "This Opportunity references a goal that is no longer available."
+            : $"Aligned to priority #{goal.Priority}: {goal.Title}";
+        var fallbackTitle = goal?.Title;
+
+        try
+        {
+            using var document = JsonDocument.Parse(value.EvidenceJson);
+            var root = document.RootElement;
+
+            if (IsVs23Snapshot(root))
+                return ParseVs23Snapshot(root, value, fallbackAlignment, fallbackTitle);
+
+            return ParseLegacySnapshot(root, value, fallbackAlignment, fallbackTitle);
+        }
+        catch (JsonException)
+        {
+            return Fallback(value, fallbackAlignment, fallbackTitle);
+        }
+        catch (InvalidOperationException)
+        {
+            return Fallback(value, fallbackAlignment, fallbackTitle);
+        }
+    }
+
+    private static bool IsVs23Snapshot(JsonElement root) =>
+        root.ValueKind == JsonValueKind.Object &&
+        root.TryGetProperty("schemaVersion", out var schemaVersion) &&
+        schemaVersion.ValueKind == JsonValueKind.Number &&
+        schemaVersion.TryGetInt32(out var version) && version == OpportunityGenerationSnapshot.SchemaVersion &&
+        root.TryGetProperty("evidence", out var evidence) && evidence.ValueKind == JsonValueKind.Array;
+
+    private static ParsedEvidence ParseVs23Snapshot(
+        JsonElement root,
+        Opportunity value,
+        string fallbackAlignment,
+        string? fallbackTitle)
+    {
+        var alignment = fallbackAlignment;
+        var title = fallbackTitle;
+        if (root.TryGetProperty("goal", out var goalValue) && goalValue.ValueKind == JsonValueKind.Object)
+        {
+            alignment = ReadString(goalValue, "alignment") ?? alignment;
+            title = ReadString(goalValue, "title") ?? title;
+        }
+
+        var evidence = new List<OpportunityEvidenceItem>();
+        var evidenceArray = root.GetProperty("evidence");
+        foreach (var item in evidenceArray.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object) continue;
+            var layer = ReadString(item, "layer");
+            var key = ReadString(item, "key");
+            var itemValue = ReadString(item, "value");
+            var source = ReadString(item, "source");
+            if (string.IsNullOrWhiteSpace(layer) || string.IsNullOrWhiteSpace(key) ||
+                string.IsNullOrWhiteSpace(itemValue) || string.IsNullOrWhiteSpace(source)) continue;
+
+            evidence.Add(new OpportunityEvidenceItem(layer, EvidenceLabel(key), itemValue, source));
+        }
+
+        if (evidence.Count == 0)
+            return Fallback(value, alignment, title);
+
+        return new ParsedEvidence(
+            evidence,
+            alignment,
+            title,
+            ReadStringArray(root, "assumptions", LegacyAssumptions),
+            ReadStringArray(root, "limitations", LegacyLimitations));
+    }
+
+    private static ParsedEvidence ParseLegacySnapshot(
+        JsonElement root,
+        Opportunity value,
+        string fallbackAlignment,
+        string? fallbackTitle)
+    {
+        if (root.ValueKind != JsonValueKind.Object)
+            return Fallback(value, fallbackAlignment, fallbackTitle);
+
+        var evidence = new List<OpportunityEvidenceItem>();
+        if (root.TryGetProperty("profile", out var profile) && profile.ValueKind == JsonValueKind.String)
+            evidence.Add(new("business-profile", "Business Profile", profile.GetString() ?? "confirmed", "owner-confirmed"));
+
+        if (root.TryGetProperty("goal", out var goalValue) && goalValue.ValueKind == JsonValueKind.String)
+            evidence.Add(new("business-goal", "Priority goal", goalValue.GetString() ?? fallbackTitle ?? "Selected goal", "owner-selected"));
+
+        var packKey = ReadString(root, "PackKey") ?? ReadString(root, "packKey");
+        if (!string.IsNullOrWhiteSpace(packKey))
+            evidence.Add(new("knowledge-pack", "Knowledge Pack", $"{packKey} v{value.KnowledgePackVersion}", "published-pack"));
+
+        if (evidence.Count == 0)
+            return Fallback(value, fallbackAlignment, fallbackTitle);
+
+        return new ParsedEvidence(evidence, fallbackAlignment, fallbackTitle, LegacyAssumptions, LegacyLimitations);
+    }
+
+    private static ParsedEvidence Fallback(Opportunity value, string alignment, string? goalTitle) => new(
+        [new OpportunityEvidenceItem("summary", "Evidence summary", value.EvidenceSummary, "recorded-evidence")],
+        alignment,
+        goalTitle,
+        LegacyAssumptions,
+        LegacyLimitations);
+
+    private static string? ReadString(JsonElement element, string property)
+    {
+        if (!element.TryGetProperty(property, out var value) || value.ValueKind != JsonValueKind.String) return null;
+        var result = value.GetString()?.Trim();
+        return string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
+    private static IReadOnlyList<string> ReadStringArray(JsonElement element, string property, IReadOnlyList<string> fallback)
+    {
+        if (!element.TryGetProperty(property, out var value) || value.ValueKind != JsonValueKind.Array) return fallback;
+        return value.EnumerateArray()
+            .Where(x => x.ValueKind == JsonValueKind.String)
+            .Select(x => x.GetString()?.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Cast<string>()
+            .ToArray();
+    }
+
+    private static string EvidenceLabel(string key)
+    {
+        var canonical = key.Trim();
+        if (canonical.Equals("primarychannels", StringComparison.OrdinalIgnoreCase)) return "Primary channels";
+        if (canonical.Equals("currentpriorities", StringComparison.OrdinalIgnoreCase)) return "Current priorities";
+        if (canonical.Equals("businessHours", StringComparison.OrdinalIgnoreCase)) return "Business hours";
+        if (canonical.Equals("openingHours", StringComparison.OrdinalIgnoreCase)) return "Opening hours";
+        if (canonical.Equals("reviewSignal", StringComparison.OrdinalIgnoreCase)) return "Review signal";
+        if (canonical.Equals("reputationSignal", StringComparison.OrdinalIgnoreCase)) return "Reputation signal";
+
+        var builder = new StringBuilder(canonical.Length + 8);
+        for (var index = 0; index < canonical.Length; index++)
+        {
+            var current = canonical[index];
+            if (current is '-' or '_')
+            {
+                if (builder.Length > 0 && builder[^1] != ' ') builder.Append(' ');
+                continue;
+            }
+            if (index > 0 && char.IsUpper(current) && builder.Length > 0 && builder[^1] != ' ') builder.Append(' ');
+            builder.Append(char.ToLowerInvariant(current));
+        }
+        var result = builder.ToString().Trim();
+        return result.Length == 0 ? "Evidence" : char.ToUpperInvariant(result[0]) + result[1..];
     }
 }
 
@@ -172,36 +330,6 @@ public static class OpportunityEndpoints
         return membership?.UserAccount;
     }
 
-    private static async Task<Opportunity?> CreateDeterministicFocus(Guid businessId, UserAccount account, AtlasDbContext db, CancellationToken ct)
-    {
-        var profile = await db.BusinessProfiles.SingleOrDefaultAsync(x => x.BusinessId == businessId, ct);
-        var goals = await db.BusinessGoals.Where(x => x.BusinessId == businessId).OrderBy(x => x.Priority).ToListAsync(ct);
-        var assignment = await db.BusinessKnowledgeAssignments.SingleOrDefaultAsync(x => x.BusinessId == businessId && x.IsCurrent, ct);
-        if (!OpportunityPolicy.IsEligible(profile, goals, assignment)) return null;
-
-        var primaryGoal = goals[0];
-        var now = DateTimeOffset.UtcNow;
-        var focus = new Opportunity
-        {
-            Id = Guid.NewGuid(), BusinessId = businessId,
-            Title = $"Review one practical action for {primaryGoal.Title}",
-            WhyItMatters = $"This supports your highest-priority goal: {primaryGoal.Title}.",
-            WhyNow = "Your profile, goal and active Knowledge Pack provide enough confirmed context for a focused review.",
-            ExpectedImpact = "Clarify one measurable next action without committing to an unsupported result.",
-            Effort = "Low", Confidence = "Medium",
-            EvidenceSummary = $"Confirmed business profile; priority goal #{primaryGoal.Priority}; active {assignment!.PackKey} Knowledge Pack v{assignment.ExactVersion}.",
-            EvidenceJson = JsonSerializer.Serialize(new { profile = "owner-confirmed", goalId = primaryGoal.Id, goal = primaryGoal.Title, assignment.PackKey, assignment.ExactVersion }),
-            Status = OpportunityStatuses.Available,
-            KnowledgePackKey = assignment.PackKey, KnowledgePackVersion = assignment.ExactVersion,
-            KnowledgePackVersionId = assignment.KnowledgePackVersionId, GoalId = primaryGoal.Id,
-            CreatedAt = now, ExpiresAt = now.AddDays(1)
-        };
-        db.Set<Opportunity>().Add(focus);
-        db.AuditRecords.Add(AuditRecord.Create(account.Id, businessId, $"opportunity.created:{focus.Id}"));
-        await db.SaveChangesAsync(ct);
-        return focus;
-    }
-
     public static IEndpointRouteBuilder MapOpportunityEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/v1/businesses/{businessId:guid}/today-focus", async (Guid businessId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
@@ -209,20 +337,17 @@ public static class OpportunityEndpoints
             var account = await OwnerAccount(businessId, user, db, ct);
             if (account is null) return Results.NotFound();
 
-            var now = DateTimeOffset.UtcNow;
-            var current = await db.Set<Opportunity>().Where(x => x.BusinessId == businessId && x.Status == OpportunityStatuses.Available)
-                .OrderByDescending(x => x.CreatedAt).FirstOrDefaultAsync(ct);
-            if (current is not null && current.ExpiresAt <= now)
+            var result = await OpportunityFocusService.GenerateAsync(db, businessId, account.Id, DateTimeOffset.UtcNow, ct);
+            return result.State switch
             {
-                current.Status = OpportunityStatuses.Expired;
-                await db.SaveChangesAsync(ct);
-                current = null;
-            }
-
-            current ??= await CreateDeterministicFocus(businessId, account, db, ct);
-            if (current is null)
-                return Results.Ok(new { state = "insufficient-context", message = "Confirm your Business Profile, choose at least one goal and keep an active Knowledge Pack to receive Today’s Focus." });
-            return Results.Ok(new { state = "ready", opportunity = TodayFocusResponse.From(current) });
+                OpportunityFocusGenerationStates.Ready when result.Opportunity is not null =>
+                    Results.Ok(new { state = OpportunityFocusGenerationStates.Ready, opportunity = TodayFocusResponse.From(result.Opportunity) }),
+                OpportunityFocusGenerationStates.InsufficientContext =>
+                    Results.Ok(new { state = OpportunityFocusGenerationStates.InsufficientContext, code = result.Code, message = result.Message }),
+                OpportunityFocusGenerationStates.NoFocus =>
+                    Results.Ok(new { state = OpportunityFocusGenerationStates.NoFocus, code = result.Code, message = result.Message }),
+                _ => Results.Ok(new { state = OpportunityFocusGenerationStates.Degraded, code = result.Code, message = result.Message })
+            };
         }).RequireAuthorization("BusinessOwner");
 
         app.MapGet("/api/v1/businesses/{businessId:guid}/opportunities/{opportunityId:guid}", async (Guid businessId, Guid opportunityId, ClaimsPrincipal user, AtlasDbContext db, CancellationToken ct) =>
