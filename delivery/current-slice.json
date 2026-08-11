@@ -3,7 +3,7 @@
   "sliceId": "VS-23",
   "title": "VS-23 — Evidence-Aware Restaurant/Café Opportunity Generation",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "testing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-05","FR-06","FR-07","FR-08","FR-16"],
@@ -15,10 +15,12 @@
   "impact": {
     "areas":["architecture","api","customer-flow"],
     "notes":[
-      "Parallel track approved by Product Owner; VS-23 must not modify VS-22 multi-source discovery or VS-21 onboarding/location implementation.",
+      "Parallel track approved by Product Owner; VS-23 does not modify VS-22 multi-source discovery or VS-21 onboarding/location implementation.",
       "Retains the certified VS-15 runtime baseline explicitly and consumes the certified VS-20 ResolvedKnowledgeBundle contract directly.",
       "Deterministic evidence-aware generation only; no external AI/provider call.",
       "No qualifying evidence returns no-focus rather than filler.",
+      "Today’s Focus now uses evidence-aware generation and Opportunity Detail safely parses the structured evidence snapshot.",
+      "A pre-existing runtime defect was fixed by registering the already-migrated Opportunity entity in AtlasDbContext; no new migration was required.",
       "Before merge VS-23 must update to then-current main after VS-22 and rerun exact-head certification.",
       "No production deployment is authorized."
     ]
@@ -27,13 +29,18 @@
     {"type":"scope","status":"approved","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner approved all remaining slices and instructed this chat to proceed fully on the parallel Opportunity Generation and E2E validation track."},
     {"type":"policy","status":"not-required","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"VS-23 adds no new provider, external data source, AI call, retention policy or production release."},
     {"type":"implementation","status":"approved","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner explicitly instructed implementation, fixes and thorough testing to proceed without routine checkpoints."},
-    {"type":"certification","status":"pending","version":"VS-23@1.0","commitSha":null,"by":null,"at":null,"rationale":"Exact-SHA certification approval cannot be granted before the final implementation SHA exists."},
+    {"type":"certification","status":"pending","version":"VS-23@1.0","commitSha":null,"by":null,"at":null,"rationale":"Exact-SHA certification approval cannot be granted before the final integrated implementation SHA exists."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":10,"testing":0,"certification":0,"release":0,"validation":0},
-  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":95,"certification":0,"release":0,"validation":0},
+  "certification": {"status":"not-started","commitSha":null,"evidence":[
+    "TDD RED CI 31448681701: generator contract absent after preflight/migrations passed",
+    "Goal compatibility RED CI 31449610592",
+    "Opportunity Detail RED CI 31451234172: structured goal object reproduced legacy parser crash",
+    "GREEN CI 31451583565: 224 API tests passed plus preflight, PostgreSQL migrations, Security and Product Intake"
+  ]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
@@ -42,7 +49,11 @@
     "implementationPr":"https://github.com/ksazid/project-atlas/pull/30",
     "evidence":[
       "docs/superpowers/specs/2026-08-11-vs-23-evidence-aware-opportunity-generation-design.md",
-      "docs/superpowers/plans/2026-08-11-vs-23-evidence-aware-opportunity-generation.md"
+      "docs/superpowers/plans/2026-08-11-vs-23-evidence-aware-opportunity-generation.md",
+      "tests/api/OpportunityGenerationTests.cs",
+      "tests/api/OpportunityGoalMappingTests.cs",
+      "tests/api/OpportunityGenerationIntegrationTests.cs",
+      "tests/api/OpportunityGenerationDetailTests.cs"
     ]
   },
   "maxAttempts": 3
