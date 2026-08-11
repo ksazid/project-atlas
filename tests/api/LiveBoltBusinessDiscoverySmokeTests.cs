@@ -12,8 +12,15 @@ public sealed class LiveBoltBusinessDiscoverySmokeTests
     {
         using var handler = PublicBusinessHttpHandlerFactory.Create();
         using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
-        var service = new BusinessDiscoveryService(client);
+        using var request = new HttpRequestMessage(HttpMethod.Get, PublicBoltUrl);
+        request.Headers.UserAgent.ParseAdd("AtlasBusinessDiscovery/1.0");
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None);
 
+        Assert.True(
+            response.IsSuccessStatusCode,
+            $"Live Bolt terminal response was HTTP {(int)response.StatusCode} ({response.StatusCode}); Location={response.Headers.Location?.ToString() ?? "<none>"}; ETag={response.Headers.ETag?.ToString() ?? "<none>"}.");
+
+        var service = new BusinessDiscoveryService(client);
         var snapshot = await service.DiscoverAsync(PublicBoltUrl, CancellationToken.None);
 
         Assert.Equal("bolt-food", snapshot.Provider);
