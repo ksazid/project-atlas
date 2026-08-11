@@ -13,9 +13,10 @@
   "allowedPaths": ["apps/api/**","tests/api/**","delivery/**","docs/**"],
   "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
   "impact": {
-    "areas":["api","persistence","customer-flow","architecture"],
+    "areas":["api","customer-flow","architecture"],
     "notes":[
       "VS-25 extends the existing provider-neutral public discovery boundary; it does not add private provider connectors.",
+      "VS-25 adds PostgreSQL persistence through the existing API architecture and forward-only migration policy.",
       "Third-party public image binaries are never copied or rehosted; only bounded remote references and provenance are retained.",
       "Structured menu facts use the generic Business Offering model with menu-item as the initial kind so Atlas Core remains industry-agnostic.",
       "Public media/menu observations remain unconfirmed unless explicitly confirmed by the owner in a future UI.",
@@ -38,9 +39,10 @@
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
     "specification":"docs/slices/VS-25.md",
-    "implementationPr":null,
+    "implementationPr":45,
     "evidence":[
-      "docs/superpowers/specs/2026-08-11-vs-25-business-media-menu-intelligence-design.md"
+      "docs/superpowers/specs/2026-08-11-vs-25-business-media-menu-intelligence-design.md",
+      "docs/superpowers/plans/2026-08-11-vs-25-business-media-menu-intelligence.md"
     ]
   },
   "maxAttempts": 3
