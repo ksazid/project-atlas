@@ -19,11 +19,9 @@ VS-26 must not activate while VS-25 is the active runtime slice. This branch is 
 
 ## Product outcome
 
-Atlas should avoid asking an owner factual operating questions that it can already answer confidently from a uniquely resolved public Business identity. After a Business is resolved to one canonical Google Place, Atlas may retrieve a bounded set of structured Google Place attributes, reconcile them with the existing website/Bolt/Wolt evidence graph, persist their provenance, and use them to suppress redundant progressive onboarding questions.
+Atlas should avoid asking an owner factual operating questions that it can already discover confidently from a uniquely resolved public Business identity. After a Business is resolved to one canonical Google Place, Atlas may retrieve a bounded set of structured Google Place attributes, reconcile them with the existing website/Bolt/Wolt evidence graph, present the material operating facts compactly for owner confirmation, persist provenance, and suppress redundant follow-up questions.
 
 The remaining onboarding should focus primarily on owner-only information, especially Business Goals, current priority, strategic constraints and desired outcomes.
-
-This keeps the locked product principle intact: do not make the owner manage Atlas more than the Business.
 
 ## Approved approach
 
@@ -35,35 +33,44 @@ Whenever Atlas resolves a Business to one unique Google Place, request a tightly
 
 Advantages:
 - maximises redundant-question suppression;
-- creates one consistent enrichment path independent of the source URL entered;
+- creates one consistent enrichment path independent of source URL;
 - reuses the existing canonical Place ID/location boundary;
 - keeps Google data structured and provider-specific at the adapter boundary;
-- improves category/context quality without requiring the owner to paste a Google URL.
+- improves category/context quality without requiring a Google URL.
 
 Trade-off:
 - richer fields can incur higher Google Places SKU cost, so the field mask must be deliberately minimal and independently testable.
 
 ### B. Enrich only when the owner provides a Google URL — REJECTED
 
-Lower external cost, but website/Bolt/Wolt onboarding would continue asking questions Atlas could answer after location resolution.
+Lower external cost, but website/Bolt/Wolt onboarding would continue asking questions Atlas can answer after location resolution.
 
-### C. Do not use rich Google attributes; rely only on marketplace/website facts — REJECTED
+### C. Do not use rich Google attributes — REJECTED
 
 Lowest provider cost but lower coverage, more owner questioning and poorer cross-source corroboration.
+
+## Decision delta from earlier Category Intelligence plan
+
+The locked Category Intelligence foundation originally targeted 3–5 progressive questions after successful enrichment. The Product Owner has now approved a more aggressive evidence-aware model: when material public facts are discovered, shown and confirmed during Business confirmation, Atlas should not ask them again. A sufficiently enriched Business may therefore have zero optional non-goal context questions after Goals.
+
+This is an intentional product-direction change, not an accidental implementation detail. When VS-26 activates, record it as a new typed decision in `delivery/decisions.json` after VS-25 has merged, rather than editing the shared decision registry while VS-25 is active.
+
+The maximum of five optional context questions remains a degraded/missing-data safety ceiling, not a quota.
 
 ## Non-goals
 
 VS-26 does not:
 
 - scrape Google Maps HTML;
-- ingest Google reviews or review text as authoritative Business facts;
+- ingest Google reviews/review text as authoritative Business facts;
 - infer Goals from public data;
 - infer sales, repeat rate, profitability, utilisation or customer demographics;
 - introduce a general crawler;
 - implement private Google Business Profile APIs;
 - add private Bolt/Wolt/POS/reservation connectors;
+- duplicate VS-25 media/menu ingestion;
 - redesign the approved Atlas UI;
-- add a new navigation model;
+- change navigation architecture;
 - deploy, release or production-enable Atlas.
 
 ## Approved design authority
@@ -72,7 +79,7 @@ All owner-facing work must preserve `ATLAS-DESIGN-001` v1.2.
 
 The primary visual grammar remains the approved Atlas warm-neutral/deep-green system, shared tokens, existing `BrandMark` boundary, restrained cards/forms/buttons/depth, generous whitespace and low cognitive load. No new visual system, generic SaaS pattern or third-party branding may be introduced.
 
-For product-workflow structure and accessibility, UI UX Pro Max may be used as a secondary implementation aid only. It may improve information architecture, form state, responsive behaviour and accessibility but may not override the approved Atlas visual grammar. Impeccable/Emil/Ponytail may only be used later within the repository's conditional design-skill order and within the frozen baseline.
+UI UX Pro Max may later be used only as a secondary product-workflow/accessibility aid. It may improve information architecture, form states, responsive behaviour and accessibility but may not override the approved Atlas visual grammar. Other installed design skills remain subordinate to the repository's conditional design-skill order and frozen baseline.
 
 ## Architecture
 
@@ -80,40 +87,35 @@ For product-workflow structure and accessibility, UI UX Pro Max may be used as a
 
 The existing `IBusinessLocationProvider` / `GoogleBusinessLocationProvider` path continues to resolve candidate Businesses and returns a canonical Google Place ID (`providerRef`) plus address, coordinates, country, timezone and type summary.
 
-VS-26 must not create a second independent identity-matching system.
+VS-26 must not create a second independent identity-matching system. Once one candidate is selected or uniquely preselected, that exact Place ID becomes the enrichment input.
 
-Once one candidate is selected or uniquely preselected, that exact Place ID becomes the input to the enrichment adapter.
+### 2. Structured Place-enrichment provider port
 
-### 2. New provider port: structured Place enrichment
-
-Add a consuming-module-owned provider-neutral port, conceptually:
-
-`IBusinessPlaceEnrichmentProvider`
+Add a consuming-module-owned provider-neutral port, conceptually `IBusinessPlaceEnrichmentProvider`.
 
 Input:
 - canonical provider reference / Place ID;
-- category or resolved type context when useful for selecting a field mask.
+- resolved Business/category context only where useful for selecting a bounded field set.
 
 Output:
-- a bounded `BusinessPlaceEnrichment` result containing provider-neutral structured attributes plus source metadata.
+- a bounded provider-neutral `BusinessPlaceEnrichment` result containing structured attributes plus source metadata.
 
-Google-specific HTTP and field names stay behind the adapter.
+Google-specific HTTP, response shape and field names stay behind the adapter.
 
-### 3. Google Place Details, never Maps HTML scraping
+### 3. Place Details only; never Maps HTML scraping
 
-The Google adapter calls Places API (New) Place Details using the resolved Place ID and explicit `X-Goog-FieldMask`.
+The Google adapter calls Places API (New) Place Details using the resolved Place ID and an explicit `X-Goog-FieldMask`.
 
-Initial candidate fields are intentionally narrow and selected only when they either:
+A field is requested only when it does at least one of these:
 
-1. replace an onboarding question;
-2. materially improve Category/Context intelligence; or
-3. provide an owner-useful fact already shown in the Business confirmation experience.
+1. eliminates or simplifies an onboarding question;
+2. materially improves Category/Context intelligence; or
+3. supplies an owner-useful fact already appropriate for Business confirmation.
 
-The initial restaurant/cafe enrichment set may include, subject to a final current-pricing check immediately before implementation:
+Initial restaurant/cafe candidate fields, subject to a fresh official pricing/terms check immediately before implementation, may include:
 
 - `businessStatus`
-- `primaryType` / `primaryTypeDisplayName`
-- `types`
+- `primaryType`, `primaryTypeDisplayName`, `types`
 - `regularOpeningHours` or `currentOpeningHours` only where they improve the existing hours fact
 - `priceLevel` or `priceRange`
 - `dineIn`
@@ -121,173 +123,163 @@ The initial restaurant/cafe enrichment set may include, subject to a final curre
 - `delivery`
 - `curbsidePickup` where relevant
 - `reservable`
-- `servesBreakfast`
-- `servesBrunch`
-- `servesLunch`
-- `servesDinner`
-- `servesCoffee`
-- `servesDessert`
-- `servesVegetarianFood`
+- `servesBreakfast`, `servesBrunch`, `servesLunch`, `servesDinner`
+- `servesCoffee`, `servesDessert`, `servesVegetarianFood`
 - `outdoorSeating` when useful
 
-Do not request ratings, review counts, reviews, review summaries, generative summaries, photos or broad amenities merely because they exist. They do not eliminate the targeted onboarding questions and would add cost/trust complexity.
+Do not request ratings, review counts, reviews, review summaries, generative summaries, photos or broad amenities merely because they exist.
 
-The implementation plan must re-check current Google Places field availability, EEA terms and SKU billing against official Google documentation before locking the production field mask.
+The implementation plan must re-check current Google Places field availability, EEA terms and SKU billing from official Google documentation before locking the production field mask.
 
-### 4. Provider-neutral canonical context model
+### 4. Provider-neutral canonical facts
 
-Google attributes are translated into Atlas canonical facts/context rather than leaking Google names into Business logic.
+Google attributes are translated into Atlas canonical facts/context rather than leaking Google terminology into Business logic.
 
 Examples:
 
-- `dineIn=true` -> service channel evidence `Dine in`
-- `takeout=true` -> service channel evidence `Takeaway`
-- `delivery=true` -> service channel evidence `Delivery`
-- a confirmed Bolt/Wolt merchant source -> marketplace ordering-channel evidence
-- `reservable=true` -> reservation capability evidence
-- meal flags -> bounded service-period context
-- `priceLevel` -> public price-position evidence, never profitability
+- `dineIn=true` -> service-channel candidate `Dine in`
+- `takeout=true` -> service-channel candidate `Takeaway`
+- `delivery=true` -> service-channel candidate `Delivery`
+- confirmed Bolt/Wolt merchant source -> marketplace-channel candidate
+- `reservable=true` -> reservation-capability candidate
+- meal flags -> bounded service-period candidates
+- `priceLevel` -> public price-position candidate, never profitability
 
 Canonical values must be stable, provider-neutral and suitable for future non-Google adapters.
 
-### 5. Provenance and confidence
+### 5. Provenance and confirmation states
 
-Every accepted enrichment fact retains:
+Every accepted enrichment observation retains:
 
 - provider/source identifier;
-- canonical source identity / Place ID as permitted by provider policy;
+- canonical source identity / Place ID where provider policy permits;
 - observed timestamp;
 - confidence/evidence class;
 - owner-confirmed state;
 - reconciliation state where applicable.
 
-External structured facts remain `public-observed` until owner confirmation. They must never be rewritten as `measured`.
+External structured observations begin as `public-observed`; they never become `measured` merely because sources agree.
 
-Provider attribution/display requirements must be respected where Google-derived data is shown to the owner. Internal storage must follow current Google Maps Platform terms, including any field-specific storage limitations. Place IDs may be retained only under the current applicable provider policy.
+Material operating facts that Atlas intends to use to remove owner questions must be included in the compact Business confirmation experience. The existing owner `Confirm and continue` action confirms the material displayed facts as part of the Business setup decision. Historical public observations remain immutable provenance behind the resulting owner-confirmed canonical facts.
+
+Hidden/non-material enrichment may remain `public-observed` for low-confidence intelligence support but must not silently become an owner-confirmed profile/context fact.
+
+Provider attribution/display and storage requirements must be respected for Google-derived data.
 
 ## Reconciliation policy
 
-VS-26 extends the existing deterministic VS-22 reconciliation model rather than replacing it.
+VS-26 extends the deterministic VS-22 model.
 
-1. Owner-confirmed facts remain authoritative.
+1. Owner-confirmed facts are authoritative.
 2. Existing primary-source precedence remains authoritative for ordinary source facts.
-3. Google structured Place attributes may fill missing operating/context facts and corroborate matching facts.
-4. Google must not silently overwrite a valid owner-confirmed or primary-source fact.
-5. Exact agreement strengthens corroboration but does not change the evidence class to measured.
-6. Material conflict preserves both provenance paths and leaves the fact unresolved for owner review when it affects intelligence/question suppression.
-7. Weak, absent or contradictory evidence must not suppress a question merely to shorten onboarding.
+3. Google structured attributes may fill missing candidates and corroborate matching observations.
+4. Google never silently overwrites an owner-confirmed or valid primary-source fact.
+5. Agreement strengthens corroboration but not evidence class.
+6. Material conflict preserves both provenance paths and requires owner resolution before the disputed fact becomes authoritative.
+7. Weak, absent or contradictory evidence does not eliminate a material question merely to shorten onboarding.
 
-## Question suppression and goal-first onboarding
+## Goal-first onboarding and question suppression
 
 ### Current baseline
 
-VS-17 currently suppresses a progressive question when its target Context key already exists as owner-confirmed Context or the question has been answered/skipped.
+VS-17 suppresses a question when its target Context key is already owner-confirmed or the question was answered/skipped.
 
 ### VS-26 extension
 
-Introduce a deterministic question-eligibility layer that can also suppress a question when a canonical fact is:
+Before Business confirmation, Atlas can use strong unconflicted public evidence to propose material operating facts in the confirmation summary. After the owner confirms that summary, those accepted canonical facts become eligible to suppress corresponding progressive questions.
 
-- relevant to that question's target;
-- supported by sufficiently strong public evidence;
-- not materially conflicted;
-- fresh enough for the fact type; and
-- safe to treat as a discoverable operating fact.
+A question is suppressed when its target is already satisfied by an owner-confirmed canonical fact produced from the confirmation flow or another existing owner-confirmed Context entry.
 
-This is not equivalent to owner confirmation. The suppression decision and the retained evidence class remain separate.
+This deliberately preserves the PRD rule that publicly sourced Business data is labelled and owner-confirmed while still avoiding separate repetitive questions.
 
-For example, the restaurant question `restaurant-cafe.service-channel` should not be asked merely to learn dine-in/takeaway/marketplace participation when Atlas already has unconflicted, high-confidence canonical channel evidence from Place enrichment and/or the supplied Bolt/Wolt source.
+Example: if Place enrichment plus supplied marketplace evidence establish Dine-in / Takeaway / Delivery and those channels are shown in the confirmation summary, one `Confirm and continue` action confirms them. Atlas must then not ask `restaurant-cafe.service-channel` again.
 
-If the evidence only establishes some channels and the missing channel information is not important to the current intelligence path, do not ask filler questions. If a missing channel is materially required by the active Knowledge Pack/opportunity rules, ask a bounded owner question.
+If public evidence establishes only part of a material fact, is conflicted, or was not shown/confirmed, the question remains eligible when the active Knowledge Pack actually needs it. Do not ask it merely to reach a question-count target.
 
 ### Goals remain owner-only
 
 Atlas must never infer Business Goals from Google, Bolt, Wolt, websites, menus, reviews or category stereotypes.
 
-The onboarding sequence should preferentially move the owner to Goals after Business confirmation when factual setup is already sufficiently covered.
+After Business confirmation, the onboarding should preferentially move to Goals whenever factual setup is sufficiently covered.
 
-Owner-only/high-value topics include:
+Owner-only/high-value inputs include:
 
 - primary Business Goal;
 - goal priority/order;
 - current near-term priority;
 - material constraint where it changes feasible recommendations;
-- desired outcome/time horizon where the product model supports it;
-- genuinely missing context needed for a current opportunity rule.
+- desired outcome/time horizon where supported by the product model;
+- genuinely missing context required by a current opportunity rule.
 
-### Target question volume
+### Target volume
 
-When enrichment succeeds, target zero to three optional non-goal context questions after Goals, rather than mechanically filling the old three-to-five range.
+For a well-enriched, owner-confirmed Business:
 
-The existing maximum of five remains a safety ceiling for degraded/missing-data cases, not a quota.
-
-No filler questions are allowed.
+- Goals remain required owner input for readiness;
+- optional non-goal context target: 0–3;
+- maximum optional context questions: 5 in degraded/missing-data cases;
+- no filler questions.
 
 ## Owner-facing confirmation UX
 
-The Discover/Confirm Business workflow remains visually and structurally aligned with the approved Atlas Business setup experience.
+The Discover/Confirm Business workflow remains structurally aligned with the approved Atlas Business setup experience. Do not create a dashboard or attribute wall.
 
-Do not create a new analytics panel.
-
-A compact optional `About your business` summary may surface only the most decision-useful attributes, for example:
+A compact optional `About your business` summary may surface only the most useful confirmation facts, for example:
 
 - category/cuisine/type summary;
 - Dine-in / Takeaway / Delivery;
 - reservation capability when relevant;
-- price-position indicator if available and understandable;
+- understandable price-position indicator if available;
 - opening-hours summary using the existing hours presentation convention.
 
-Display no more than roughly 3-5 concise items/groups before progressive disclosure.
+Display roughly 3–5 concise items/groups at most before progressive disclosure. Ratings, review counts, payment methods and broad Place attributes are not dumped onto this screen.
 
-The screen must not dump all Place attributes, ratings, review counts, payment methods or accessibility attributes.
+The confirmation copy must make clear that the owner is confirming discovered Business details. Material facts remain editable/correctable. Corrections create owner-authoritative canonical values without mutating the historical observed evidence.
 
-Public-source wording remains provider-neutral in ordinary Atlas copy unless provider attribution is legally/contractually required.
-
-The owner can correct material discovered facts. Correcting a fact creates owner-authoritative context/profile data and must not mutate the historical observed evidence.
+Public-source wording stays provider-neutral in ordinary Atlas copy unless provider attribution is contractually required.
 
 ## Error and degraded-state behaviour
 
 Google Place enrichment is useful but non-critical.
 
 - Location resolution failure follows existing VS-21 behaviour.
-- Place Details timeout/unavailability must not prevent Business creation if the core Business identity/profile is otherwise valid.
-- Rich-field absence is not an error; unknown remains unknown.
+- Place Details timeout/unavailability does not prevent Business creation when core identity/profile is otherwise valid.
+- Missing rich fields mean unknown, not false.
 - Provider quota/billing/configuration failure degrades to the existing discovery/context path.
-- No Place enrichment error may expose API keys, provider internals or raw provider payloads.
-- If enrichment is unavailable, progressive questions may reappear only through deterministic missing-context selection.
-- If a conflict exists, Atlas may ask the owner to confirm the material fact instead of suppressing the question.
+- Provider internals, API keys and raw payloads are never shown.
+- When enrichment is unavailable, deterministic missing-context selection may ask the relevant question later.
+- Conflicted material facts require owner confirmation rather than silent suppression.
 
 ## Security and privacy
 
-- No Google URL is fetched through a generic HTML scraper for enrichment.
-- The existing Google Maps short-link resolver remains constrained by its current host/redirect/SSRF policy.
-- Place Details requests use only canonical Place IDs produced by the trusted resolution path.
-- API keys remain server-side configuration only.
-- Field masks are explicit and bounded; wildcard masks are prohibited.
-- Response size/time limits and JSON parsing bounds are required.
-- Persist only product-relevant provider data; do not retain whole provider responses.
+- No Google Maps HTML scraping for enrichment.
+- Existing Google short-link resolution remains within current host/redirect/SSRF policy.
+- Place Details uses only canonical Place IDs from the trusted resolution path.
+- API keys remain server-side.
+- Explicit bounded field masks only; wildcard masks are prohibited.
+- Response size/time and JSON parsing bounds are required.
+- Persist product-relevant normalized facts, not whole provider responses.
 - Do not ingest end-customer personal data.
-- Logs contain stable provider/result codes, never API keys or unrestricted raw payloads.
+- Logs use stable provider/result codes and never API keys/unrestricted payloads.
 
 ## Cost controls
 
-Rich Places fields can move a request into higher Google Places SKUs. Therefore:
+Rich Places fields can move requests into higher billing SKUs, so VS-26 must:
 
-- use one Place Details enrichment call only after a unique Place is resolved;
+- make at most one rich Place Details enrichment request after unique Place resolution;
 - never call Place Details for every search candidate;
 - request a minimal explicit field mask;
-- do not request reviews/review summaries/photos/generative summaries by default;
-- avoid a second call when the existing Text Search response already provided the required lower-tier field;
-- make the enrichment field set centrally configurable/testable in code rather than scattered across endpoints;
-- record provider call outcome/latency and enough cost-class metadata for pilot analysis without storing sensitive payloads;
-- before production enablement, verify current Google pricing/quotas and accept expected pilot cost through normal governance.
+- avoid reviews/review summaries/photos/generative summaries by default;
+- avoid a second request where the existing Text Search response already provides the required lower-tier field;
+- centralize and test the field set;
+- capture provider outcome/latency and sufficient cost-class telemetry for pilot analysis without storing sensitive payloads;
+- verify current Google pricing/quotas before production enablement through normal governance.
 
 ## Persistence
 
-Prefer extending the provenance/context model produced by VS-22 and the evidence structures delivered by VS-25 rather than introducing a separate Google-specific table.
+Prefer extending the final post-VS-25 provenance/context/evidence model rather than introducing a Google-specific table.
 
-If VS-25 introduces a generic observed-offering/media/evidence persistence model, VS-26 must integrate with that current model after VS-25 lands.
-
-Only add a migration when the final post-VS-25 schema proves one is required.
+If VS-25 introduces generic observed-offering/media/evidence entities, VS-26 must integrate with those final contracts after merge. Add a migration only if the post-VS-25 schema genuinely requires one.
 
 Provider-specific JSON blobs are not the desired source of truth.
 
@@ -298,58 +290,58 @@ VS-25 owns Business Media & Menu Intelligence and is currently changing the publ
 VS-26 therefore:
 
 - remains planning-only until VS-25 merges;
-- must branch runtime work from the final VS-25-integrated `main`;
-- must inspect the final VS-25 entity/reconciliation contracts rather than relying on pre-merge shapes;
-- must reuse VS-25's canonical offering/media/evidence structures where relevant;
-- must not duplicate menu/media ingestion;
-- may use VS-25 menu/channel evidence to improve question suppression after integration.
+- branches runtime work from final VS-25-integrated `main`;
+- re-inspects final VS-25 entity/reconciliation contracts;
+- reuses VS-25 canonical offering/media/evidence structures where relevant;
+- never duplicates menu/media ingestion;
+- may use final VS-25 menu/channel evidence to improve the confirmation summary and subsequent question suppression.
 
 ## Testing strategy
 
 ### Provider adapter
 
-- exact Place ID is used for Place Details;
+- exact Place ID used for Place Details;
 - explicit field mask only;
-- wildcard field mask rejected by test;
-- only requested fields are mapped;
+- wildcard field mask rejected;
 - missing fields map to unknown, not false;
-- malformed/unexpected values safely ignored;
+- malformed values safely ignored;
 - timeout/HTTP failure degrades safely;
-- API key never appears in logs/errors.
+- API key absent from logs/errors.
 
 ### Canonical mapping
 
 - dine-in/takeout/delivery/reservable/meal flags map deterministically;
-- false, true and absent remain distinct where provider semantics require it;
-- no price-level-to-profitability inference;
+- true/false/absent remain distinct where provider semantics require it;
+- no price-to-profitability inference;
 - no category-to-Goal inference.
 
-### Reconciliation
+### Confirmation and reconciliation
 
 - owner-confirmed fact wins;
 - matching public sources corroborate;
-- conflicting public sources remain unresolved;
-- unresolved material fact does not suppress its question;
-- source-order and provenance remain stable.
+- conflicting public sources remain unresolved until owner decision;
+- only displayed/accepted material facts become owner-confirmed through Business confirmation;
+- hidden public observations remain public-observed;
+- historical provenance survives owner correction.
 
 ### Question suppression
 
-- strong unconflicted dine-in/takeaway/delivery evidence suppresses the restaurant service-channel question;
-- Bolt/Wolt source presence contributes marketplace-channel evidence without exposing provider branding in canonical context;
-- weak/unknown/conflicted facts do not suppress required questions;
-- Goals are never auto-populated or suppressed by public data;
-- no filler: sufficiently enriched Business may have zero optional context questions after Goals;
-- five remains the maximum in degraded cases.
+- confirmed Dine-in / Takeaway / Delivery facts suppress the restaurant service-channel question;
+- confirmed marketplace source contributes a provider-neutral marketplace channel;
+- unconfirmed/weak/unknown/conflicted facts do not suppress material questions;
+- Goals are never auto-populated from public data;
+- enriched Business may have zero optional non-goal questions after Goals;
+- five remains the degraded-case ceiling.
 
 ### Mobile/UX
 
-- `About your business` is compact and absent when there is no meaningful enrichment;
-- important facts only, no attribute wall;
+- `About your business` is compact and absent when no meaningful enrichment exists;
+- confirmation makes owner acceptance clear;
 - existing opening-hours presentation remains consistent;
-- owner correction remains reachable;
-- provider unavailability does not strand onboarding;
-- screen-reader semantics, logical focus, dynamic type, ~44x44 targets, reduced motion and non-colour states pass;
-- phone/tablet responsive containment matches the approved Atlas design baseline.
+- correction remains reachable;
+- provider failure does not strand onboarding;
+- screen-reader semantics, focus order, dynamic type, ~44x44 targets, reduced motion and non-colour states pass;
+- phone/tablet containment matches `ATLAS-DESIGN-001` v1.2.
 
 ### Regression
 
@@ -359,29 +351,31 @@ Retain VS-21/VS-22 URL safety, location selection, multi-source reconciliation a
 
 VS-26 is complete only when:
 
-1. Every uniquely resolved eligible Business can be enriched through the structured Place provider boundary without Maps HTML scraping.
+1. Every uniquely resolved eligible Business can be enriched through structured Place Details without Maps HTML scraping.
 2. The field mask is minimal, explicit, centrally controlled and current-pricing-reviewed.
-3. Canonical operating facts retain provenance and do not become owner-confirmed automatically.
-4. Strong unconflicted discovered facts suppress redundant onboarding questions deterministically.
-5. Goals remain explicitly owner-selected.
-6. A well-enriched restaurant can proceed with no redundant service-channel question.
-7. Missing/conflicting evidence results in a useful owner question or safe unknown, never a fabricated fact.
-8. Discover Business shows at most a compact high-value enrichment summary consistent with `ATLAS-DESIGN-001` v1.2.
-9. Provider failure degrades safely and does not block valid Business creation.
-10. Exact-head API/mobile/security/product gates, accessibility checks and relevant authentic runtime evidence pass.
-11. No release, deployment or production enablement occurs without separate exact-SHA approval.
+3. Canonical public observations retain provenance and never become measured automatically.
+4. Material discovered facts are shown compactly and owner-confirmed before they become authoritative suppression context.
+5. Confirmed strong facts suppress redundant onboarding questions deterministically.
+6. Goals remain explicitly owner-selected.
+7. A well-enriched restaurant does not receive a redundant service-channel question.
+8. Missing/conflicting evidence results in owner confirmation or safe unknown, never fabricated fact.
+9. Discover Business preserves the approved design and shows only a compact high-value summary.
+10. Provider failure degrades safely without blocking valid Business creation.
+11. Exact-head API/mobile/security/product, accessibility and relevant authentic runtime gates pass.
+12. No release/deployment/production enablement occurs without separate exact-SHA approval.
 
 ## Implementation sequencing
 
 After VS-25 is merged and current governance is coherent:
 
-1. Re-read `main`, VS-25 final contracts and current Google official API/pricing policy.
-2. Activate VS-26 through PES with scope/policy/implementation records.
-3. Use Superpowers writing-plans.
-4. Implement provider contract + Place Details adapter under TDD.
-5. Implement canonical attribute mapping/reconciliation under TDD.
-6. Extend deterministic progressive-question eligibility/suppression under TDD.
-7. Add bounded approved-design confirmation summary and mobile states.
-8. Run PostgreSQL migration tests only if schema changes are actually required.
-9. Run full deterministic regression, accessibility/responsive/runtime gates.
-10. Certify exact head and stop at the human merge/release boundary.
+1. Re-read `main`, final VS-25 contracts and current official Google API/pricing policy.
+2. Record the approved question-volume/goal-first direction as a new typed decision.
+3. Activate VS-26 through PES with scope/policy/implementation records.
+4. Invoke Superpowers writing-plans.
+5. Implement provider contract + Place Details adapter under TDD.
+6. Implement canonical mapping/reconciliation + confirmation promotion under TDD.
+7. Extend deterministic progressive-question eligibility/suppression under TDD.
+8. Add the bounded approved-design confirmation summary and mobile states.
+9. Add a migration only if the post-VS-25 schema requires it.
+10. Run full regression, accessibility/responsive/runtime gates.
+11. Certify exact head and stop at the human merge/release boundary.
