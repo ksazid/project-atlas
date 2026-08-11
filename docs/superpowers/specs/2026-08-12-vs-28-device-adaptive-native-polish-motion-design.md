@@ -24,6 +24,21 @@ VS-28 remains subordinate to Atlas governance and product design authority in th
 
 The Emil Apple Design skill may guide response, direct manipulation, interruptibility, spring behavior, spatial consistency, materials, reduced motion, reduced transparency, and typography detail. It must not replace Atlas colors, information architecture, copy style, brand identity, or product hierarchy.
 
+### 2.1 Known navigation-baseline mismatch
+
+`ATLAS-DESIGN-001` still describes four persistent destinations, while the certified runtime inherited and now ships the five-tab shell. DEC-02 and DEC-03 explicitly recognized this mismatch in earlier slices, preserved the existing five-tab model for bounded work, and deferred navigation alignment to a separate governed navigation slice.
+
+VS-28 is not that navigation-alignment slice. It therefore must not silently redefine the design baseline or restructure navigation as part of visual polish.
+
+Before VS-28 runtime activation, PES must record a fresh typed VS-28 decision that:
+
+- preserves the certified five-tab shell for this slice only;
+- keeps route names, destination meaning, and ordering unchanged;
+- records that the four-vs-five destination alignment remains deferred to a dedicated governed navigation slice;
+- blocks VS-28 runtime work if that decision is not approved.
+
+This makes the inherited conflict explicit rather than treating the merged runtime as an implicit override of the approved design baseline.
+
 ## 3. Approved design choice
 
 The Product Owner approved **Approach A: selective glass**.
@@ -60,7 +75,7 @@ The implementation should prefer a small shared screen/layout primitive or pure 
 
 ### 4.2 Bottom navigation geometry
 
-Preserve the VS-27 five-tab navigation and route names. This slice changes presentation and geometry only.
+Subject to the typed decision in section 2.1, preserve the certified five-tab navigation and route names. This slice changes presentation and geometry only.
 
 The current fixed-height white bar is replaced with safe-area-derived chrome:
 
@@ -127,14 +142,14 @@ Large decorative parallax, background motion, carousel theatrics, and gamified c
 
 ### 4.6 Material/glass strategy
 
-For Expo SDK 54, use `expo-glass-effect` for native iOS 26+ Liquid Glass when the runtime API is available. The package is supported in Expo Go for this SDK generation and falls back on unsupported platforms.
+For Expo SDK 54, `expo-glass-effect` provides native iOS 26+ Liquid Glass through `GlassView` and is documented as included in Expo Go. VS-28 may use it only on iOS after checking runtime/API availability.
 
 Material policy:
 
 - use `GlassView` only for the approved floating/structural surfaces;
-- check glass API availability before relying on native Liquid Glass;
+- guard the native glass path by platform and runtime/API availability rather than assuming cross-platform glass support;
 - if iOS Reduce Transparency is enabled, use the solid Atlas fallback;
-- on unsupported iOS versions, use a solid Atlas fallback;
+- on unsupported iOS/runtime conditions, use the solid Atlas fallback;
 - on Android, use a stable solid/elevated Atlas surface in VS-28 rather than introducing experimental blur behavior merely for visual parity;
 - do not stack translucent surfaces;
 - keep text/icons high-contrast over material;
@@ -181,8 +196,9 @@ Status-bar content style/background treatment must remain legible across Atlas s
 
 VS-28 does **not**:
 
+- resolve the four-vs-five persistent-destination product decision;
 - change Atlas product information architecture;
-- rename/reorder the VS-27 tabs;
+- rename/reorder the certified five tabs while the section 2.1 preservation decision applies;
 - redesign Today, Business Hub, Goals, Context, Settings, onboarding, or menu flows;
 - introduce glass on ordinary content cards;
 - add provider/API/database behavior;
@@ -261,7 +277,7 @@ Existing relevant dependencies already include:
 
 VS-28 may add only the Expo-compatible `expo-glass-effect` dependency through `npx expo install expo-glass-effect`, after Expo compatibility verification. No second animation or gesture library is justified.
 
-Because Expo SDK 54 documents `expo-glass-effect` as included in Expo Go, the expected test path is Expo Go without a custom native rebuild, subject to the installed Expo Go client matching the project SDK/runtime capabilities.
+Because Expo SDK 54 documents `expo-glass-effect` as included in Expo Go, the expected iOS 26 test path is Expo Go without a custom native rebuild, subject to the installed Expo Go client matching the project SDK/runtime capabilities. Unsupported/non-iOS paths must not depend on Liquid Glass to remain usable.
 
 ## 10. Testing strategy
 
@@ -284,7 +300,7 @@ Tests should assert semantic layout decisions, not snapshot arbitrary pixel dump
 Verify:
 
 - no regression to fixed one-device top offsets on migrated core screens;
-- tab destinations/routes remain unchanged;
+- tab destinations/routes remain unchanged under the approved VS-28 preservation decision;
 - navigation touch targets remain accessible;
 - material fallback exists and is reachable;
 - reduced-motion path does not execute spatial/elastic effects;
@@ -334,15 +350,16 @@ Certification does not authorize merge, release, EAS build/submit, OTA update, p
 2. Superpowers writing-plan step.
 3. Re-check `main` and other active branches/PRs before runtime work.
 4. Transition certified VS-27 to superseded only on the VS-28 implementation branch, preserving its certification history.
-5. Activate VS-28 with typed scope/implementation approval.
-6. Establish a green baseline.
-7. Implement in small TDD/reviewable steps: safe-area shell → navigation material/geometry → press/motion primitives → core-screen migration → accessibility preferences → device acceptance.
-8. Exact-head certification.
-9. Human merge approval.
-10. No release/deployment unless separately authorized.
+5. Record/approve the VS-28 typed navigation-preservation decision required by section 2.1.
+6. Activate VS-28 with typed scope/implementation approval.
+7. Establish a green baseline.
+8. Implement in small TDD/reviewable steps: safe-area shell → navigation material/geometry → press/motion primitives → core-screen migration → accessibility preferences → device acceptance.
+9. Exact-head certification.
+10. Human merge approval.
+11. No release/deployment unless separately authorized.
 
 ## 13. Success definition
 
 VS-28 succeeds when Atlas uses one coherent device-adaptive native shell across its current mobile experience, feels immediate and physically consistent on modern iOS, degrades safely on other platforms/settings, and retains the approved Atlas visual/product identity.
 
-The slice fails if it solves the iPhone 17 Pro Max by adding more device-specific constants, makes glass a decorative theme, introduces motion that delays interaction, breaks reduced-motion/transparency accessibility, changes route semantics, or drifts away from `ATLAS-DESIGN-001`.
+The slice fails if it solves the iPhone 17 Pro Max by adding more device-specific constants, makes glass a decorative theme, introduces motion that delays interaction, breaks reduced-motion/transparency accessibility, changes route semantics, silently overrides the navigation baseline, or drifts away from `ATLAS-DESIGN-001`.
