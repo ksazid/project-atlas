@@ -39,7 +39,7 @@ public sealed record BusinessDiscoveryReconciliationResult(
     IReadOnlyList<BusinessDiscoveryEvidence> Evidence,
     IReadOnlyList<string> Warnings);
 
-public static class BusinessDiscoveryReconciler
+public static partial class BusinessDiscoveryReconciler
 {
     private const string Success = "success";
 
