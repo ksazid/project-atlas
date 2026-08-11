@@ -427,7 +427,7 @@ public static class PublicBusinessExtractor
     }
 }
 
-public sealed record DiscoverBusinessRequest(string Url);
+public sealed record DiscoverBusinessRequest(string Url, IReadOnlyList<string>? AdditionalUrls = null);
 public sealed record BusinessDiscoveryResponse(Guid SnapshotId, string Provider, string SourceUrl, DateTimeOffset ObservedAt, IReadOnlyList<PublicBusinessFact> Facts)
 {
     public static BusinessDiscoveryResponse From(BusinessDiscoverySnapshot snapshot) => new(
@@ -490,7 +490,14 @@ public static class BusinessDiscoveryEndpoints
             fallback = BusinessCategoryTaxonomy.Generic
         })).RequireAuthorization("BusinessOwner");
 
-        app.MapPost("/api/v1/business-discovery", async (DiscoverBusinessRequest request, ClaimsPrincipal user, BusinessDiscoveryService discovery, AtlasDbContext db, CancellationToken ct) =>
+        app.MapPost("/api/v1/business-discovery", async (
+            DiscoverBusinessRequest request,
+            ClaimsPrincipal user,
+            BusinessDiscoveryService pageDiscovery,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration,
+            AtlasDbContext db,
+            CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(request.Url))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Url)] = ["Business page URL is required."] });
@@ -498,7 +505,9 @@ public static class BusinessDiscoveryEndpoints
             if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
             try
             {
-                var publicSnapshot = await discovery.DiscoverAsync(request.Url, ct);
+                var discovery = new MultiSourceBusinessDiscoveryService(pageDiscovery, httpClientFactory, configuration);
+                var reconciliation = await discovery.DiscoverAsync(request.Url, request.AdditionalUrls, ct);
+                var publicSnapshot = reconciliation.Snapshot;
                 var account = await db.UserAccounts.SingleOrDefaultAsync(x => x.ProviderSubject == subject, ct);
                 if (account is null)
                 {
