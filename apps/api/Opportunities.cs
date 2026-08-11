@@ -156,7 +156,7 @@ public static class OpportunityPolicy
             parsed.Limitations,
             parsed.Evidence.Select(x => x.Category).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
             $"Review and apply the proposed action: {value.Title}",
-            false,
+            ExecutionKitPolicy.IsEligible(value, now),
             value.CreatedAt,
             value.ExpiresAt,
             expired,
