@@ -1,29 +1,44 @@
 import { Tabs } from 'expo-router';
+import { useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AtlasIcon } from '@/components/AtlasIcon';
-
-const GREEN = '#00754A';
-const MUTED = '#7A857F';
+import { AtlasMaterialSurface } from '@/components/AtlasMaterialSurface';
+import { getAtlasTabBarMetrics } from '@/theme/native-layout';
+import { tokens } from '@/theme/tokens';
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+  const { width, fontScale } = useWindowDimensions();
+  const metrics = getAtlasTabBarMetrics({ width, bottomInset: insets.bottom, fontScale });
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: GREEN,
-        tabBarInactiveTintColor: MUTED,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '800', marginBottom: 4 },
+        tabBarActiveTintColor: tokens.color.green,
+        tabBarInactiveTintColor: tokens.color.muted,
+        tabBarAllowFontScaling: true,
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '800', marginBottom: 2 },
+        tabBarItemStyle: { minHeight: tokens.touchTarget },
         tabBarStyle: {
-          height: 76,
-          paddingTop: 8,
-          paddingBottom: 8,
-          borderTopColor: '#E5EAE7',
-          backgroundColor: '#FFFFFF',
-          shadowColor: '#173B2A',
-          shadowOpacity: 0.07,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: -4 },
-          elevation: 8,
+          position: 'absolute',
+          left: metrics.horizontalInset,
+          right: metrics.horizontalInset,
+          bottom: metrics.bottomOffset,
+          height: metrics.frameHeight,
+          paddingTop: 5,
+          paddingBottom: metrics.paddingBottom,
+          borderTopWidth: 0,
+          backgroundColor: 'transparent',
+          elevation: 0,
+          shadowOpacity: 0,
         },
+        tabBarBackground: () => (
+          <AtlasMaterialSurface
+            kind="navigation"
+            style={{ flex: 1, borderRadius: metrics.borderRadius }}
+          />
+        ),
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color }) => <AtlasIcon name="home" color={color} /> }} />
