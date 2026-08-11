@@ -78,6 +78,7 @@ export function canonicalizeBusinessUrlInput(rawValue: string): BusinessUrlInput
   if (route === 'incomplete') return { value: original, complete: false, error: null };
   if (route) return invalid(original, route);
 
+  const preserveTypedTrailingSlash = trimmed === candidate && candidate.endsWith('/') && url.pathname.length > 1 && !url.search;
   url.protocol = 'https:';
   url.hostname = host;
   url.port = '';
@@ -85,9 +86,10 @@ export function canonicalizeBusinessUrlInput(rawValue: string): BusinessUrlInput
   if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, '');
   canonicalizeQuery(url, kind, host);
 
-  const value = url.pathname === '/' && !url.search
+  const canonicalValue = url.pathname === '/' && !url.search
     ? `https://${url.host}`
     : url.toString();
+  const value = preserveTypedTrailingSlash ? `${canonicalValue}/` : canonicalValue;
   if (value.length > MAX_URL_CHARACTERS) return invalid(original, 'Business page URL is too long.');
 
   return { value, complete: true, error: null };
@@ -95,7 +97,15 @@ export function canonicalizeBusinessUrlInput(rawValue: string): BusinessUrlInput
 
 export function canonicalBusinessUrlKey(rawValue: string): string | null {
   const result = canonicalizeBusinessUrlInput(rawValue);
-  return result.complete && !result.error ? result.value : null;
+  if (!result.complete || result.error) return null;
+
+  try {
+    const url = new URL(result.value);
+    if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, '');
+    return url.pathname === '/' && !url.search ? `https://${url.host}` : url.toString();
+  } catch {
+    return null;
+  }
 }
 
 function invalid(value: string, error: string): BusinessUrlInputResult {
