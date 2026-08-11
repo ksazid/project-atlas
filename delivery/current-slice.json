@@ -1,59 +1,57 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-21",
-  "title": "VS-21 — Business Location Resolution Remediation",
+  "sliceId": "VS-22",
+  "title": "VS-22 — Multi-Source Business Discovery & Fact Reconciliation",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "implementing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-02", "FR-03", "FR-16"],
+  "requirements": ["FR-02", "FR-03", "FR-05", "FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-16","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758"],
+  "dependencies": [
+    "ATLAS-PRD-001",
+    "ATLAS-TRD-001",
+    "ATLAS-DESIGN-001",
+    "VS-20@45a91b1095eef5077c303ba75fed2eb03a988758",
+    "VS-21@52d485ae566f2192112244ff9489a177e3692f9e"
+  ],
   "blockers": [],
   "allowedPaths": ["apps/api/**","apps/mobile/**","tests/api/**","tests/mobile/**","delivery/**","docs/**"],
   "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
   "impact": {
-    "areas":["frontend","api","customer-flow","architecture"],
+    "areas":["frontend","api","database","customer-flow","architecture","sensitive-data"],
     "notes":[
-      "Remediates live VS-16 discovery defects found through the isolated Expo Go test harness.",
-      "Business location becomes the owner-facing input; canonical country, timezone and currency are derived.",
-      "Multiple branch candidates require explicit owner selection; one strong candidate may be preselected but remains changeable.",
-      "Google Places Text Search (New) is the approved first test/pilot location adapter behind a replaceable provider boundary; timezone is read from the documented places.timeZone.id response and currency is Atlas-derived.",
-      "Google place types may provide a conservative public cuisine/type summary such as Turkish · Kebab or Indian · Pakistani; marketplace ordering boilerplate is cleared rather than retained as a business description.",
-      "The separate Google Time Zone API is not used by VS-21.",
-      "No production release or production enablement is authorized."
+      "Adds one primary and up to two optional secondary public Business URLs to discovery; the owner-defined row order is authoritative source priority.",
+      "Every source is canonicalised in the mobile UI and authoritatively revalidated server-side before any external request.",
+      "Strict SSRF controls remain mandatory: HTTPS/443, no credentials, no IP literals, no private/reserved destinations, DNS/connect-time public-address enforcement, no proxy and no arbitrary redirects.",
+      "Bolt/Wolt inputs must identify one Business/venue; generic marketplace routes are rejected.",
+      "Google Maps/place share links use a controlled Google-only redirect resolver and the existing Google Places boundary; Google Maps HTML is not scraped.",
+      "Reconciliation is deterministic: higher-priority values win, secondary sources fill missing facts, equivalent values corroborate, conflicts/mismatches never silently overwrite or contaminate the selected Business.",
+      "Provider/source provenance remains internal and auditable while owner-facing confirmation copy remains provider-neutral.",
+      "Large public pages are read only to a fixed safe prefix budget; an otherwise useful Wolt page is not rejected solely because its total response is larger.",
+      "The existing Confirm and continue 5xx regression is a certification blocker for this slice.",
+      "No production release, production enablement or deployment-branch modification is authorized."
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-21@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Product Owner approved automatic country/timezone/currency resolution, Google Maps/Places search for unknown locations, branch selection for multi-location businesses, and instructed implementation to proceed."},
-    {"type":"policy","status":"approved","version":"VS-21@1.1","commitSha":null,"by":"ksazid","at":"2026-08-11T00:20:00+02:00","rationale":"Product Owner approved the recommended lower-dependency approach: use Places Text Search (New) to return timezone in the same request and derive currency inside Atlas, with no separate Time Zone API call."},
-    {"type":"implementation","status":"approved","version":"VS-21@1.2","commitSha":null,"by":"ksazid","at":"2026-08-11T01:44:00+02:00","rationale":"Live Expo testing exposed the Google Places timezone response-shape defect; remediation continued under the already approved VS-21 location-resolution scope."},
-    {"type":"certification","status":"approved","version":"VS-21@1.2","commitSha":"3364b10cf4370db6c7482290de17146d36da6208","by":"ksazid","at":"2026-08-11T01:56:00+02:00","rationale":"Exact implementation SHA passed CI, Security baseline and Product Intake, including the documented timeZone.id response regression, Google place-type summary, marketplace boilerplate cleanup, API build/tests, and mobile preflight/runtime verification."},
+    {"type":"scope","status":"approved","version":"VS-22@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T02:45:00+02:00","rationale":"Product Owner approved the written VS-22 design: one primary plus up to two optional secondary URLs, add/remove controls, strict sanitisation and validation on every source, Google Maps/place support, source precedence, duplicate/conflict protection and auditable provenance."},
+    {"type":"implementation","status":"approved","version":"VS-22@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T02:45:00+02:00","rationale":"Product Owner explicitly instructed implementation to proceed on the governed feature branch, with merge to main only after tests/certification and deployment remaining a separate explicit action."},
+    {"type":"certification","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": ["DEC-06"],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
-  "certification": {
-    "status":"passed",
-    "commitSha":"3364b10cf4370db6c7482290de17146d36da6208",
-    "evidence":[
-      "CI run 31443872437: success",
-      "Security baseline run 31443872449: success",
-      "Product Intake run 31443872445: success",
-      "BusinessLocationResolutionTests: parses documented places.timeZone.id, derives MT/Europe-Malta/EUR, requests places.types, and keeps one Google provider request",
-      "Mobile business-location-resolution tests: cuisine/type summary replaces marketplace ordering boilerplate without overwriting a useful description"
-    ]
-  },
+  "progress": {"discovery":100,"decisions":100,"implementation":5,"testing":0,"certification":0,"release":0,"validation":0},
+  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification":"docs/slices/VS-21.md",
-    "implementationPr":"https://github.com/ksazid/project-atlas/pull/28",
+    "specification":"docs/slices/VS-22.md",
+    "implementationPr":null,
     "evidence":[
-      "docs/superpowers/specs/2026-08-10-vs-21-business-location-resolution-design.md",
-      "docs/superpowers/plans/2026-08-10-vs-21-business-location-resolution.md"
+      "docs/superpowers/specs/2026-08-11-vs-22-multi-source-business-discovery-design.md",
+      "docs/superpowers/plans/2026-08-11-vs-22-multi-source-business-discovery.md"
     ]
   },
   "maxAttempts": 3
