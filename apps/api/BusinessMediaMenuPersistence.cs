@@ -6,7 +6,6 @@ namespace Atlas.Api;
 
 [Table("BusinessDiscoveryMediaReferences")]
 [Index(nameof(SnapshotId))]
-[Index(nameof(SnapshotId), nameof(RemoteUrl))]
 public sealed class BusinessDiscoveryMediaReference
 {
     public Guid Id { get; set; }
@@ -50,7 +49,6 @@ public sealed class BusinessDiscoveryOffering
 [Table("BusinessMediaReferences")]
 [Index(nameof(BusinessId))]
 [Index(nameof(SourceSnapshotId))]
-[Index(nameof(BusinessId), nameof(RemoteUrl))]
 public sealed class BusinessMediaReference
 {
     public Guid Id { get; set; }
