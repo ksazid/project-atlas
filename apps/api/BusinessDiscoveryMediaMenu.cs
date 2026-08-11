@@ -169,15 +169,18 @@ public static class PublicBusinessMediaMenuExtractor
     {
         foreach (Match match in JsonLdRegex.Matches(html))
         {
+            JsonElement? root = null;
             try
             {
                 using var document = JsonDocument.Parse(WebUtility.HtmlDecode(match.Groups[1].Value));
-                yield return document.RootElement.Clone();
+                root = document.RootElement.Clone();
             }
             catch (JsonException)
             {
                 // Ignore malformed structured data and keep the existing conservative discovery fallback.
             }
+
+            if (root is JsonElement value) yield return value;
         }
     }
 
