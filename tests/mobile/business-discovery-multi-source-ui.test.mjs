@@ -21,7 +21,8 @@ test('primary source clears while optional sources are removed and priority shif
 test('URL rows canonicalize complete pasted values immediately and block canonical duplicates', () => {
   assert.match(screen, /canonicalizeBusinessUrlInput/);
   assert.match(screen, /canonicalBusinessUrlKey/);
-  assert.match(screen, /duplicate/i);
+  assert.match(screen, /already added/i);
+  assert.match(screen, /seen\.get\(key\)/);
 });
 
 test('discovery submission preserves owner source priority and ignores empty optional rows', () => {
