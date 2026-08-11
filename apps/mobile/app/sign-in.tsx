@@ -6,10 +6,12 @@ import { saveSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
 
 const GREEN='#00754A';
+const EXPO_GO_DEMO_TOKEN='atlas-expo-go-demo';
 
 export default function SignInScreen(){
  const[busy,setBusy]=useState(false);const[error,setError]=useState<string|null>(null);const[loginHint,setLoginHint]=useState('');
  async function signIn(){setBusy(true);setError(null);try{const accessToken=await authorizeWithProvider(loginHint);await saveSession({accessToken});router.replace('/create-business')}catch(reason){const code=reason instanceof Error?reason.message:'sign_in_failed';setError(code==='sign_in_cancelled'?'Sign-in was cancelled.':code==='identity_provider_unavailable'?'Sign-in is temporarily unavailable.':'We could not sign you in securely.')}finally{setBusy(false)}}
+ async function signInForExpoGoTest(){setBusy(true);setError(null);try{await saveSession({accessToken:EXPO_GO_DEMO_TOKEN});router.replace('/create-business')}catch{setError('Expo Go test mode could not start.')}finally{setBusy(false)}}
  return <View style={s.container}>
    <View style={s.mintGlowA}/><View style={s.mintGlowB}/>
    <BrandMark size={72} style={s.logo}/>
@@ -25,6 +27,7 @@ export default function SignInScreen(){
 
    {error?<View style={s.errorBox}><Text style={s.error}>{error}</Text></View>:null}
    <Pressable disabled={busy} onPress={signIn} style={({pressed})=>[s.primary,pressed&&s.pressed,busy&&s.disabled]}>{busy?<ActivityIndicator color="#FFF"/>:<Text style={s.primaryText}>Sign in</Text>}</Pressable>
+   {__DEV__?<Pressable accessibilityLabel="Continue in Expo Go test mode" disabled={busy} onPress={signInForExpoGoTest} style={({pressed})=>[s.demo,pressed&&s.pressed,busy&&s.disabled]}><Text style={s.demoText}>Continue in Expo Go test mode</Text></Pressable>:null}
 
    <View style={s.orRow}><View style={s.rule}/><Text style={s.orText}>or</Text><View style={s.rule}/></View>
    <View style={s.socialStack}><Social icon="G" label="Continue with Google" color="#4285F4"/><Social icon="●" label="Continue with Apple" color="#000"/><Social icon="▦" label="Continue with Microsoft" color="#00A4EF"/></View>
@@ -43,6 +46,7 @@ const s=StyleSheet.create({
  forgot:{alignSelf:'flex-end',marginTop:-11,marginBottom:24,color:GREEN,fontSize:11.5,fontWeight:'700'},
  errorBox:{padding:10,borderRadius:9,backgroundColor:'#FDECEC',marginBottom:12},error:{color:'#A1251B',fontSize:12},
  primary:{minHeight:55,borderRadius:10,backgroundColor:'#008A57',alignItems:'center',justifyContent:'center',shadowColor:'#00633F',shadowOpacity:.12,shadowRadius:8,shadowOffset:{width:0,height:4},elevation:2},primaryText:{color:'#FFF',fontSize:15.5,fontWeight:'800'},pressed:{opacity:.92},disabled:{opacity:.55},
+ demo:{minHeight:46,borderRadius:10,borderWidth:1,borderColor:'#B8D9C8',backgroundColor:'#F3FAF6',alignItems:'center',justifyContent:'center',marginTop:10},demoText:{color:GREEN,fontSize:12.5,fontWeight:'800'},
  orRow:{flexDirection:'row',alignItems:'center',gap:14,marginVertical:20},rule:{flex:1,height:1,backgroundColor:'#E4E8E6'},orText:{color:'#637069',fontSize:12},
  socialStack:{gap:10},social:{minHeight:52,borderRadius:10,borderWidth:1,borderColor:'#E2E7E4',backgroundColor:'#FFF',flexDirection:'row',alignItems:'center',paddingHorizontal:16,shadowColor:'#173B2A',shadowOpacity:.018,shadowRadius:4,elevation:1},socialIcon:{width:34,fontSize:18,fontWeight:'900'},socialText:{fontSize:13,fontWeight:'700',color:'#202B27'},
  footer:{marginTop:'auto',textAlign:'center',fontSize:11.5,color:'#5E6964'},footerStrong:{color:GREEN,fontWeight:'800'}

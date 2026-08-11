@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 
@@ -109,6 +110,7 @@ public sealed class KnowledgeSection
     public required string Category { get; set; }
     public required string Title { get; set; }
     public required string Content { get; set; }
+    [Column(TypeName = "jsonb")]
     public string? MetadataJson { get; set; }
     public int Order { get; set; }
     public required string Locale { get; set; }

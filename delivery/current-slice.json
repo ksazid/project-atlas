@@ -1,47 +1,61 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-24",
-  "title": "VS-24 — End-to-End Category Intelligence Validation",
+  "sliceId": "VS-25",
+  "title": "VS-25 — Business Media & Menu Intelligence",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-02","FR-03","FR-04","FR-05","FR-06","FR-07","FR-08","FR-09","FR-16"],
+  "requirements": ["FR-03","FR-05","FR-14","FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758","VS-22","VS-23@0f05b24ab5ea3c6c1ab924ad65359d9403c0a590"],
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-24-test-baseline@16de00aa28eccc8890a5a9132f37978bb20ec005","DEC-07"],
   "blockers": [],
-  "allowedPaths": ["apps/api/**","apps/mobile/**","tests/api/**","tests/mobile/**","delivery/**","docs/**"],
+  "allowedPaths": ["apps/api/**","tests/api/**","delivery/**","docs/**"],
   "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
   "impact": {
-    "areas":["frontend","api","customer-flow","architecture"],
+    "areas":["api","customer-flow","architecture"],
     "notes":[
-      "VS-24 is branched from the VS-23 pre-integration head so independent Today state work can proceed while VS-22 finishes.",
-      "Integrated certification is dependency-blocked until VS-22 and VS-23 are merged into main and this branch is reconciled onto that baseline.",
-      "The slice validates the approved Restaurant/Café hero journey and may make only bounded cross-slice compatibility fixes.",
-      "Live Bolt/Google requests are supplemental isolated smoke evidence and are never deterministic CI dependencies.",
+      "VS-25 extends the existing provider-neutral public discovery boundary; it does not add private provider connectors.",
+      "VS-25 adds PostgreSQL persistence through the existing API architecture and forward-only migration policy.",
+      "Third-party public image binaries are never copied or rehosted; only bounded remote references and provenance are retained.",
+      "Structured menu facts use the generic Business Offering model with menu-item as the initial kind so Atlas Core remains industry-agnostic.",
+      "Supported marketplace semantic-HTML fallbacks operate only on the same public page already accepted by the discovery boundary and fail closed when expected markers are absent.",
+      "Public media/menu observations remain unconfirmed unless explicitly confirmed by the owner in a future UI.",
       "No production deployment or production enablement is authorized."
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-24@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner approved all remaining slices and instructed full implementation, fixes, testing and integration without routine checkpoints."},
-    {"type":"policy","status":"not-required","version":"VS-24@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"VS-24 introduces no new provider, private data source, AI model, retention policy or production deployment."},
-    {"type":"implementation","status":"approved","version":"VS-24@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner explicitly instructed this chat to proceed through all remaining slices, fix defects and test thoroughly."},
-    {"type":"certification","status":"pending","version":"VS-24@1.0","commitSha":null,"by":null,"at":null,"rationale":"Certification requires the final reconciled exact SHA after VS-22 and VS-23 are integrated."},
+    {"type":"scope","status":"approved","version":"VS-25@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T13:58:00+02:00","rationale":"Product Owner explicitly approved the sequence: fix readiness CTA, add restaurant/business media capture, then add structured menu/menu-price ingestion."},
+    {"type":"policy","status":"approved","version":"VS-25@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T13:58:00+02:00","rationale":"Approved retention is bounded to public remote media references and factual offering metadata with provenance. Third-party binaries, private APIs, OCR and owner-upload storage remain out of scope."},
+    {"type":"implementation","status":"approved","version":"VS-25@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T13:58:00+02:00","rationale":"Product Owner instructed implementation to proceed with 'Go' on the explicitly highlighted media/menu sequence."},
+    {"type":"certification","status":"approved","version":"VS-25@1.0","commitSha":"298b523033dcea7294921a5fe3adf52262178a2e","by":"PES/Loop","at":"2026-08-11T14:31:42Z","rationale":"Exact implementation SHA passed CI, Security baseline, Product intake, clean PostgreSQL migration replay, persistence/materialisation coverage and the supplemental live Hasan public-source smoke. Certification does not authorize merge, release or production enablement."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
-  "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":10,"testing":0,"certification":0,"release":0,"validation":0},
-  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
+  "decisionIds": ["DEC-07"],
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
+  "certification": {
+    "status":"passed",
+    "commitSha":"298b523033dcea7294921a5fe3adf52262178a2e",
+    "evidence":[
+      "CI run 31500477489: exact implementation SHA green",
+      "Security baseline run 31500477617: green",
+      "Product intake run 31500478608: green",
+      "PostgreSQL 17 clean migration replay including 20260811131000_BusinessMediaMenuIntelligence",
+      "Render test deploy dep-d9tj1dad0e5s739ao9r0: atlas-api-test live on exact implementation SHA",
+      "PR #46 supplemental live Hasan smoke commit 7669f44441790c59fa1b3bb564502402f3203932 / CI run 31501492828: 294 API tests passed, 0 failed"
+    ]
+  },
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification":"docs/slices/VS-24.md",
-    "implementationPr":null,
+    "specification":"docs/slices/VS-25.md",
+    "implementationPr":45,
     "evidence":[
-      "docs/superpowers/specs/2026-08-11-vs-24-category-intelligence-e2e-validation-design.md",
-      "docs/superpowers/plans/2026-08-11-vs-24-category-intelligence-e2e-validation.md"
+      "docs/superpowers/specs/2026-08-11-vs-25-business-media-menu-intelligence-design.md",
+      "docs/superpowers/plans/2026-08-11-vs-25-business-media-menu-intelligence.md",
+      "docs/slices/VS-25.md"
     ]
   },
   "maxAttempts": 3

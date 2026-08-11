@@ -96,6 +96,22 @@
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-11T00:20:00+02:00",
       "rationale": "The Product Owner explicitly required automatic country/timezone/currency selection and branch choice, then approved the recommended lower-cost refinement to use Places timeZone in the same Text Search response and remove the separate Time Zone API dependency."
+    },
+    {
+      "id": "DEC-07",
+      "sliceId": "VS-25",
+      "status": "approved",
+      "question": "How should Atlas retain restaurant images and menu data discovered from public business sources?",
+      "options": [
+        "Copy and rehost third-party image binaries and raw menu pages",
+        "Store provenance-rich remote media references plus structured factual menu/offerings data without copying third-party binaries",
+        "Do not retain media or menu data"
+      ],
+      "decision": "Store provider-neutral remote media references and structured Business Offering facts with complete source/provenance. Do not copy third-party image binaries. Treat menu-item as the first generic offering kind, retain only data exposed by already-authorised public discovery sources, and materialise accepted records to the Business after confirmation without falsely marking unseen public media/menu facts as owner-confirmed.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-11T13:58:00+02:00",
+      "rationale": "The Product Owner explicitly instructed Atlas to store restaurant images when available and approved the sequence to add business-media capture followed by structured menu/menu-price ingestion. The selected approach preserves Atlas's provider-neutral core, data-minimisation policy and public-source safety boundary."
     }
   ]
 }

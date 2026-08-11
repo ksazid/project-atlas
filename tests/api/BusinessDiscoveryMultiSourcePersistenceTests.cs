@@ -7,6 +7,19 @@ namespace Atlas.Api.Tests;
 public sealed class BusinessDiscoveryMultiSourcePersistenceTests
 {
     [Fact]
+    public void DiscoverySource_MapsToMigratedPluralTableName()
+    {
+        using var db = new AtlasDbContext(
+            new DbContextOptionsBuilder<AtlasDbContext>()
+                .UseNpgsql("Host=localhost;Port=5432;Database=atlas;Username=postgres;Password=postgres")
+                .Options);
+
+        var tableName = db.Model.FindEntityType(typeof(BusinessDiscoverySource))?.GetTableName();
+
+        Assert.Equal("BusinessDiscoverySources", tableName);
+    }
+
+    [Fact]
     public async Task Snapshot_PersistsOrderedSourcesAndReconciliationEvidence_WithoutDuplicatingSelectedFacts()
     {
         await using var db = new AtlasDbContext(

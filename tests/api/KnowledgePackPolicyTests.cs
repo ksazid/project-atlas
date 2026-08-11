@@ -7,6 +7,20 @@ namespace Atlas.Api.Tests;
 public sealed class KnowledgePackPolicyTests
 {
     [Fact]
+    public void Knowledge_section_metadata_maps_to_migrated_jsonb_column()
+    {
+        using var db = new AtlasDbContext(new DbContextOptionsBuilder<AtlasDbContext>()
+            .UseNpgsql("Host=localhost;Database=atlas;Username=postgres;Password=postgres")
+            .Options);
+
+        var entity = db.Model.FindEntityType(typeof(KnowledgeSection));
+        var property = entity?.FindProperty(nameof(KnowledgeSection.MetadataJson));
+
+        Assert.NotNull(property);
+        Assert.Equal("jsonb", property.GetColumnType());
+    }
+
+    [Fact]
     public void Generic_pack_is_published_modular_and_industry_agnostic()
     {
         var actorId = Guid.NewGuid();

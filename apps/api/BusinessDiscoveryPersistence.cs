@@ -17,6 +17,10 @@ public sealed class BusinessDiscoverySnapshot
     public ICollection<BusinessDiscoveryFact> Facts { get; set; } = [];
     public ICollection<BusinessDiscoverySource> Sources { get; set; } = [];
     public ICollection<BusinessDiscoveryEvidence> Evidence { get; set; } = [];
+    public ICollection<BusinessDiscoveryMediaReference> Media { get; set; } = [];
+    public ICollection<BusinessDiscoveryOffering> Offerings { get; set; } = [];
+    public ICollection<BusinessMediaReference> MaterializedMedia { get; set; } = [];
+    public ICollection<BusinessOffering> MaterializedOfferings { get; set; } = [];
 
     public static BusinessDiscoverySnapshot Create(Guid accountId, PublicBusinessSnapshot snapshot)
     {
@@ -37,6 +41,8 @@ public sealed class BusinessDiscoverySnapshot
         };
         entity.Sources.Add(source);
         entity.Facts = SelectedFacts(entity, normalized.Facts);
+        entity.Media = BusinessMediaMenuPersistence.DiscoveryMedia(entity, normalized.Media);
+        entity.Offerings = BusinessMediaMenuPersistence.DiscoveryOfferings(entity, normalized.Offerings);
         entity.Evidence = normalized.Facts.Select(fact => new BusinessDiscoveryEvidence
         {
             Id = Guid.NewGuid(),
@@ -65,6 +71,8 @@ public sealed class BusinessDiscoverySnapshot
         var normalized = NormalizeSnapshot(reconciliation.Snapshot);
         var entity = CreateBase(accountId, normalized);
         entity.Facts = SelectedFacts(entity, normalized.Facts);
+        entity.Media = BusinessMediaMenuPersistence.DiscoveryMedia(entity, normalized.Media);
+        entity.Offerings = BusinessMediaMenuPersistence.DiscoveryOfferings(entity, normalized.Offerings);
 
         var sources = reconciliation.SourceResults
             .OrderBy(x => x.Order)
@@ -352,7 +360,11 @@ public static class BusinessDiscoveryBusinessCreator
         var account = await db.UserAccounts.SingleOrDefaultAsync(x => x.ProviderSubject == subject, ct)
             ?? throw new BusinessDiscoveryException("business_discovery_not_found", "Run business discovery again before continuing.");
 
-        var snapshot = await db.BusinessDiscoverySnapshots.Include(x => x.Facts).SingleOrDefaultAsync(x => x.Id == request.SnapshotId, ct)
+        var snapshot = await db.BusinessDiscoverySnapshots
+            .Include(x => x.Facts)
+            .Include(x => x.Media)
+            .Include(x => x.Offerings)
+            .SingleOrDefaultAsync(x => x.Id == request.SnapshotId, ct)
             ?? throw new BusinessDiscoveryException("business_discovery_not_found", "Run business discovery again before continuing.");
 
         if (snapshot.UserAccountId != account.Id)
@@ -421,6 +433,11 @@ public static class BusinessDiscoveryBusinessCreator
             if (!string.IsNullOrWhiteSpace(profile.Phone)) AddField("phone", profile.Phone!);
             if (!string.IsNullOrWhiteSpace(profile.BusinessHours)) AddField("openingHours", profile.BusinessHours!);
             AddField("language", profile.Language);
+
+            foreach (var media in BusinessMediaMenuPersistence.BusinessMedia(snapshot, business, now))
+                snapshot.MaterializedMedia.Add(media);
+            foreach (var offering in BusinessMediaMenuPersistence.BusinessOfferings(snapshot, business, now))
+                snapshot.MaterializedOfferings.Add(offering);
 
             snapshot.MarkConsumed(business.Id, now);
             db.AuditRecords.Add(AuditRecord.Create(account.Id, business.Id, "business.created"));

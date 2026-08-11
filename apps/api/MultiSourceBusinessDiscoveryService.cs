@@ -47,7 +47,9 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
                     snapshot.Provider,
                     source.Value,
                     "success",
-                    snapshot.Facts));
+                    snapshot.Facts,
+                    Media: snapshot.Media,
+                    Offerings: snapshot.Offerings));
             }
             catch (BusinessDiscoveryException ex) when (CanDegradeSource(ex.Code))
             {
