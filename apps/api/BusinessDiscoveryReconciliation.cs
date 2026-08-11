@@ -18,16 +18,18 @@ public sealed record BusinessSourceResult(
     bool IsPrimary,
     string Provider,
     string CanonicalUrl,
+    DateTimeOffset ObservedAt,
     string Status,
     string AssociationStatus,
     string? WarningCode);
 
-public sealed record BusinessDiscoveryEvidence(
+public sealed record BusinessDiscoveryEvidenceCandidate(
     int SourceOrder,
     string Provider,
     string CanonicalUrl,
     string Key,
     string Value,
+    DateTimeOffset ObservedAt,
     string Confidence,
     string EvidenceClass,
     string ReconciliationState,
@@ -36,7 +38,7 @@ public sealed record BusinessDiscoveryEvidence(
 public sealed record BusinessDiscoveryReconciliationResult(
     PublicBusinessSnapshot Snapshot,
     IReadOnlyList<BusinessSourceResult> SourceResults,
-    IReadOnlyList<BusinessDiscoveryEvidence> Evidence,
+    IReadOnlyList<BusinessDiscoveryEvidenceCandidate> Evidence,
     IReadOnlyList<string> Warnings);
 
 public static partial class BusinessDiscoveryReconciler
@@ -54,7 +56,7 @@ public static partial class BusinessDiscoveryReconciler
 
         var warnings = new HashSet<string>(StringComparer.Ordinal);
         var sourceResults = new List<BusinessSourceResult>(sources.Count);
-        var evidence = new List<BusinessDiscoveryEvidence>();
+        var evidence = new List<BusinessDiscoveryEvidenceCandidate>();
         var acceptedSources = new List<(BusinessSourceObservation Source, string Association)>();
 
         foreach (var source in sources)
@@ -122,7 +124,7 @@ public static partial class BusinessDiscoveryReconciler
         if (selected.Count == 0)
             throw new BusinessDiscoveryException("business_sources_no_facts", "Atlas could not find useful business details from the supplied public pages.");
 
-        var observedAt = anchor.Facts.Where(IsUsableFact).Select(x => x.ObservedAt).DefaultIfEmpty(DateTimeOffset.UtcNow).Min();
+        var observedAt = SourceObservedAt(anchor);
         var snapshot = new PublicBusinessSnapshot(
             anchor.Provider,
             anchor.CanonicalUrl,
@@ -137,9 +139,9 @@ public static partial class BusinessDiscoveryReconciler
     }
 
     private static BusinessSourceResult Result(BusinessSourceObservation source, string association) =>
-        new(source.Order, source.IsPrimary, source.Provider, source.CanonicalUrl, source.Status, association, source.WarningCode);
+        new(source.Order, source.IsPrimary, source.Provider, source.CanonicalUrl, SourceObservedAt(source), source.Status, association, source.WarningCode);
 
-    private static BusinessDiscoveryEvidence Evidence(
+    private static BusinessDiscoveryEvidenceCandidate Evidence(
         BusinessSourceObservation source,
         PublicBusinessFact fact,
         string state,
@@ -150,10 +152,14 @@ public static partial class BusinessDiscoveryReconciler
             source.CanonicalUrl,
             fact.Key,
             fact.Value,
+            fact.ObservedAt,
             fact.Confidence,
             fact.EvidenceClass,
             state,
             association);
+
+    private static DateTimeOffset SourceObservedAt(BusinessSourceObservation source) =>
+        source.Facts.Where(IsUsableFact).Select(x => x.ObservedAt).DefaultIfEmpty(DateTimeOffset.UtcNow).Min();
 
     private static bool IsUsableSource(BusinessSourceObservation source) =>
         source.Status.Equals(Success, StringComparison.OrdinalIgnoreCase) && source.Facts.Any(IsUsableFact);
