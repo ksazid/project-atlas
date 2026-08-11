@@ -1,4 +1,3 @@
-using System.Net;
 using Atlas.Api;
 using Xunit;
 
@@ -11,20 +10,15 @@ public sealed class LiveBoltBusinessDiscoverySmokeTests
     [Fact]
     public async Task Supplied_public_bolt_business_page_is_readable_by_production_discovery_code()
     {
-        using var transport = new SocketsHttpHandler
-        {
-            AllowAutoRedirect = false,
-            AutomaticDecompression = DecompressionMethods.All,
-            ConnectCallback = PublicBusinessHttpConnector.ConnectAsync
-        };
-        using var client = new HttpClient(transport) { Timeout = TimeSpan.FromSeconds(15) };
+        using var handler = PublicBusinessHttpHandlerFactory.Create();
+        using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
         var service = new BusinessDiscoveryService(client);
 
         var snapshot = await service.DiscoverAsync(PublicBoltUrl, CancellationToken.None);
 
         Assert.Equal("bolt-food", snapshot.Provider);
         Assert.Contains(snapshot.Facts, fact => fact.Key == "category" && fact.Value == "restaurant-cafe");
-        var name = Assert.Single(snapshot.Facts.Where(fact => fact.Key == "name")).Value;
+        var name = Assert.Single(snapshot.Facts, fact => fact.Key == "name").Value;
         Assert.False(string.Equals(name, "Bolt Food", StringComparison.OrdinalIgnoreCase));
         Assert.Contains("kebab", name, StringComparison.OrdinalIgnoreCase);
     }
