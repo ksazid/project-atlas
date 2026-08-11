@@ -10,7 +10,7 @@ public sealed class BusinessDiscoveryUrlCanonicalizationTests
     [InlineData("https://maps.app.goo.gl/ejRnLZ8ZZovZhtm86?g_st=ic", "https://maps.app.goo.gl/ejRnLZ8ZZovZhtm86")]
     public void Canonicalizer_StripsShareTextAndTracking(string raw, string expected)
     {
-        var ok = PublicBusinessUrlPolicy.TryCanonicalize(raw, out var canonical, out var error);
+        var ok = BusinessSourceUrlPolicy.TryCanonicalize(raw, out var canonical, out var error);
 
         Assert.True(ok, error);
         Assert.NotNull(canonical);
@@ -26,7 +26,7 @@ public sealed class BusinessDiscoveryUrlCanonicalizationTests
     [InlineData("https://user:password@example.com/business")]
     public void Canonicalizer_RejectsGenericOrUnsafeSources(string raw)
     {
-        Assert.False(PublicBusinessUrlPolicy.TryCanonicalize(raw, out _, out _));
+        Assert.False(BusinessSourceUrlPolicy.TryCanonicalize(raw, out _, out _));
     }
 
     [Fact]
@@ -34,13 +34,13 @@ public sealed class BusinessDiscoveryUrlCanonicalizationTests
     {
         const string raw = "https://example.com/a https://example.com/b";
 
-        Assert.False(PublicBusinessUrlPolicy.TryCanonicalize(raw, out _, out _));
+        Assert.False(BusinessSourceUrlPolicy.TryCanonicalize(raw, out _, out _));
     }
 
     [Fact]
     public void CanonicalizeMany_RejectsCanonicalDuplicatesBeforeDiscovery()
     {
-        var error = Assert.Throws<BusinessDiscoveryException>(() => PublicBusinessUrlPolicy.CanonicalizeMany(
+        var error = Assert.Throws<BusinessDiscoveryException>(() => BusinessSourceUrlPolicy.CanonicalizeMany(
             "https://food.bolt.eu/en/324/p/122519-antalya-kebab-st-julians?utm_source=one",
             ["https://food.bolt.eu/en/324/p/122519-antalya-kebab-st-julians?utm_medium=two"]));
 
@@ -50,7 +50,7 @@ public sealed class BusinessDiscoveryUrlCanonicalizationTests
     [Fact]
     public void CanonicalizeMany_RejectsMoreThanThreeSources()
     {
-        var error = Assert.Throws<BusinessDiscoveryException>(() => PublicBusinessUrlPolicy.CanonicalizeMany(
+        var error = Assert.Throws<BusinessDiscoveryException>(() => BusinessSourceUrlPolicy.CanonicalizeMany(
             "https://example.com/business",
             ["https://example.net/business", "https://example.org/business", "https://example.edu/business"]));
 
