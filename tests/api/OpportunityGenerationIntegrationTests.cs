@@ -126,6 +126,7 @@ public sealed class OpportunityGenerationIntegrationTests
         string? contextKey = null,
         string? contextValue = null)
     {
+        var core = GenericBusinessKnowledgeManifestV2.Create();
         var account = new UserAccount { Id = Guid.NewGuid(), ProviderSubject = $"subject-{Guid.NewGuid():N}", CreatedAt = Now };
         var business = new Business
         {
@@ -143,7 +144,7 @@ public sealed class OpportunityGenerationIntegrationTests
         var assignment = new BusinessKnowledgeAssignment
         {
             Id = Guid.NewGuid(), BusinessId = business.Id, KnowledgePackId = Guid.NewGuid(), KnowledgePackVersionId = Guid.NewGuid(),
-            PackKey = GenericBusinessKnowledgeManifestV2.PackKey, ExactVersion = GenericBusinessKnowledgeManifestV2.Version,
+            PackKey = core.PackKey, ExactVersion = core.ExactVersion,
             IsCurrent = true, AssignedByUserAccountId = account.Id, AssignedAt = Now, EffectiveAt = Now
         };
         var membership = new BusinessMembership
@@ -176,8 +177,8 @@ public sealed class OpportunityGenerationIntegrationTests
         Id = Guid.NewGuid(), BusinessId = setup.Business.Id, GoalId = setup.Goal.Id,
         Title = "Existing focus", WhyItMatters = "Existing", WhyNow = "Existing", ExpectedImpact = "Existing",
         Effort = "Low", Confidence = "Medium", EvidenceSummary = "Existing", EvidenceJson = "{}",
-        Status = OpportunityStatuses.Available, KnowledgePackKey = GenericBusinessKnowledgeManifestV2.PackKey,
-        KnowledgePackVersion = GenericBusinessKnowledgeManifestV2.Version, KnowledgePackVersionId = setup.Assignment.KnowledgePackVersionId,
+        Status = OpportunityStatuses.Available, KnowledgePackKey = setup.Assignment.PackKey,
+        KnowledgePackVersion = setup.Assignment.ExactVersion, KnowledgePackVersionId = setup.Assignment.KnowledgePackVersionId,
         CreatedAt = Now.AddHours(-1), ExpiresAt = expiresAt
     };
 
