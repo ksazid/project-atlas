@@ -3,7 +3,7 @@
   "sliceId": "VS-26",
   "title": "VS-26 — Google Place Intelligence & Goal-First Onboarding",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-02", "FR-03", "FR-04", "FR-05", "FR-16"],
@@ -59,19 +59,37 @@
       "at": "2026-08-11T16:47:00+02:00",
       "rationale": "Product Owner explicitly instructed 'Check now and proceed' after approving the VS-26 plan. Runtime implementation is authorized on a fresh branch from merged VS-25 main."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-26@1.0",
+      "commitSha": "9a58bebd90b599732b50158c9e6a4a98b94027be",
+      "by": "PES/Loop",
+      "at": "2026-08-11T17:25:00Z",
+      "rationale": "Exact implementation SHA passed CI, Security baseline and Product Intake. CI completed mobile preflight, .NET restore/build, EF database update, API tests and dashboard build successfully. Certification does not authorize merge, release or production enablement."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
   "decisionIds": ["DEC-08"],
-  "progress": {"discovery": 100, "decisions": 100, "implementation": 0, "testing": 0, "certification": 0, "release": 0, "validation": 0},
-  "certification": {"status": "not-started", "commitSha": null, "evidence": []},
+  "progress": {"discovery": 100, "decisions": 100, "implementation": 100, "testing": 100, "certification": 100, "release": 0, "validation": 0},
+  "certification": {
+    "status": "passed",
+    "commitSha": "9a58bebd90b599732b50158c9e6a4a98b94027be",
+    "evidence": [
+      "CI run 31512300780: exact implementation SHA green; mobile preflight, .NET restore/build, EF database update, API tests and dashboard build all succeeded",
+      "Security baseline run 31512300909: green",
+      "Product Intake run 31512300722: green",
+      "VS-26 API coverage includes bounded Place enrichment, owner/business authorization and explicit owner-submitted operating-context persistence",
+      "VS-26 mobile coverage includes Place enrichment presentation, Goals-first onboarding and business-discovery regressions"
+    ]
+  },
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
     "specification": "docs/slices/VS-26.md",
-    "implementationPr": null,
+    "implementationPr": 47,
     "evidence": [
       "docs/superpowers/specs/2026-08-11-vs-26-google-place-intelligence-goal-first-onboarding-design.md",
       "docs/superpowers/plans/2026-08-11-vs-26-google-place-intelligence-goal-first-onboarding.md",
