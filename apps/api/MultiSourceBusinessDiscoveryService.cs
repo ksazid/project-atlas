@@ -9,6 +9,19 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
     GoogleBusinessSourceResolver googleResolver,
     IBusinessLocationProvider locationProvider)
 {
+    private static readonly HttpClient GoogleSourceClient = CreateGoogleSourceClient();
+
+    public MultiSourceBusinessDiscoveryService(
+        BusinessDiscoveryService pageDiscovery,
+        IHttpClientFactory httpClientFactory,
+        IConfiguration configuration)
+        : this(
+            pageDiscovery,
+            new GoogleBusinessSourceResolver(GoogleSourceClient),
+            new GoogleBusinessLocationProvider(httpClientFactory.CreateClient(), configuration))
+    {
+    }
+
     public async Task<BusinessDiscoveryReconciliationResult> DiscoverAsync(
         string primaryUrl,
         IReadOnlyList<string>? additionalUrls,
@@ -143,6 +156,15 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
         "business_google_place_unresolved" or
         "business_google_redirect_limit" or
         "business_google_redirect_invalid";
+
+    private static HttpClient CreateGoogleSourceClient()
+    {
+        var client = new HttpClient(GoogleBusinessSourceHttpHandlerFactory.Create(), disposeHandler: true)
+        {
+            Timeout = TimeSpan.FromSeconds(8),
+        };
+        return client;
+    }
 
     private static string Normalize(string? value)
     {
