@@ -57,7 +57,7 @@ function ContextIcon({ size, color, stroke }: IconGeometryProps) {
 
 function SettingsIcon({ size, color, stroke }: IconGeometryProps) {
   return <>
-    {[.25, .50, .75].map((top, index) => <View key={top} style={{ position: 'absolute', left: size * .10, top: size * top, width: size * .80, height: stroke, borderRadius: stroke, backgroundColor: color }} />)}
+    {[.25, .50, .75].map(top => <View key={top} style={{ position: 'absolute', left: size * .10, top: size * top, width: size * .80, height: stroke, borderRadius: stroke, backgroundColor: color }} />)}
     <View style={{ position: 'absolute', left: size * .27, top: size * .25 - size * .075 + stroke / 2, width: size * .15, height: size * .15, borderRadius: size * .075, backgroundColor: color }} />
     <View style={{ position: 'absolute', right: size * .25, top: size * .50 - size * .075 + stroke / 2, width: size * .15, height: size * .15, borderRadius: size * .075, backgroundColor: color }} />
     <View style={{ position: 'absolute', left: size * .39, top: size * .75 - size * .075 + stroke / 2, width: size * .15, height: size * .15, borderRadius: size * .075, backgroundColor: color }} />
