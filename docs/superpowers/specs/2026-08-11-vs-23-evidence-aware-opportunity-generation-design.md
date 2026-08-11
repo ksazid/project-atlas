@@ -20,7 +20,7 @@ Replace the current generic Today’s Focus placeholder generation with determin
 7. Unsupported categories may use Core patterns only; Restaurant/Café terminology, evidence rules and templates must never leak.
 8. The application, not model prose, controls eligibility and Confidence.
 9. VS-23 is deterministic. No external AI provider call is required for candidate generation.
-10. No qualifying candidate means no Today’s Focus. Atlas must not manufacture a generic filler recommendation simply to populate the screen.
+10. No qualifying candidate means no Today’s Focus. Atlas must not manufacture a recommendation solely to populate the screen.
 11. Exact pack key/version and bundle fingerprint are retained with the generated candidate/opportunity evidence snapshot.
 12. Duplicate/cooldown suppression is deterministic and based on the pattern key plus the pattern’s configured cooldown.
 13. One primary Today’s Focus is selected by deterministic practical-value ranking. Ties are resolved stably.
@@ -42,12 +42,12 @@ Evidence items use stable IDs derived from the resolved input layer/key/value/so
 ### Restaurant/Café
 
 - `restaurant-category-confirmed`: resolved bundle category exactly `restaurant-cafe` and the Restaurant/Café manifest is present.
-- `ordering-channel-confirmed`: owner-confirmed/context evidence with one of `orderingChannel`, `orderingChannels`, `primaryOrderingChannel`, `serviceChannel`, `serviceChannels`.
-- `hours-evidence-present`: explicit opening/business-hours fact. No inference from unrelated text.
-- `current-offer-confirmed`: owner-confirmed context with `currentOffer`, `promotion`, `currentPromotion`, `nearTermPriority`, or `commercialPriority`.
-- `reputation-signal-present`: attributable reputation/review signal or owner-confirmed concern with `reputationSignal`, `reviewSignal`, `ratingSignal`, `reputationConcern`, or `reviewConcern`.
+- `ordering-channel-confirmed`: owner-confirmed Context evidence. The current progressive-onboarding canonical key is `primarychannels`; compatible explicit aliases such as `orderingChannel`, `orderingChannels`, `primaryOrderingChannel`, `serviceChannel`, and `serviceChannels` are accepted for imported/future canonical context.
+- `hours-evidence-present`: explicit opening/business-hours evidence from the confirmed Business Profile or a resolved fact whose key explicitly represents hours. No inference from unrelated text.
+- `current-offer-confirmed`: owner-confirmed Context evidence representing a current offer or near-term priority. The current progressive-onboarding key `currentpriorities` is accepted, together with explicit aliases `currentOffer`, `promotion`, `currentPromotion`, `nearTermPriority`, and `commercialPriority`.
+- `reputation-signal-present`: attributable resolved reputation/review signal or owner-confirmed concern with `reputationSignal`, `reviewSignal`, `ratingSignal`, `reputationConcern`, or `reviewConcern`.
 
-Key matching is case-insensitive but otherwise explicit. No fuzzy semantic inference is used in VS-23.
+The VS-20 resolver already filters Context entries to owner-confirmed values. Therefore `Source` is provenance, not a substitute for owner-confirmation. Key matching is case-insensitive but otherwise explicit. No fuzzy semantic inference is used in VS-23.
 
 ## Goal matching
 
@@ -55,7 +55,7 @@ Patterns are evaluated only for Business Goals whose canonical `Type` appears in
 
 ## Confidence policy
 
-Manifest confidence is only an upper bound. `Medium` is allowed when all required rules are satisfied by explicit eligible evidence and the profile is confirmed. Confidence becomes `Low` when a qualifying rule depends on public/non-owner evidence where the rule permits it. VS-23 never emits `High` confidence.
+Manifest confidence is only an upper bound. `Medium` is allowed when all required rules are satisfied by explicit eligible evidence and the profile is confirmed. Confidence becomes `Low` when a qualifying rule depends on non-owner attributable evidence where that evidence rule permits it. VS-23 never emits `High` confidence.
 
 ## Ranking
 
@@ -69,7 +69,7 @@ Prior Opportunities for the Business are examined. A candidate is suppressed whe
 
 The existing `Opportunity` entity remains the aggregate; no new table is added. `EvidenceJson` stores a schema-versioned immutable snapshot containing pattern key, bundle fingerprint, goal identity/type/title/priority, exact manifest references, structured evidence items, assumptions, limitations, execution template key, cooldown and generated-at time.
 
-`KnowledgePackKey` and `KnowledgePackVersion` use the most specific manifest responsible for the selected pattern.
+`KnowledgePackKey` and `KnowledgePackVersion` use the most specific manifest responsible for the selected pattern. The existing `KnowledgePackVersionId` FK continues to identify the current persisted Core assignment because category manifests are packaged runtime manifests rather than separately assigned database versions; the complete exact manifest set is authoritative in `EvidenceJson`.
 
 ## Today’s Focus integration
 
