@@ -188,7 +188,7 @@ function createStaticServer(exportRoot) {
 }
 
 async function runExpoExport(outputDir, apiUrl) {
-  const child = spawn('npx', ['expo', 'export', '--platform', 'web', '--output-dir', outputDir], {
+  const child = spawn('npx', ['expo', 'export', '--clear', '--platform', 'web', '--output-dir', outputDir], {
     cwd: mobileRoot,
     env: { ...process.env, CI: 'true', EXPO_NO_TELEMETRY: '1', EXPO_PUBLIC_API_URL: apiUrl, EXPO_PUBLIC_AUTH_ISSUER: 'https://auth.runtime.invalid', EXPO_PUBLIC_AUTH_CLIENT_ID: 'runtime-client' },
     stdio: ['ignore', 'pipe', 'pipe']
