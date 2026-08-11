@@ -18,7 +18,7 @@ public sealed class OpportunityDetailPolicyTests
         Assert.Contains(detail.Evidence, x => x.Category == "business-goal" && x.Value == goal.Title);
         Assert.NotEmpty(detail.Assumptions);
         Assert.NotEmpty(detail.Limitations);
-        Assert.False(detail.ExecutionKitAvailable);
+        Assert.True(detail.ExecutionKitAvailable);
         Assert.False(detail.IsExpired);
     }
 
@@ -43,6 +43,7 @@ public sealed class OpportunityDetailPolicyTests
         var detail = OpportunityPolicy.Detail(opportunity, null, DateTimeOffset.UtcNow);
 
         Assert.True(detail.IsExpired);
+        Assert.False(detail.ExecutionKitAvailable);
         Assert.Equal(OpportunityStatuses.Expired, detail.Status);
         Assert.Equal("generic-business", detail.KnowledgePackKey);
         Assert.Equal("1.0", detail.KnowledgePackVersion);

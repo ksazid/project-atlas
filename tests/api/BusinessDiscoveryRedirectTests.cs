@@ -74,6 +74,92 @@ public sealed class BusinessDiscoveryRedirectTests
         Assert.Empty(inner.Requests);
     }
 
+    [Fact]
+    public void GoogleHandler_DisablesAutomaticRedirectsAndProxyRouting()
+    {
+        using var handler = GoogleBusinessSourceHttpHandlerFactory.Create();
+
+        Assert.False(handler.AllowAutoRedirect);
+        Assert.False(handler.UseProxy);
+        Assert.NotNull(handler.ConnectCallback);
+    }
+
+    [Fact]
+    public async Task GoogleResolver_FollowsOnlyGoogleRedirects_AndExtractsSpecificPlaceQuery()
+    {
+        var inner = new SequenceHandler(
+            _ => Redirect(HttpStatusCode.Found, new Uri("https://www.google.com/maps/place/Antalya+Kebab+St.+Julian%27s/@35.918,14.489,17z")),
+            _ => new HttpResponseMessage(HttpStatusCode.OK));
+        using var client = new HttpClient(inner);
+        Assert.True(BusinessSourceUrlPolicy.TryCanonicalize(
+            "https://maps.app.goo.gl/ejRnLZ8ZZovZhtm86?g_st=ic",
+            out var source,
+            out var error), error);
+        var resolver = new GoogleBusinessSourceResolver(client);
+
+        var resolved = await resolver.ResolveAsync(source!, CancellationToken.None);
+
+        Assert.Equal(2, inner.Requests.Count);
+        Assert.Equal("Antalya Kebab St. Julian's", resolved.Query);
+        Assert.Equal("https://maps.app.goo.gl/ejRnLZ8ZZovZhtm86", resolved.CanonicalSourceUrl);
+    }
+
+    [Fact]
+    public async Task GoogleResolver_RejectsCrossProviderRedirectBeforeRequestingTarget()
+    {
+        var inner = new SequenceHandler(
+            _ => Redirect(HttpStatusCode.Found, new Uri("https://evil.example/steal")));
+        using var client = new HttpClient(inner);
+        Assert.True(BusinessSourceUrlPolicy.TryCanonicalize(
+            "https://maps.app.goo.gl/ejRnLZ8ZZovZhtm86",
+            out var source,
+            out _));
+        var resolver = new GoogleBusinessSourceResolver(client);
+
+        var error = await Assert.ThrowsAsync<BusinessDiscoveryException>(() =>
+            resolver.ResolveAsync(source!, CancellationToken.None));
+
+        Assert.Equal("business_google_redirect_invalid", error.Code);
+        Assert.Single(inner.Requests);
+    }
+
+    [Fact]
+    public async Task GoogleResolver_CapsRedirectChainAtFourHops()
+    {
+        var inner = new RepeatingRedirectHandler();
+        using var client = new HttpClient(inner);
+        Assert.True(BusinessSourceUrlPolicy.TryCanonicalize(
+            "https://maps.app.goo.gl/0000",
+            out var source,
+            out _));
+        var resolver = new GoogleBusinessSourceResolver(client);
+
+        var error = await Assert.ThrowsAsync<BusinessDiscoveryException>(() =>
+            resolver.ResolveAsync(source!, CancellationToken.None));
+
+        Assert.Equal("business_google_redirect_limit", error.Code);
+        Assert.Equal(5, inner.Requests.Count);
+    }
+
+    [Fact]
+    public async Task GoogleResolver_RejectsFinalGoogleUrlThatDoesNotIdentifyOneBusiness()
+    {
+        var inner = new SequenceHandler(
+            _ => Redirect(HttpStatusCode.Found, new Uri("https://www.google.com/maps/search/restaurants+malta")),
+            _ => new HttpResponseMessage(HttpStatusCode.OK));
+        using var client = new HttpClient(inner);
+        Assert.True(BusinessSourceUrlPolicy.TryCanonicalize(
+            "https://maps.app.goo.gl/ejRnLZ8ZZovZhtm86",
+            out var source,
+            out _));
+        var resolver = new GoogleBusinessSourceResolver(client);
+
+        var error = await Assert.ThrowsAsync<BusinessDiscoveryException>(() =>
+            resolver.ResolveAsync(source!, CancellationToken.None));
+
+        Assert.Equal("business_google_place_unresolved", error.Code);
+    }
+
     private static HttpResponseMessage Redirect(HttpStatusCode statusCode, Uri location)
     {
         var response = new HttpResponseMessage(statusCode);
@@ -91,6 +177,19 @@ public sealed class BusinessDiscoveryRedirectTests
             Requests.Add(request.RequestUri ?? throw new InvalidOperationException("Request URI is required."));
             if (queue.Count == 0) throw new InvalidOperationException("No fake response is configured.");
             return Task.FromResult(queue.Dequeue()(request));
+        }
+    }
+
+    private sealed class RepeatingRedirectHandler : HttpMessageHandler
+    {
+        public List<Uri> Requests { get; } = [];
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var uri = request.RequestUri ?? throw new InvalidOperationException("Request URI is required.");
+            Requests.Add(uri);
+            var current = int.TryParse(uri.AbsolutePath.Trim('/'), out var value) ? value : 0;
+            return Task.FromResult(Redirect(HttpStatusCode.Found, new Uri($"https://maps.app.goo.gl/{current + 1:D4}")));
         }
     }
 }

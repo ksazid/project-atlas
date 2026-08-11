@@ -248,17 +248,17 @@ public static class PublicBusinessExtractor
     public const int MaxFactValueCharacters = BusinessDiscoveryProvenance.MaxValueCharacters;
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
     private static readonly Regex JsonLdRegex = new(@"<script[^>]+type=[""']application/ld\+json[""'][^>]*>(.*?)</script>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
-    private static readonly Regex OgTitleRegex = new(@"<meta[^>]+property=[""']og:title[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex OgTitleRegex = new(@"<meta[^>]+property=[""']og:title[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex TitleRegex = new(@"<title[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
-    private static readonly Regex OgDescriptionRegex = new(@"<meta[^>]+property=[""']og:description[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
-    private static readonly Regex MetaDescriptionRegex = new(@"<meta[^>]+name=[""']description[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex OgDescriptionRegex = new(@"<meta[^>]+property=[""']og:description[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex MetaDescriptionRegex = new(@"<meta[^>]+name=[""']description[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex StreetAddressRegex = new(@"[""']streetAddress[""']\s*:\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
 
     public static PublicBusinessSnapshot Extract(string provider, Uri sourceUri, string html, DateTimeOffset observedAt)
     {
         var sourceUrl = sourceUri.GetLeftPart(UriPartial.Path);
         var facts = new Dictionary<string, PublicBusinessFact>(StringComparer.OrdinalIgnoreCase);
-        var structured = FindStructuredBusiness(html);
+        var structured = FindStructuredBusiness(html, provider, sourceUri);
 
         string? StructuredString(string key) => structured is JsonElement value && TryGetString(value, key, out var result) ? result : null;
 
@@ -304,8 +304,9 @@ public static class PublicBusinessExtractor
         }
     }
 
-    private static JsonElement? FindStructuredBusiness(string html)
+    private static JsonElement? FindStructuredBusiness(string html, string provider, Uri sourceUri)
     {
+        var candidates = new List<JsonElement>();
         foreach (Match match in JsonLdRegex.Matches(html))
         {
             try
@@ -314,7 +315,7 @@ public static class PublicBusinessExtractor
                 foreach (var candidate in EnumerateObjects(document.RootElement))
                 {
                     var types = ReadTypes(candidate);
-                    if (IsBusinessType(types) && TryGetString(candidate, "name", out _)) return candidate.Clone();
+                    if (IsBusinessType(types) && TryGetString(candidate, "name", out _)) candidates.Add(candidate.Clone());
                 }
             }
             catch (JsonException)
@@ -322,7 +323,65 @@ public static class PublicBusinessExtractor
                 // Ignore malformed public structured data and use conservative metadata fallbacks.
             }
         }
+
+        if (candidates.Count == 0) return null;
+        if (provider is not "wolt" and not "bolt-food") return candidates[0];
+
+        foreach (var candidate in candidates)
+        {
+            if (!TryGetString(candidate, "url", out var candidateUrl) ||
+                !Uri.TryCreate(candidateUrl, UriKind.Absolute, out var candidateUri)) continue;
+            if (SameMarketplacePath(sourceUri, candidateUri)) return candidate;
+        }
+
+        var sourceIdentity = MarketplaceSourceIdentity(provider, sourceUri);
+        if (sourceIdentity.Length == 0) return null;
+        foreach (var candidate in candidates)
+        {
+            if (TryGetString(candidate, "name", out var candidateName) && IdentityMatches(sourceIdentity, candidateName))
+                return candidate;
+        }
+
         return null;
+    }
+
+    private static bool SameMarketplacePath(Uri sourceUri, Uri candidateUri)
+    {
+        if (!string.Equals(sourceUri.IdnHost.TrimEnd('.'), candidateUri.IdnHost.TrimEnd('.'), StringComparison.OrdinalIgnoreCase)) return false;
+        return string.Equals(
+            sourceUri.AbsolutePath.TrimEnd('/'),
+            candidateUri.AbsolutePath.TrimEnd('/'),
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string MarketplaceSourceIdentity(string provider, Uri sourceUri)
+    {
+        var segment = sourceUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? string.Empty;
+        if (provider == "bolt-food") segment = Regex.Replace(segment, @"^\d+-", string.Empty, RegexOptions.CultureInvariant);
+        return NormalizeIdentity(segment);
+    }
+
+    private static bool IdentityMatches(string sourceIdentity, string? candidateName)
+    {
+        var candidateIdentity = NormalizeIdentity(candidateName);
+        if (sourceIdentity.Length == 0 || candidateIdentity.Length == 0) return false;
+        if (string.Equals(sourceIdentity, candidateIdentity, StringComparison.Ordinal)) return true;
+        var shorter = Math.Min(sourceIdentity.Length, candidateIdentity.Length);
+        return shorter >= 8 &&
+            (sourceIdentity.Contains(candidateIdentity, StringComparison.Ordinal) || candidateIdentity.Contains(sourceIdentity, StringComparison.Ordinal));
+    }
+
+    private static string NormalizeIdentity(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var decomposed = value.Normalize(NormalizationForm.FormD);
+        var builder = new StringBuilder(decomposed.Length);
+        foreach (var ch in decomposed)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.NonSpacingMark) continue;
+            if (char.IsLetterOrDigit(ch)) builder.Append(char.ToLowerInvariant(ch));
+        }
+        return builder.ToString();
     }
 
     private static IEnumerable<JsonElement> EnumerateObjects(JsonElement element)
@@ -405,7 +464,9 @@ public static class PublicBusinessExtractor
     private static string? FirstMatch(Regex regex, string value)
     {
         var match = regex.Match(value);
-        return match.Success ? match.Groups[1].Value.Trim() : null;
+        if (!match.Success) return null;
+        var namedValue = match.Groups["value"];
+        return (namedValue.Success ? namedValue.Value : match.Groups[1].Value).Trim();
     }
 
     private static string? Decode(string? value) => string.IsNullOrWhiteSpace(value) ? null : WebUtility.HtmlDecode(value).Trim();
@@ -425,7 +486,7 @@ public static class PublicBusinessExtractor
     }
 }
 
-public sealed record DiscoverBusinessRequest(string Url);
+public sealed record DiscoverBusinessRequest(string Url, IReadOnlyList<string>? AdditionalUrls = null);
 public sealed record BusinessDiscoveryResponse(Guid SnapshotId, string Provider, string SourceUrl, DateTimeOffset ObservedAt, IReadOnlyList<PublicBusinessFact> Facts)
 {
     public static BusinessDiscoveryResponse From(BusinessDiscoverySnapshot snapshot) => new(
@@ -488,7 +549,14 @@ public static class BusinessDiscoveryEndpoints
             fallback = BusinessCategoryTaxonomy.Generic
         })).RequireAuthorization("BusinessOwner");
 
-        app.MapPost("/api/v1/business-discovery", async (DiscoverBusinessRequest request, ClaimsPrincipal user, BusinessDiscoveryService discovery, AtlasDbContext db, CancellationToken ct) =>
+        app.MapPost("/api/v1/business-discovery", async (
+            DiscoverBusinessRequest request,
+            ClaimsPrincipal user,
+            BusinessDiscoveryService pageDiscovery,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration,
+            AtlasDbContext db,
+            CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(request.Url))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Url)] = ["Business page URL is required."] });
@@ -496,14 +564,15 @@ public static class BusinessDiscoveryEndpoints
             if (string.IsNullOrWhiteSpace(subject)) return Results.Unauthorized();
             try
             {
-                var publicSnapshot = await discovery.DiscoverAsync(request.Url, ct);
+                var discovery = new MultiSourceBusinessDiscoveryService(pageDiscovery, httpClientFactory, configuration);
+                var reconciliation = await discovery.DiscoverAsync(request.Url, request.AdditionalUrls, ct);
                 var account = await db.UserAccounts.SingleOrDefaultAsync(x => x.ProviderSubject == subject, ct);
                 if (account is null)
                 {
                     account = new UserAccount { Id = Guid.NewGuid(), ProviderSubject = subject, CreatedAt = DateTimeOffset.UtcNow };
                     db.UserAccounts.Add(account);
                 }
-                var snapshot = BusinessDiscoverySnapshot.Create(account.Id, publicSnapshot);
+                var snapshot = BusinessDiscoverySnapshot.Create(account.Id, reconciliation);
                 foreach (var fact in snapshot.Facts)
                 {
                     fact.SnapshotId = snapshot.Id;

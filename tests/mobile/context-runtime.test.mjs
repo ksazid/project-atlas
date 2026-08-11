@@ -325,7 +325,7 @@ test('VS-15 Context renders and recovers in authentic Expo Web runtime', { skip:
     await closeServer(staticServer);
     await closeServer(fixture.server);
     if (fs.existsSync(sessionWebPath)) fs.unlinkSync(sessionWebPath);
-    fs.rmSync(tempRoot, { recursive: true, force: true });
+    fs.rmSync(tempRoot, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   });
 
   await runExpoExport(exportRoot, apiUrl);

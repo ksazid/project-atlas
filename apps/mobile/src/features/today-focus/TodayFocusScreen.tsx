@@ -74,14 +74,26 @@ export function TodayFocusScreen() {
   }
 
   if (state === 'error') {
-    return <StateShell><View style={styles.stateIcon}><Text style={styles.stateIconText}>!</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>Today’s focus is unavailable.</Text><Text style={styles.stateBody}>Atlas could not load a safe recommendation. No action has been created.</Text><Pressable accessibilityRole="button" onPress={retry} style={styles.primaryButton}><Text style={styles.primaryText}>Try again</Text></Pressable></StateShell>;
+    return <StateShell><View style={styles.stateIcon}><Text style={styles.stateIconText}>!</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>Today’s focus is unavailable.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>Atlas could not load a safe recommendation. No action has been created.</Text><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={retry} style={styles.primaryButton}><Text style={styles.primaryText}>Try again</Text></Pressable></StateShell>;
   }
 
   if (focus?.state === 'insufficient-context') {
-    return <ScrollView contentContainerStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>◌</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>No suitable focus yet.</Text><Text style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>Why Atlas is waiting</Text><Text style={styles.noteText}>Atlas will not create filler recommendations when the available context is insufficient.</Text></View><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.secondaryWide}><Text style={styles.secondaryText}>View business history</Text></Pressable></ScrollView>;
+    return <ScrollView contentContainerStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>◌</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>No suitable focus yet.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>Why Atlas is waiting</Text><Text style={styles.noteText}>Atlas will not create filler recommendations when the available context is insufficient.</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Review business context" onPress={() => router.push('/profile')} style={styles.primaryButton}><Text style={styles.primaryText}>Review business context</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.secondaryWide}><Text style={styles.secondaryText}>View business history</Text></Pressable></ScrollView>;
   }
 
-  const opportunity = focus?.state === 'ready' ? focus.opportunity : null;
+  if (focus?.state === 'no-focus') {
+    return <ScrollView contentContainerStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>◎</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>No evidence-qualified focus yet.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>Quality before quantity</Text><Text style={styles.noteText}>Atlas will not create filler recommendations just to fill this screen. A new focus appears only when the available evidence supports a useful action.</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Review business context" onPress={() => router.push('/profile')} style={styles.primaryButton}><Text style={styles.primaryText}>Review business context</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.secondaryWide}><Text style={styles.secondaryText}>View history</Text></Pressable></ScrollView>;
+  }
+
+  if (focus?.state === 'degraded') {
+    return <ScrollView contentContainerStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>!</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>Atlas could not safely prepare today’s focus.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>No recommendation was created</Text><Text style={styles.noteText}>Atlas stopped safely rather than presenting guidance from incomplete or unavailable intelligence inputs.</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={retry} style={styles.primaryButton}><Text style={styles.primaryText}>Try again</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Review business context" onPress={() => router.push('/profile')} style={styles.secondaryWide}><Text style={styles.secondaryText}>Review business context</Text></Pressable></ScrollView>;
+  }
+
+  if (focus?.state !== 'ready') {
+    return <StateShell><View style={styles.stateIcon}><Text style={styles.stateIconText}>!</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>Today’s focus needs a refresh.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>Atlas did not receive a recognised focus state. No recommendation has been created.</Text><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={retry} style={styles.primaryButton}><Text style={styles.primaryText}>Try again</Text></Pressable></StateShell>;
+  }
+
+  const opportunity = focus.opportunity;
   return (
     <ScrollView
       contentContainerStyle={styles.container}
@@ -94,8 +106,8 @@ export function TodayFocusScreen() {
       </View>
 
       <Text style={styles.eyebrow}>TODAY’S FOCUS</Text>
-      <Text accessibilityRole="header" style={styles.title}>{opportunity?.title}</Text>
-      <Text style={styles.lead}>{opportunity?.whyItMatters}</Text>
+      <Text accessibilityRole="header" style={styles.title}>{opportunity.title}</Text>
+      <Text style={styles.lead}>{opportunity.whyItMatters}</Text>
 
       <View style={styles.heroCard}>
         <View style={styles.heroAccent}><Text style={styles.heroAccentIcon}>↗</Text></View>
@@ -106,24 +118,24 @@ export function TodayFocusScreen() {
       </View>
 
       <View style={styles.metricsRow}>
-        <Metric label="Impact" value={opportunity?.expectedImpact ?? '—'} />
-        <Metric label="Effort" value={opportunity?.effort ?? '—'} />
-        <Metric label="Confidence" value={opportunity?.confidence ?? '—'} />
+        <Metric label="Impact" value={opportunity.expectedImpact} />
+        <Metric label="Effort" value={opportunity.effort} />
+        <Metric label="Confidence" value={opportunity.confidence} />
       </View>
 
       <View style={styles.card}>
         <View style={styles.cardHeader}><View style={styles.cardIcon}><Text style={styles.cardIconText}>◷</Text></View><Text style={styles.cardTitle}>Why now</Text></View>
-        <Text style={styles.body}>{opportunity?.whyNow}</Text>
+        <Text style={styles.body}>{opportunity.whyNow}</Text>
       </View>
 
       <View style={styles.card}>
         <View style={styles.cardHeader}><View style={styles.cardIcon}><Text style={styles.cardIconText}>◎</Text></View><Text style={styles.cardTitle}>Evidence</Text></View>
-        <Text style={styles.body}>{opportunity?.evidenceSummary}</Text>
+        <Text style={styles.body}>{opportunity.evidenceSummary}</Text>
         <View style={styles.interpretation}><Text style={styles.interpretationTitle}>Atlas interpretation</Text><Text style={styles.interpretationText}>Interpretation stays separate from confirmed evidence so you can judge the recommendation clearly.</Text></View>
       </View>
 
-      <Pressable accessibilityRole="button" onPress={() => opportunity && router.push(`/opportunities/${opportunity.id}`)} style={({ pressed }) => [styles.secondaryWide, pressed && styles.pressed]}><Text style={styles.secondaryText}>View full details</Text><Text style={styles.secondaryArrow}>→</Text></Pressable>
-      <Text style={styles.meta}>Expires {opportunity ? new Date(opportunity.expiresAt).toLocaleString() : ''} · {opportunity?.knowledgePackKey} v{opportunity?.knowledgePackVersion}</Text>
+      <Pressable accessibilityRole="button" onPress={() => router.push(`/opportunities/${opportunity.id}`)} style={({ pressed }) => [styles.secondaryWide, pressed && styles.pressed]}><Text style={styles.secondaryText}>View full details</Text><Text style={styles.secondaryArrow}>→</Text></Pressable>
+      <Text style={styles.meta}>Expires {new Date(opportunity.expiresAt).toLocaleString()} · {opportunity.knowledgePackKey} v{opportunity.knowledgePackVersion}</Text>
 
       <Pressable accessibilityRole="button" disabled={deciding} onPress={() => void decide('apply')} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed, deciding && styles.disabled]}>
         {deciding ? <ActivityIndicator color="#FFF" /> : <><Text style={styles.primaryText}>Apply this move</Text><Text style={styles.primaryArrow}>→</Text></>}
@@ -176,8 +188,8 @@ const styles = StyleSheet.create({
   secondaryText: { fontSize: 13, fontWeight: '800', color: GREEN },
   secondaryArrow: { position: 'absolute', right: 18, color: GREEN, fontSize: 20 },
   meta: { marginTop: 10, textAlign: 'center', fontSize: 10.5, lineHeight: 16, color: '#7B8781' },
-  primaryButton: { marginTop: 18, minHeight: 55, borderRadius: 10, backgroundColor: GREEN_BRIGHT, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#00633F', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
-  primaryText: { color: '#FFF', fontSize: 15.5, fontWeight: '900' },
+  primaryButton: { marginTop: 18, minHeight: 55, borderRadius: 10, backgroundColor: GREEN_BRIGHT, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', shadowColor: '#00633F', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2, paddingHorizontal: 20 },
+  primaryText: { color: '#FFF', fontSize: 15.5, fontWeight: '900', textAlign: 'center' },
   primaryArrow: { position: 'absolute', right: 18, color: '#FFF', fontSize: 22 },
   secondaryRow: { flexDirection: 'row', gap: 10, marginTop: 11 },
   smallAction: { flex: 1, minHeight: 48, borderRadius: 10, borderWidth: 1, borderColor: '#E0E5E2', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },

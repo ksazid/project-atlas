@@ -1,59 +1,47 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-21",
-  "title": "VS-21 — Business Location Resolution Remediation",
+  "sliceId": "VS-24",
+  "title": "VS-24 — End-to-End Category Intelligence Validation",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "implementing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-02", "FR-03", "FR-16"],
+  "requirements": ["FR-02","FR-03","FR-04","FR-05","FR-06","FR-07","FR-08","FR-09","FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-16","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758"],
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758","VS-22","VS-23@0f05b24ab5ea3c6c1ab924ad65359d9403c0a590"],
   "blockers": [],
   "allowedPaths": ["apps/api/**","apps/mobile/**","tests/api/**","tests/mobile/**","delivery/**","docs/**"],
   "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
   "impact": {
     "areas":["frontend","api","customer-flow","architecture"],
     "notes":[
-      "Remediates live VS-16 discovery defects found through the isolated Expo Go test harness.",
-      "Business location becomes the owner-facing input; canonical country, timezone and currency are derived.",
-      "Multiple branch candidates require explicit owner selection; one strong candidate may be preselected but remains changeable.",
-      "Google Places Text Search (New) is the approved first test/pilot location adapter behind a replaceable provider boundary; timezone is read from the documented places.timeZone.id response and currency is Atlas-derived.",
-      "Google place types may provide a conservative public cuisine/type summary such as Turkish · Kebab or Indian · Pakistani; marketplace ordering boilerplate is cleared rather than retained as a business description.",
-      "The separate Google Time Zone API is not used by VS-21.",
-      "No production release or production enablement is authorized."
+      "VS-24 is branched from the VS-23 pre-integration head so independent Today state work can proceed while VS-22 finishes.",
+      "Integrated certification is dependency-blocked until VS-22 and VS-23 are merged into main and this branch is reconciled onto that baseline.",
+      "The slice validates the approved Restaurant/Café hero journey and may make only bounded cross-slice compatibility fixes.",
+      "Live Bolt/Google requests are supplemental isolated smoke evidence and are never deterministic CI dependencies.",
+      "No production deployment or production enablement is authorized."
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-21@1.0","commitSha":null,"by":"ksazid","at":"2026-08-10T20:31:00+02:00","rationale":"Product Owner approved automatic country/timezone/currency resolution, Google Maps/Places search for unknown locations, branch selection for multi-location businesses, and instructed implementation to proceed."},
-    {"type":"policy","status":"approved","version":"VS-21@1.1","commitSha":null,"by":"ksazid","at":"2026-08-11T00:20:00+02:00","rationale":"Product Owner approved the recommended lower-dependency approach: use Places Text Search (New) to return timezone in the same request and derive currency inside Atlas, with no separate Time Zone API call."},
-    {"type":"implementation","status":"approved","version":"VS-21@1.2","commitSha":null,"by":"ksazid","at":"2026-08-11T01:44:00+02:00","rationale":"Live Expo testing exposed the Google Places timezone response-shape defect; remediation continued under the already approved VS-21 location-resolution scope."},
-    {"type":"certification","status":"approved","version":"VS-21@1.2","commitSha":"3364b10cf4370db6c7482290de17146d36da6208","by":"ksazid","at":"2026-08-11T01:56:00+02:00","rationale":"Exact implementation SHA passed CI, Security baseline and Product Intake, including the documented timeZone.id response regression, Google place-type summary, marketplace boilerplate cleanup, API build/tests, and mobile preflight/runtime verification."},
+    {"type":"scope","status":"approved","version":"VS-24@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner approved all remaining slices and instructed full implementation, fixes, testing and integration without routine checkpoints."},
+    {"type":"policy","status":"not-required","version":"VS-24@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"VS-24 introduces no new provider, private data source, AI model, retention policy or production deployment."},
+    {"type":"implementation","status":"approved","version":"VS-24@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner explicitly instructed this chat to proceed through all remaining slices, fix defects and test thoroughly."},
+    {"type":"certification","status":"pending","version":"VS-24@1.0","commitSha":null,"by":null,"at":null,"rationale":"Certification requires the final reconciled exact SHA after VS-22 and VS-23 are integrated."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
-  "decisionIds": ["DEC-06"],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
-  "certification": {
-    "status":"passed",
-    "commitSha":"3364b10cf4370db6c7482290de17146d36da6208",
-    "evidence":[
-      "CI run 31443872437: success",
-      "Security baseline run 31443872449: success",
-      "Product Intake run 31443872445: success",
-      "BusinessLocationResolutionTests: parses documented places.timeZone.id, derives MT/Europe-Malta/EUR, requests places.types, and keeps one Google provider request",
-      "Mobile business-location-resolution tests: cuisine/type summary replaces marketplace ordering boilerplate without overwriting a useful description"
-    ]
-  },
+  "decisionIds": [],
+  "progress": {"discovery":100,"decisions":100,"implementation":10,"testing":0,"certification":0,"release":0,"validation":0},
+  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification":"docs/slices/VS-21.md",
-    "implementationPr":"https://github.com/ksazid/project-atlas/pull/28",
+    "specification":"docs/slices/VS-24.md",
+    "implementationPr":null,
     "evidence":[
-      "docs/superpowers/specs/2026-08-10-vs-21-business-location-resolution-design.md",
-      "docs/superpowers/plans/2026-08-10-vs-21-business-location-resolution.md"
+      "docs/superpowers/specs/2026-08-11-vs-24-category-intelligence-e2e-validation-design.md",
+      "docs/superpowers/plans/2026-08-11-vs-24-category-intelligence-e2e-validation.md"
     ]
   },
   "maxAttempts": 3
