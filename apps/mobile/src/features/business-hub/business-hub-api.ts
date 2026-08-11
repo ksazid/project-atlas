@@ -10,7 +10,7 @@ async function problemMessage(response: Response): Promise<string> {
   return problem?.message ?? problem?.title ?? problem?.code ?? 'Atlas request failed.';
 }
 
-export async function loadBusinessHub(accessToken: string, businessId: string): Promise<BusinessHubLoadResult> {
+export async function getBusinessHubState(accessToken: string, businessId: string): Promise<BusinessHubLoadResult> {
   const response = await fetch(`${env.apiUrl}/api/v1/businesses/${businessId}/hub`, {
     headers: { Accept: 'application/json', Authorization: `Bearer ${accessToken}` },
   });
