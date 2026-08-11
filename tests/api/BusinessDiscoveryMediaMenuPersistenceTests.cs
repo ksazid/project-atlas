@@ -81,13 +81,13 @@ public sealed class BusinessDiscoveryMediaMenuPersistenceTests
                 true),
             CancellationToken.None);
 
-        var image = await db.BusinessMediaReferences.SingleAsync(x => x.BusinessId == business.Id);
+        var image = await db.Set<BusinessMediaReference>().SingleAsync(x => x.BusinessId == business.Id);
         Assert.Equal("https://cdn.example.com/hero.jpg", image.RemoteUrl);
         Assert.Equal("website", image.Source);
         Assert.Equal("public-observed", image.EvidenceClass);
         Assert.False(image.OwnerConfirmed);
 
-        var offering = await db.BusinessOfferings.SingleAsync(x => x.BusinessId == business.Id);
+        var offering = await db.Set<BusinessOffering>().SingleAsync(x => x.BusinessId == business.Id);
         Assert.Equal("menu-item", offering.Kind);
         Assert.Equal("Chicken Kebab", offering.Name);
         Assert.Equal(12.50m, offering.Price);
