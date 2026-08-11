@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Atlas.Api;
@@ -29,9 +28,13 @@ public static class BusinessSourceUrlPolicy
         "gclid", "dclid", "fbclid", "msclkid", "g_st", "mc_cid", "mc_eid",
         "ref", "referrer", "referral", "share", "share_id", "share_source", "source"
     };
-    private static readonly HashSet<string> GoogleIdentityQueryKeys = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> GoogleRetainedQueryKeys = new(StringComparer.OrdinalIgnoreCase)
     {
         "query_place_id", "query", "q", "cid", "ftid"
+    };
+    private static readonly HashSet<string> GoogleStrongIdentityQueryKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "query_place_id", "cid", "ftid"
     };
 
     public static bool TryCanonicalize(string? rawInput, out CanonicalBusinessUrl? canonical, out string? error)
@@ -159,12 +162,8 @@ public static class BusinessSourceUrlPolicy
             return false;
         }
 
-        if (Uri.TryCreate(sanitized, UriKind.Absolute, out var direct) && direct.Scheme == Uri.UriSchemeHttps)
-        {
-            candidate = sanitized;
-            return true;
-        }
-
+        // Count URL tokens before URI parsing. Some URI parsers accept embedded whitespace
+        // as escaped path content, which could otherwise hide a second pasted URL.
         var matches = HttpsUrlRegex.Matches(sanitized);
         if (matches.Count != 1)
         {
@@ -231,13 +230,13 @@ public static class BusinessSourceUrlPolicy
                 }
 
                 var path = uri.AbsolutePath;
-                if (path.Contains("/search", StringComparison.OrdinalIgnoreCase) && !HasGooglePlaceIdentifier(uri.Query))
+                if (path.Contains("/search", StringComparison.OrdinalIgnoreCase) && !HasStrongGooglePlaceIdentifier(uri.Query))
                 {
                     error = "Google Search links are not a specific business location. Share the Google Maps business profile/location instead.";
                     return false;
                 }
 
-                if (path.Contains("/maps/place/", StringComparison.OrdinalIgnoreCase) || HasGooglePlaceIdentifier(uri.Query))
+                if (path.Contains("/maps/place/", StringComparison.OrdinalIgnoreCase) || HasStrongGooglePlaceIdentifier(uri.Query))
                     return true;
 
                 error = "Share a Google Maps link that identifies one business location.";
@@ -248,10 +247,10 @@ public static class BusinessSourceUrlPolicy
         }
     }
 
-    private static bool HasGooglePlaceIdentifier(string query)
+    private static bool HasStrongGooglePlaceIdentifier(string query)
     {
         foreach (var (key, value) in ParseQuery(query))
-            if (GoogleIdentityQueryKeys.Contains(key) && !string.IsNullOrWhiteSpace(value))
+            if (GoogleStrongIdentityQueryKeys.Contains(key) && !string.IsNullOrWhiteSpace(value))
                 return true;
         return false;
     }
@@ -272,7 +271,7 @@ public static class BusinessSourceUrlPolicy
         foreach (var (key, value) in ParseQuery(uri.Query))
         {
             if (IsTrackingKey(key)) continue;
-            if (kind == BusinessSourceKind.GoogleMaps && !GoogleIdentityQueryKeys.Contains(key)) continue;
+            if (kind == BusinessSourceKind.GoogleMaps && !GoogleRetainedQueryKeys.Contains(key)) continue;
             pairs.Add(string.IsNullOrEmpty(value)
                 ? Uri.EscapeDataString(key)
                 : $"{Uri.EscapeDataString(key)}={Uri.EscapeDataString(value)}");
