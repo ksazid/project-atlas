@@ -23,6 +23,7 @@ public sealed class BusinessDiscoveryUrlCanonicalizationTests
     [InlineData("https://wolt.com/en/mlt")]
     [InlineData("https://127.0.0.1/business")]
     [InlineData("https://[::1]/business")]
+    [InlineData("https://user:password@example.com/business")]
     public void Canonicalizer_RejectsGenericOrUnsafeSources(string raw)
     {
         Assert.False(PublicBusinessUrlPolicy.TryCanonicalize(raw, out _, out _));
