@@ -19,13 +19,15 @@ Discovery has pre-confirmation snapshot children for both concepts. Once the own
 
 ### Media
 
-Prefer structured `image` values from the selected business JSON-LD. Support string, array and ImageObject-style URL/contentUrl values. Use `og:image` only as a conservative fallback.
+Prefer structured `image` values from the selected business JSON-LD. Support string, array and ImageObject-style URL/contentUrl values. Use `og:image` only as a conservative business-image fallback.
+
+For an already-supported marketplace whose public server-rendered page exposes stable semantic item markup, Atlas may additionally retain the item image URL as `menu-item-image`. The adapter must operate only on the same public HTML already accepted by the discovery boundary; it must not call private APIs, replay browser credentials, or bypass provider controls.
 
 Retain only absolute HTTPS URLs that satisfy the same public URL/address rules as discovery. Canonicalise and deduplicate. Do not send GET requests for the image content in this slice.
 
 ### Menu / offerings
 
-Read schema.org `Menu`, `MenuSection` and `MenuItem` objects from public JSON-LD when present. Extract:
+Prefer schema.org `Menu`, `MenuSection` and `MenuItem` objects from public JSON-LD when present. Extract:
 
 - offering kind (`menu-item`);
 - section;
@@ -37,6 +39,10 @@ Read schema.org `Menu`, `MenuSection` and `MenuItem` objects from public JSON-LD
 - observed time;
 - confidence/evidence class;
 - deterministic source order.
+
+If an already-supported marketplace exposes the same information directly in stable, public, server-rendered semantic HTML, a bounded provider adapter may extract those fields as a fallback. Provider adapters must be fail-closed: missing or changed semantic markers produce no offerings rather than guessed data. They remain subject to the same field limits, URL validation, provenance rules and collection caps as JSON-LD extraction.
+
+For Bolt Food, the observed public SSR contract uses provider semantic markers for category headings, dish records, descriptions and prices; dish image alt text supplies the public item name. This is treated as a public-HTML fallback, not as a private provider integration.
 
 If structured item data is absent but a public `menu` or `hasMenu` URL exists, retain that URL as a `menuUrl` public fact so Atlas knows where the public menu was observed without fabricating item data.
 
@@ -67,11 +73,12 @@ Public-derived Business rows set `OwnerConfirmed=false` unless a future UI expli
 ## Limits and safety
 
 - Max 24 media references per accepted source.
-- Max 250 structured offerings per accepted source.
+- Max 250 structured/public-semantic offerings per accepted source.
 - Max 2,000 chars for remote/source URLs.
 - Bounded text fields and deterministic truncation rejection rather than silent semantic truncation.
 - No credentials/userinfo, non-HTTPS URLs or private-network literals.
 - No binary image storage, OCR, PDF parsing or private provider APIs.
+- No browser automation in the production discovery path.
 - Existing discovery request timeout and HTML size cap remain unchanged.
 
 ## API contract
@@ -88,6 +95,7 @@ TDD coverage must include:
 - OG image fallback;
 - blocked/non-HTTPS media references rejected;
 - menu section/item extraction and price/currency parsing;
+- supported-marketplace public semantic HTML fallback and fail-closed behaviour;
 - menu URL fallback without fabricated item data;
 - per-source collection limits and dedupe;
 - mismatch/ambiguous secondary source exclusion;
@@ -98,4 +106,4 @@ TDD coverage must include:
 
 ## Non-goals
 
-No UI redesign, image gallery, owner upload, menu editor, catalogue sync, provider-specific private integration, media CDN or production rollout in VS-25.
+No UI redesign, image gallery, owner upload, menu editor, catalogue sync, private provider integration, production browser automation, media CDN or production rollout in VS-25.
