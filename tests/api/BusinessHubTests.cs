@@ -91,6 +91,58 @@ public sealed class BusinessHubTests
         Assert.Null(await BusinessHubReader.BuildAsync(db, business.Id, "owner-b", CancellationToken.None));
     }
 
+    [Fact]
+    public async Task ReadMenuAsync_returns_only_owned_menu_items_in_deterministic_order()
+    {
+        await using var db = TestDb();
+        var business = SeedOwnedBusiness(db, "owner-a");
+        var observed = new DateTimeOffset(2026, 8, 11, 12, 0, 0, TimeSpan.Zero);
+
+        db.Set<BusinessOffering>().AddRange(
+            Offering(business.Id, "Wraps", "Chicken Wrap", 8m, "EUR", observed),
+            Offering(business.Id, "Beverages", "Water", 2m, "EUR", observed.AddMinutes(1)),
+            new BusinessOffering
+            {
+                Id = Guid.NewGuid(),
+                BusinessId = business.Id,
+                SourceOrder = 0,
+                Kind = "service",
+                Name = "Catering",
+                Source = "owner",
+                SourceUrl = "https://atlas.local",
+                ObservedAt = observed,
+                Confidence = "high",
+                EvidenceClass = "owner",
+                OwnerConfirmed = true,
+                CreatedAt = observed
+            });
+        await db.SaveChangesAsync();
+
+        var menu = await BusinessHubReader.ReadMenuAsync(db, business.Id, "owner-a", CancellationToken.None);
+
+        Assert.NotNull(menu);
+        Assert.Equal(2, menu!.Items.Count);
+        Assert.Equal("Beverages", menu.Items[0].Section);
+        Assert.Equal("Water", menu.Items[0].Name);
+        Assert.Equal("Wraps", menu.Items[1].Section);
+        Assert.Equal("Chicken Wrap", menu.Items[1].Name);
+        Assert.Null(await BusinessHubReader.ReadMenuAsync(db, business.Id, "owner-b", CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task ReadMenuAsync_returns_empty_menu_for_owned_business_without_menu_items()
+    {
+        await using var db = TestDb();
+        var business = SeedOwnedBusiness(db, "owner-a");
+        await db.SaveChangesAsync();
+
+        var menu = await BusinessHubReader.ReadMenuAsync(db, business.Id, "owner-a", CancellationToken.None);
+
+        Assert.NotNull(menu);
+        Assert.Empty(menu!.Items);
+        Assert.Equal(0, menu.Count);
+    }
+
     private static AtlasDbContext TestDb() => new(new DbContextOptionsBuilder<AtlasDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString())
         .Options);
