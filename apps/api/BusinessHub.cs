@@ -53,6 +53,22 @@ public sealed record BusinessHubMenuSummary(
 
 public sealed record BusinessHubContextSummary(int EntryCount, int OwnerConfirmedCount, string Status);
 
+public sealed record BusinessMenuItemResponse(
+    Guid Id,
+    string? Section,
+    string Name,
+    string? Description,
+    decimal? Price,
+    string? Currency,
+    string Source,
+    string SourceUrl,
+    DateTimeOffset ObservedAt,
+    string Confidence,
+    string EvidenceClass,
+    bool OwnerConfirmed);
+
+public sealed record BusinessMenuResponse(IReadOnlyList<BusinessMenuItemResponse> Items, int Count);
+
 public static class BusinessHubReader
 {
     public static async Task<BusinessHubResponse?> BuildAsync(
@@ -122,7 +138,7 @@ public static class BusinessHubReader
             .ToList();
         var singleCurrency = currencies.Count == 1 ? currencies[0].ToUpperInvariant() : null;
         var prices = singleCurrency is null
-            ? []
+            ? new List<decimal>()
             : pricedOfferings.Select(x => x.Price!.Value).ToList();
         var minPrice = prices.Count == 0 ? null : prices.Min();
         var maxPrice = prices.Count == 0 ? null : prices.Max();
@@ -182,6 +198,47 @@ public static class BusinessHubReader
             latestObservedAt);
     }
 
+    public static async Task<BusinessMenuResponse?> ReadMenuAsync(
+        AtlasDbContext db,
+        Guid businessId,
+        string providerSubject,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(providerSubject)) return null;
+
+        var ownsBusiness = await db.BusinessMemberships
+            .AsNoTracking()
+            .AnyAsync(m =>
+                m.BusinessId == businessId &&
+                m.UserAccount.ProviderSubject == providerSubject &&
+                m.Role == MembershipRoles.BusinessOwner,
+                ct);
+        if (!ownsBusiness) return null;
+
+        var items = await db.Set<BusinessOffering>()
+            .AsNoTracking()
+            .Where(x => x.BusinessId == businessId && x.Kind == "menu-item")
+            .OrderBy(x => x.Section)
+            .ThenBy(x => x.SourceOrder)
+            .ThenBy(x => x.Name)
+            .Select(x => new BusinessMenuItemResponse(
+                x.Id,
+                x.Section,
+                x.Name,
+                x.Description,
+                x.Price,
+                x.Currency,
+                x.Source,
+                x.SourceUrl,
+                x.ObservedAt,
+                x.Confidence,
+                x.EvidenceClass,
+                x.OwnerConfirmed))
+            .ToListAsync(ct);
+
+        return new BusinessMenuResponse(items, items.Count);
+    }
+
     private static bool IsSafeHttpsMedia(BusinessMediaReference item) =>
         Uri.TryCreate(item.RemoteUrl, UriKind.Absolute, out var uri) &&
         string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
@@ -197,11 +254,33 @@ public static class BusinessHubEndpoints
             AtlasDbContext db,
             CancellationToken ct) =>
         {
-            var subject = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
+            var subject = Subject(user);
             if (string.IsNullOrWhiteSpace(subject)) return Results.NotFound();
 
             var hub = await BusinessHubReader.BuildAsync(db, businessId, subject, ct);
             return hub is null ? Results.NotFound() : Results.Ok(hub);
         }).RequireAuthorization("BusinessOwner");
+
+        app.MapGet("/api/v1/businesses/{businessId:guid}/offerings", async (
+            Guid businessId,
+            string? kind,
+            ClaimsPrincipal user,
+            AtlasDbContext db,
+            CancellationToken ct) =>
+        {
+            if (kind is not null && !string.Equals(kind, "menu-item", StringComparison.Ordinal))
+                return Results.ValidationProblem(
+                    new Dictionary<string, string[]> { ["kind"] = ["Only menu-item offerings are available in this view."] },
+                    extensions: new Dictionary<string, object?> { ["code"] = "offering_kind_unsupported" });
+
+            var subject = Subject(user);
+            if (string.IsNullOrWhiteSpace(subject)) return Results.NotFound();
+
+            var menu = await BusinessHubReader.ReadMenuAsync(db, businessId, subject, ct);
+            return menu is null ? Results.NotFound() : Results.Ok(menu);
+        }).RequireAuthorization("BusinessOwner");
     }
+
+    private static string? Subject(ClaimsPrincipal user) =>
+        user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue("sub");
 }
