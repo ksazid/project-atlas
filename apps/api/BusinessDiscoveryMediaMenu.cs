@@ -47,6 +47,14 @@ public static class PublicBusinessMediaMenuExtractor
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
     private static readonly Regex JsonLdRegex = new(@"<script[^>]+type=[""']application/ld\+json[""'][^>]*>(.*?)</script>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex OgImageRegex = new(@"<meta[^>]+property=[""']og:image[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex BoltCategoryRegex = new(@"<h2\b[^>]*class=[""'][^""']*\bprovider-menu-category-title\b[^""']*[""'][^>]*>(?<section>.*?)</h2>(?<body>.*?)(?=<h2\b[^>]*class=[""'][^""']*\bprovider-menu-category-title\b[^""']*[""']|</body>|$)", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex BoltDishRegex = new(@"<li\b[^>]*class=[""'][^""']*\bprovider-menu-dish\b[^""']*[""'][^>]*>(?<dish>.*?)</li>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex BoltDescriptionRegex = new(@"<p\b[^>]*class=[""'][^""']*\bprovider-menu-dish-description\b[^""']*[""'][^>]*>(?<value>.*?)</p>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex BoltPriceRegex = new(@"<span\b[^>]*class=[""'][^""']*\bprovider-menu-dish-price\b[^""']*[""'][^>]*>(?<value>.*?)</span>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex BoltImageRegex = new(@"<img\b(?<attrs>[^>]*)>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex HtmlTagRegex = new(@"<[^>]+>", RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex WhitespaceRegex = new(@"\s+", RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex PriceNumberRegex = new(@"(?<amount>\d+(?:[.,]\d{1,2})?)", RegexOptions.CultureInvariant, RegexTimeout);
 
     public static PublicBusinessMediaMenuExtraction Extract(string provider, Uri sourceUri, string html, DateTimeOffset observedAt)
     {
@@ -81,6 +89,9 @@ public static class PublicBusinessMediaMenuExtractor
             }
         }
 
+        if (provider.Equals("bolt-food", StringComparison.OrdinalIgnoreCase))
+            CaptureBoltSemanticMenu();
+
         if (!foundStructuredImage)
         {
             var fallback = FirstMatch(OgImageRegex, html);
@@ -91,7 +102,7 @@ public static class PublicBusinessMediaMenuExtractor
             }
         }
 
-        return new PublicBusinessMediaMenuExtraction(media.Values.ToList(), offerings.Values.ToList(), menuUrl);
+        return new PublicBusinessMediaMenuExtraction(media.Values.Take(MaxMediaPerSource).ToList(), offerings.Values.ToList(), menuUrl);
 
         void ReadMenu(JsonElement element, string? inheritedSection)
         {
@@ -143,7 +154,7 @@ public static class PublicBusinessMediaMenuExtractor
             var normalizedCurrency = string.IsNullOrWhiteSpace(currency) ? null : currency.Trim().ToUpperInvariant();
             if (normalizedCurrency is { Length: > 3 }) normalizedCurrency = null;
 
-            var offering = new PublicBusinessOffering(
+            AddOffering(new PublicBusinessOffering(
                 "menu-item",
                 IsBounded(section, MaxSectionCharacters) ? section?.Trim() : null,
                 name.Trim(),
@@ -153,8 +164,68 @@ public static class PublicBusinessMediaMenuExtractor
                 provider,
                 sourceUrl,
                 observedAt,
-                "high");
+                "high"));
+        }
 
+        void CaptureBoltSemanticMenu()
+        {
+            foreach (Match categoryMatch in BoltCategoryRegex.Matches(html))
+            {
+                if (offerings.Count >= MaxOfferingsPerSource) break;
+                var section = HtmlText(categoryMatch.Groups["section"].Value);
+                if (!IsBounded(section, MaxSectionCharacters)) section = null;
+
+                foreach (Match dishMatch in BoltDishRegex.Matches(categoryMatch.Groups["body"].Value))
+                {
+                    if (offerings.Count >= MaxOfferingsPerSource) break;
+                    var dish = dishMatch.Groups["dish"].Value;
+                    var imageMatch = BoltImageRegex.Match(dish);
+                    var imageAttributes = imageMatch.Success ? imageMatch.Groups["attrs"].Value : string.Empty;
+                    var name = HtmlText(AttributeValue(imageAttributes, "alt"));
+                    if (string.IsNullOrWhiteSpace(name) || !IsBounded(name, MaxNameCharacters)) continue;
+
+                    var descriptionMatch = BoltDescriptionRegex.Match(dish);
+                    var description = descriptionMatch.Success ? HtmlText(descriptionMatch.Groups["value"].Value) : null;
+                    if (!IsBounded(description, MaxDescriptionCharacters)) description = null;
+
+                    var priceMatch = BoltPriceRegex.Match(dish);
+                    var priceText = priceMatch.Success ? HtmlText(priceMatch.Groups["value"].Value) : null;
+                    var (price, currency) = ReadDisplayPrice(priceText);
+
+                    AddOffering(new PublicBusinessOffering(
+                        "menu-item",
+                        section,
+                        name,
+                        description,
+                        price,
+                        currency,
+                        provider,
+                        sourceUrl,
+                        observedAt,
+                        "high"));
+
+                    if (media.Count < MaxMediaPerSource)
+                    {
+                        var imageUrl = AttributeValue(imageAttributes, "src");
+                        if (TryCanonicalPublicUrl(sourceUri, imageUrl, out var canonicalImage))
+                        {
+                            media.TryAdd(canonicalImage, new PublicBusinessMedia(
+                                "menu-item-image",
+                                canonicalImage,
+                                provider,
+                                sourceUrl,
+                                observedAt,
+                                "high",
+                                AltText: name));
+                        }
+                    }
+                }
+            }
+        }
+
+        void AddOffering(PublicBusinessOffering offering)
+        {
+            if (offerings.Count >= MaxOfferingsPerSource) return;
             offerings.TryAdd(OfferingKey(offering), offering);
         }
 
@@ -261,6 +332,17 @@ public static class PublicBusinessMediaMenuExtractor
         return (null, null);
     }
 
+    private static (decimal? Price, string? Currency) ReadDisplayPrice(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return (null, null);
+        var match = PriceNumberRegex.Match(value);
+        decimal? price = null;
+        if (match.Success && decimal.TryParse(match.Groups["amount"].Value.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) && parsed >= 0)
+            price = parsed;
+        var currency = value.Contains('€') ? "EUR" : value.Contains('£') ? "GBP" : value.Contains('$') ? "USD" : null;
+        return (price, currency);
+    }
+
     private static IEnumerable<JsonElement> Objects(JsonElement element)
     {
         if (element.ValueKind == JsonValueKind.Object) yield return element;
@@ -298,6 +380,23 @@ public static class PublicBusinessMediaMenuExtractor
         var builder = new UriBuilder(validated) { Fragment = string.Empty };
         canonical = builder.Uri.AbsoluteUri;
         return canonical.Length <= PublicBusinessUrlPolicy.MaxUrlCharacters;
+    }
+
+    private static string? AttributeValue(string attributes, string name)
+    {
+        if (string.IsNullOrWhiteSpace(attributes)) return null;
+        var regex = new Regex($@"\b{Regex.Escape(name)}\s*=\s*(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
+        var match = regex.Match(attributes);
+        return match.Success ? WebUtility.HtmlDecode(match.Groups["value"].Value).Trim() : null;
+    }
+
+    private static string? HtmlText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var decoded = WebUtility.HtmlDecode(value);
+        var withoutTags = HtmlTagRegex.Replace(decoded, " ");
+        var normalized = WhitespaceRegex.Replace(withoutTags, " ").Trim();
+        return normalized.Length == 0 ? null : normalized;
     }
 
     private static string? FirstMatch(Regex regex, string value)
