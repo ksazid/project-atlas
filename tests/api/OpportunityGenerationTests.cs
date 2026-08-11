@@ -12,7 +12,7 @@ public sealed class OpportunityGenerationTests
         var businessId = Guid.NewGuid();
         var goal = Goal(businessId, "growth", "Grow direct orders", 1);
         var bundle = Bundle("restaurant-cafe",
-            context: [Fact("context", "orderingChannel", "direct takeaway", "owner")]);
+            context: [Fact("context", "primarychannels", "Takeaway", "owner")]);
 
         var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
 
@@ -22,7 +22,7 @@ public sealed class OpportunityGenerationTests
         Assert.Equal(RestaurantCafeKnowledgeManifestV2.Version, result.Selected.KnowledgePackVersion);
         Assert.Equal(bundle.Fingerprint, result.Selected.BundleFingerprint);
         Assert.Equal(goal.Id, result.Selected.GoalId);
-        Assert.Contains(result.Selected.Evidence, x => x.Key == "orderingChannel" && x.Value == "direct takeaway");
+        Assert.Contains(result.Selected.Evidence, x => x.Key == "primarychannels" && x.Value == "Takeaway");
     }
 
     [Fact]
@@ -51,18 +51,18 @@ public sealed class OpportunityGenerationTests
     }
 
     [Fact]
-    public void Offer_pattern_requires_owner_confirmed_context_evidence()
+    public void Offer_pattern_requires_owner_confirmed_context_not_unconfirmed_memory()
     {
         var businessId = Guid.NewGuid();
         var goal = Goal(businessId, "growth", "Increase demand", 1);
-        var ownerBundle = Bundle("restaurant-cafe", context: [Fact("context", "currentOffer", "Lunch combo", "owner")]);
-        var publicBundle = Bundle("restaurant-cafe", context: [Fact("context", "currentOffer", "Lunch combo", "public")]);
+        var confirmedBundle = Bundle("restaurant-cafe", context: [Fact("context", "currentpriorities", "Promote weekday lunch", "owner")]);
+        var memoryOnlyBundle = Bundle("restaurant-cafe", memory: [Fact("memory", "currentpriorities", "Promote weekday lunch", "public")]);
 
-        var ownerResult = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], ownerBundle, [], Now);
-        var publicResult = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], publicBundle, [], Now);
+        var confirmedResult = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], confirmedBundle, [], Now);
+        var memoryOnlyResult = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], memoryOnlyBundle, [], Now);
 
-        Assert.Contains(ownerResult.Candidates, x => x.PatternKey == "current-offer-visibility-review");
-        Assert.DoesNotContain(publicResult.Candidates, x => x.PatternKey == "current-offer-visibility-review");
+        Assert.Contains(confirmedResult.Candidates, x => x.PatternKey == "current-offer-visibility-review");
+        Assert.DoesNotContain(memoryOnlyResult.Candidates, x => x.PatternKey == "current-offer-visibility-review");
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public sealed class OpportunityGenerationTests
     {
         var businessId = Guid.NewGuid();
         var goal = Goal(businessId, "retention", "Improve repeat visits", 1);
-        var bundle = Bundle("restaurant-cafe", context: [Fact("context", "reviewSignal", "Recent reviews mention slow pickup", "public")]);
+        var bundle = Bundle("restaurant-cafe", memory: [Fact("memory", "reviewSignal", "Recent reviews mention slow pickup", "public")]);
 
         var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
         var candidate = Assert.Single(result.Candidates.Where(x => x.PatternKey == "reputation-signal-follow-up"));
@@ -84,7 +84,7 @@ public sealed class OpportunityGenerationTests
     {
         var businessId = Guid.NewGuid();
         var bundle = Bundle("retail", includeRestaurantManifest: false,
-            context: [Fact("context", "orderingChannel", "website", "owner"), Fact("context", "businessHours", "09:00-18:00", "owner")]);
+            context: [Fact("context", "primarychannels", "Own website/app", "owner"), Fact("context", "businessHours", "09:00-18:00", "owner")]);
 
         var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [Goal(businessId, "growth", "Grow sales", 1)], bundle, [], Now);
 
@@ -96,7 +96,7 @@ public sealed class OpportunityGenerationTests
     public void Pattern_without_matching_goal_is_not_generated()
     {
         var businessId = Guid.NewGuid();
-        var bundle = Bundle("restaurant-cafe", context: [Fact("context", "orderingChannel", "delivery", "owner")]);
+        var bundle = Bundle("restaurant-cafe", context: [Fact("context", "primarychannels", "Marketplace/platform", "owner")]);
 
         var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [Goal(businessId, "reputation", "Improve reviews", 1)], bundle, [], Now);
 
@@ -117,24 +117,26 @@ public sealed class OpportunityGenerationTests
     public void Evidence_ids_are_stable_and_reference_only_supplied_bundle_facts()
     {
         var businessId = Guid.NewGuid();
-        var evidence = Fact("context", "orderingChannel", "direct takeaway", "owner");
+        var evidence = Fact("context", "primarychannels", "Takeaway", "owner");
         var bundle = Bundle("restaurant-cafe", context: [evidence]);
+        var goal = Goal(businessId, "growth", "Grow orders", 1);
 
-        var first = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [Goal(businessId, "growth", "Grow orders", 1)], bundle, [], Now);
-        var second = OpportunityGenerator.Generate(ConfirmedProfile(businessId), first.Selected is null ? [] : [Goal(businessId, "growth", "Grow orders", 1)], bundle, [], Now);
+        var first = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
+        var second = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
 
-        var item = Assert.Single(first.Selected!.Evidence.Where(x => x.Key == "orderingChannel"));
+        var item = Assert.Single(first.Selected!.Evidence.Where(x => x.Key == "primarychannels"));
+        var repeatedItem = Assert.Single(second.Selected!.Evidence.Where(x => x.Key == "primarychannels"));
         Assert.False(string.IsNullOrWhiteSpace(item.EvidenceId));
+        Assert.Equal(item.EvidenceId, repeatedItem.EvidenceId);
         Assert.All(first.Selected.Evidence.Where(x => x.Layer != "policy"), x =>
             Assert.Contains(bundle.ContextFacts.Concat(bundle.LocalMarketFacts).Concat(bundle.MemoryFacts), f => f.Layer == x.Layer && f.Key == x.Key && f.Value == x.Value && f.Source == x.Source));
-        Assert.NotNull(second);
     }
 
     [Fact]
     public void Cooldown_suppresses_same_pattern_but_not_legacy_opportunity()
     {
         var businessId = Guid.NewGuid();
-        var bundle = Bundle("restaurant-cafe", context: [Fact("context", "orderingChannel", "delivery", "owner")]);
+        var bundle = Bundle("restaurant-cafe", context: [Fact("context", "primarychannels", "Marketplace/platform", "owner")]);
         var goal = Goal(businessId, "growth", "Grow orders", 1);
         var previous = PriorOpportunity(businessId, "ordering-path-clarity-review", Now.AddDays(-2));
         var legacy = PriorOpportunity(businessId, null, Now.AddDays(-1));
@@ -152,8 +154,8 @@ public sealed class OpportunityGenerationTests
         var businessId = Guid.NewGuid();
         var bundle = Bundle("restaurant-cafe", context:
         [
-            Fact("context", "orderingChannel", "delivery", "owner"),
-            Fact("context", "currentOffer", "Lunch combo", "owner")
+            Fact("context", "primarychannels", "Marketplace/platform", "owner"),
+            Fact("context", "currentpriorities", "Promote weekday lunch", "owner")
         ]);
         var goals = new[]
         {
@@ -172,7 +174,7 @@ public sealed class OpportunityGenerationTests
     public void Snapshot_separates_evidence_from_interpretation_and_retains_exact_versions()
     {
         var businessId = Guid.NewGuid();
-        var bundle = Bundle("restaurant-cafe", context: [Fact("context", "orderingChannel", "delivery", "owner")]);
+        var bundle = Bundle("restaurant-cafe", context: [Fact("context", "primarychannels", "Marketplace/platform", "owner")]);
         var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [Goal(businessId, "growth", "Grow orders", 1)], bundle, [], Now);
 
         var snapshotJson = OpportunityGenerationSnapshot.Serialize(result.Selected!);
