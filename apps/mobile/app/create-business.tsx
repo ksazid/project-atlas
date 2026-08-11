@@ -24,6 +24,10 @@ import {
   displayMarket,
   type BusinessLocationCandidate,
 } from '@/features/business-discovery/location-model';
+import {
+  canonicalBusinessUrlKey,
+  canonicalizeBusinessUrlInput,
+} from '@/features/business-discovery/url-policy';
 
 const emptyDraft: DiscoveryDraft = {
   snapshotId: '',
@@ -47,7 +51,7 @@ type Stage = 'discover' | 'confirm' | 'details' | 'manual';
 
 export default function CreateBusinessScreen() {
   const [stage, setStage] = useState<Stage>('discover');
-  const [url, setUrl] = useState('');
+  const [sourceUrls, setSourceUrls] = useState<string[]>(['']);
   const [discovery, setDiscovery] = useState<BusinessDiscovery | null>(null);
   const [form, setForm] = useState<DiscoveryDraft>(emptyDraft);
   const [busy, setBusy] = useState(false);
@@ -79,9 +83,34 @@ export default function CreateBusinessScreen() {
   }, [busy, pulse, reduceMotion]);
 
   const update = (key: keyof DiscoveryDraft, value: string) => setForm(current => ({ ...current, [key]: value }));
+  const sourceErrors = validateSourceUrls(sourceUrls);
+  const canDiscover = !busy
+    && canonicalBusinessUrlKey(sourceUrls[0] ?? '') !== null
+    && sourceUrls.every(value => !value.trim() || canonicalBusinessUrlKey(value) !== null)
+    && sourceErrors.every(value => !value);
+
+  function updateSourceUrl(index: number, rawValue: string) {
+    const normalized = canonicalizeBusinessUrlInput(rawValue);
+    const value = normalized.complete && !normalized.error ? normalized.value : rawValue;
+    setSourceUrls(current => current.map((item, itemIndex) => itemIndex === index ? value : item));
+    setError(null);
+  }
+
+  function addSourceUrl() {
+    setSourceUrls(current => current.length < 3 ? [...current, ''] : current);
+    setError(null);
+  }
+
+  function removeSourceUrl(index: number) {
+    setSourceUrls(current => index === 0
+      ? current.map((value, itemIndex) => itemIndex === 0 ? '' : value)
+      : current.filter((_, itemIndex) => itemIndex !== index));
+    setError(null);
+  }
 
   async function analyse() {
-    if (!url.trim() || busy) return;
+    if (!canDiscover) return;
+    const additionalUrls = sourceUrls.slice(1).map(value => canonicalBusinessUrlKey(value) ?? '').filter(Boolean);
     setBusy(true);
     setError(null);
     setLocationError(null);
@@ -91,7 +120,7 @@ export default function CreateBusinessScreen() {
         router.replace('/sign-in');
         return;
       }
-      const result = await discoverBusiness(session.accessToken, url.trim());
+      const result = await discoverBusiness(session.accessToken, sourceUrls[0], additionalUrls);
       const draft = createDiscoveryDraft(result);
       setDiscovery(result);
       setForm(draft);
@@ -99,7 +128,7 @@ export default function CreateBusinessScreen() {
       setStage('confirm');
       await resolveLocations(session.accessToken, result.snapshotId, draft.name || undefined);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Atlas could not analyse that business page.');
+      setError(cause instanceof Error ? cause.message : 'Atlas could not analyse those business pages.');
     } finally {
       setBusy(false);
     }
@@ -268,28 +297,60 @@ export default function CreateBusinessScreen() {
       <Back />
       <Text style={s.eyebrow}>AI ANALYSIS</Text>
       <Text style={s.title}>Discovering your{`\n`}business ✨</Text>
-      <Text style={s.body}>Share one public business page. Atlas will find useful facts first, then ask you only for what is still missing.</Text>
-      <View style={s.url}>
-        <Text style={s.urlIcon}>⊕</Text>
-        <TextInput accessibilityLabel="Business page URL" autoCapitalize="none" autoCorrect={false} keyboardType="url" returnKeyType="go" onSubmitEditing={analyse} value={url} onChangeText={setUrl} placeholder="https://yourbusiness.com" placeholderTextColor="#6F7974" style={s.urlInput} />
-        {busy ? (
-          <ActivityIndicator color={GREEN} />
-        ) : url.length > 0 ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Clear business page URL"
-            hitSlop={8}
-            onPress={() => {
-              setUrl('');
-              setError(null);
-            }}
-            style={({ pressed }) => [s.urlClear, pressed && s.pressed]}
-          >
-            <Text style={s.urlClearText}>×</Text>
+      <Text style={s.body}>Share your main public business page. Add up to two more public pages when they help Atlas confirm the same business.</Text>
+      <View style={s.sourceList}>
+        {sourceUrls.map((sourceUrl, index) => (
+          <View key={`source-${index}`} style={s.sourceRow}>
+            <View style={s.url}>
+              <Text style={s.urlIcon}>{index === 0 ? '⊕' : '+'}</Text>
+              <TextInput
+                accessibilityLabel={index === 0 ? 'Business page URL' : `Additional business page URL ${index}`}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                returnKeyType={index === 0 ? 'go' : 'done'}
+                onSubmitEditing={index === 0 ? analyse : undefined}
+                value={sourceUrl}
+                onChangeText={value => updateSourceUrl(index, value)}
+                placeholder={index === 0 ? 'https://yourbusiness.com' : 'Optional public business page'}
+                placeholderTextColor="#6F7974"
+                style={s.urlInput}
+              />
+              {busy && index === 0 ? (
+                <ActivityIndicator color={GREEN} />
+              ) : index === 0 && sourceUrl.length > 0 ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear business page URL"
+                  accessibilityHint="Clear primary business page URL"
+                  hitSlop={8}
+                  onPress={() => removeSourceUrl(0)}
+                  style={({ pressed }) => [s.urlClear, pressed && s.pressed]}
+                >
+                  <Text style={s.urlClearText}>×</Text>
+                </Pressable>
+              ) : index > 0 ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Remove additional business page URL"
+                  hitSlop={8}
+                  onPress={() => removeSourceUrl(index)}
+                  style={({ pressed }) => [s.urlClear, pressed && s.pressed]}
+                >
+                  <Text style={s.urlClearText}>×</Text>
+                </Pressable>
+              ) : (
+                <View style={s.spinner} />
+              )}
+            </View>
+            {sourceErrors[index] ? <Text accessibilityLiveRegion="polite" style={s.sourceError}>{sourceErrors[index]}</Text> : null}
+          </View>
+        ))}
+        {sourceUrls.length < 3 ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Add another business page URL" onPress={addSourceUrl} style={({ pressed }) => [s.addSource, pressed && s.pressed]}>
+            <Text style={s.addSourceText}>+ Add another business page URL</Text>
           </Pressable>
-        ) : (
-          <View style={s.spinner} />
-        )}
+        ) : null}
       </View>
       <View style={s.orbitWrap}>
         <Animated.View style={[s.orbitOuter, { opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [.40, .85] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [.98, 1.025] }) }] }]} />
@@ -297,16 +358,16 @@ export default function CreateBusinessScreen() {
         <View style={s.bot}><View style={s.botCap} /><Text style={s.botFace}>●  ●{`\n`}⌣</Text></View>
         <Bubble icon="⌕" pos={s.b1} /><Bubble icon="♟" pos={s.b2} /><Bubble icon="▥" pos={s.b3} /><Bubble icon="▤" pos={s.b4} />
       </View>
-      <Text style={s.analysisCopy}>Reading the public page and{`\n`}preparing facts for your review…</Text>
+      <Text style={s.analysisCopy}>Reading your public business pages and{`\n`}preparing facts for your review…</Text>
       <View style={s.checklist}>
-        <Check text="Scanning public business page" done={busy} />
+        <Check text="Scanning public business pages" done={busy} />
         <Check text="Reading business information" done={busy} />
         <Check text="Detecting category" done={busy} />
         <Check text="Finding location details" done={busy} />
         <Check text="Preparing owner confirmation" />
       </View>
       {error ? <View style={s.errorBox}><Text accessibilityLiveRegion="polite" style={s.error}>{error}</Text></View> : null}
-      {!busy ? <Pressable accessibilityLabel="Discover my business" accessibilityRole="button" accessibilityState={{ disabled: !url.trim() }} disabled={!url.trim()} onPress={analyse} style={({ pressed }) => [s.discoverButton, !url.trim() && s.disabled, pressed && s.pressed]}><Text style={s.discoverButtonText}>Discover my business</Text></Pressable> : null}
+      {!busy ? <Pressable accessibilityLabel="Discover my business" accessibilityRole="button" accessibilityState={{ disabled: !canDiscover }} disabled={!canDiscover} onPress={analyse} style={({ pressed }) => [s.discoverButton, !canDiscover && s.disabled, pressed && s.pressed]}><Text style={s.discoverButtonText}>Discover my business</Text></Pressable> : null}
       {!busy ? <Pressable accessibilityLabel="Set up manually instead" accessibilityRole="button" onPress={() => { setDiscovery(null); setForm(emptyDraft); setLocationResult(null); setLocationSearch(''); setError(null); setStage('manual'); }} style={({ pressed }) => [s.edit, pressed && s.pressed]}><Text style={s.editText}>Set up manually instead</Text></Pressable> : null}
     </ScrollView>
   );
@@ -387,6 +448,25 @@ export default function CreateBusinessScreen() {
   );
 }
 
+function validateSourceUrls(values: string[]): Array<string | null> {
+  const errors = values.map(value => {
+    if (!value.trim()) return null;
+    return canonicalizeBusinessUrlInput(value).error;
+  });
+  const seen = new Map<string, number>();
+  values.forEach((value, index) => {
+    const key = canonicalBusinessUrlKey(value);
+    if (!key) return;
+    const first = seen.get(key);
+    if (first === undefined) seen.set(key, index);
+    else {
+      errors[first] = errors[first] ?? 'This business page is already added.';
+      errors[index] = 'This business page is already added.';
+    }
+  });
+  return errors;
+}
+
 function Back() { return <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} style={({ pressed }) => [s.back, pressed && s.pressed]}><Text style={s.backText}>←</Text></Pressable>; }
 function Bubble({ icon, pos }: { icon: string; pos: object }) { return <View style={[s.bubble, pos]}><Text style={s.bubbleText}>{icon}</Text></View>; }
 function Check({ text, done = false }: { text: string; done?: boolean }) { return <View style={s.check}><Text style={s.checkIcon}>◎</Text><Text style={s.checkText}>{text}</Text><View style={[s.state, done && s.stateDone]}><Text style={s.stateText}>{done ? '✓' : ''}</Text></View></View>; }
@@ -400,6 +480,7 @@ const s = StyleSheet.create({
   container: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 57, paddingBottom: 30, gap: 15, backgroundColor: '#FFF' },
   back: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: -6 }, backText: { fontSize: 28, color: '#15231E' },
   eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: .7, color: GREEN }, title: { fontFamily: 'Georgia', fontSize: 33, lineHeight: 38, fontWeight: '800', letterSpacing: -.45, color: '#0A2F25' }, body: { fontSize: 13.5, lineHeight: 20.5, color: '#3E4D47', maxWidth: 330 },
+  sourceList: { gap: 9 }, sourceRow: { gap: 5 }, sourceError: { fontSize: 11.2, lineHeight: 16, color: '#A1251B', paddingHorizontal: 2 }, addSource: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center', paddingHorizontal: 2 }, addSourceText: { color: GREEN, fontSize: 12.5, fontWeight: '800' },
   url: { minHeight: 54, borderRadius: 10, borderWidth: 1, borderColor: '#E0E6E2', backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, shadowColor: '#173B2A', shadowOpacity: .035, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 1 }, urlIcon: { fontSize: 16, color: '#626F69' }, urlInput: { flex: 1, fontSize: 13, color: '#23322C' }, spinner: { width: 19, height: 19, borderRadius: 10, borderWidth: 2, borderColor: '#A5D9C0', borderRightColor: GREEN }, urlClear: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1F4F2' }, urlClearText: { fontSize: 18, lineHeight: 20, color: '#52615A', fontWeight: '700' },
   orbitWrap: { height: 245, alignItems: 'center', justifyContent: 'center' }, orbitOuter: { position: 'absolute', width: 214, height: 214, borderRadius: 107, borderWidth: 1.5, borderColor: '#67C49B' }, orbitMid: { position: 'absolute', width: 156, height: 156, borderRadius: 78, borderWidth: 1, borderColor: '#A9DCC6' }, orbitInner: { position: 'absolute', width: 104, height: 104, borderRadius: 52, backgroundColor: '#F1FAF5', borderWidth: 1, borderColor: '#D9EFE4' },
   bot: { width: 81, height: 70, borderRadius: 27, backgroundColor: '#0D3A30', alignItems: 'center', justifyContent: 'center', borderWidth: 8, borderColor: '#F4FBF7', shadowColor: '#1B5B44', shadowOpacity: .13, shadowRadius: 10, elevation: 3 }, botCap: { position: 'absolute', top: -12, width: 18, height: 12, borderTopLeftRadius: 8, borderTopRightRadius: 8, backgroundColor: '#8CCEB0' }, botFace: { fontSize: 13, lineHeight: 19, textAlign: 'center', color: '#36D78B', fontWeight: '900' },
