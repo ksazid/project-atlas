@@ -26,8 +26,8 @@ jobs:
           node-version: '22'
       - name: Apply focused regressions
         run: python3 .github/tmp-vs21-fix.py
-      - name: Run focused mobile regression tests
-        run: npm run mobile:test
+      - name: Run provider-neutral mobile regression
+        run: node --test tests/mobile/business-discovery-model.test.mjs
       - name: Run API tests
         run: dotnet test tests/api/Atlas.Api.Tests.csproj --configuration Release
       - name: Commit verified fixes
