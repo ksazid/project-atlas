@@ -63,6 +63,68 @@ public sealed class BusinessDiscoveryMediaMenuTests
     }
 
     [Fact]
+    public void Bolt_public_ssr_menu_is_extracted_from_provider_semantic_markup_without_private_api_access()
+    {
+        var observedAt = new DateTimeOffset(2026, 8, 11, 14, 0, 0, TimeSpan.Zero);
+        var source = new Uri("https://food.bolt.eu/en/324-valletta/p/1310-hasans-turkish-kebab-house/");
+        const string html = """
+            <html><head>
+              <title>Hasan's Turkish Kebab House | Bolt Food</title>
+              <meta property="og:image" content="https://images.bolt.eu/store/hasan-cover.jpg">
+            </head><body>
+              <h1 class="provider-name">Hasan's Turkish Kebab House</h1>
+              <h2 class="provider-menu-category-title">Beverages</h2>
+              <ul>
+                <li class="provider-menu-dish">
+                  <img src="https://images.bolt.eu/store/ice-tea.jpg" alt="Ice Tea Peach">
+                  <div class="provider-menu-dish-content">
+                    <p class="provider-menu-dish-description">Incl. €0.10 deposit.</p>
+                    <span class="provider-menu-dish-price">€2.50</span>
+                  </div>
+                </li>
+              </ul>
+              <h2 class="provider-menu-category-title">Wraps &amp; Pita</h2>
+              <ul>
+                <li class="provider-menu-dish featured">
+                  <img alt="Any Grill in Pita Bread" src="https://images.bolt.eu/store/grill-pita.jpg">
+                  <div class="provider-menu-dish-content">
+                    <p class="provider-menu-dish-description">Tasty grilled pita bread filled with your choice of meat and fresh salad.</p>
+                    <span class="provider-menu-dish-price">€9.50</span>
+                  </div>
+                </li>
+              </ul>
+            </body></html>
+            """;
+
+        var snapshot = PublicBusinessExtractor.Extract("bolt-food", source, html, observedAt);
+
+        Assert.Equal(2, snapshot.Offerings.Count);
+        Assert.Contains(snapshot.Offerings, item =>
+            item.Section == "Beverages" &&
+            item.Name == "Ice Tea Peach" &&
+            item.Description == "Incl. €0.10 deposit." &&
+            item.Price == 2.50m &&
+            item.Currency == "EUR" &&
+            item.Source == "bolt-food" &&
+            !item.OwnerConfirmed);
+        Assert.Contains(snapshot.Offerings, item =>
+            item.Section == "Wraps & Pita" &&
+            item.Name == "Any Grill in Pita Bread" &&
+            item.Price == 9.50m &&
+            item.Currency == "EUR");
+
+        Assert.Contains(snapshot.Media, item =>
+            item.Kind == "menu-item-image" &&
+            item.RemoteUrl == "https://images.bolt.eu/store/ice-tea.jpg" &&
+            item.AltText == "Ice Tea Peach" &&
+            item.Source == "bolt-food");
+        Assert.Contains(snapshot.Media, item =>
+            item.Kind == "menu-item-image" &&
+            item.RemoteUrl == "https://images.bolt.eu/store/grill-pita.jpg" &&
+            item.AltText == "Any Grill in Pita Bread");
+    }
+
+    [Fact]
     public void Extractor_uses_safe_og_image_fallback_and_rejects_non_https_media()
     {
         var observedAt = DateTimeOffset.UtcNow;
