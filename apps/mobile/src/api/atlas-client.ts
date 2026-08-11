@@ -10,6 +10,33 @@ export type BusinessProfile = {
 };
 export type BusinessGoal = { id?: string; title: string; type: string; priority: number; isCustom: boolean };
 export type BusinessContextEntry = { key: string; value: string; source: 'owner' | 'public'; ownerConfirmed: boolean };
+export type BusinessHubProfile = {
+  description: string | null; address: string | null; website: string | null; phone: string | null;
+  businessHours: string | null; source: 'owner' | 'public'; ownerConfirmed: boolean; updatedAt: string;
+};
+export type BusinessHubMedia = {
+  kind: string; remoteUrl: string; source: string; sourceUrl: string; observedAt: string;
+  confidence: string; evidenceClass: string; ownerConfirmed: boolean; altText: string | null;
+};
+export type BusinessHubMenuPreviewItem = {
+  section: string | null; name: string; description: string | null; price: number | null;
+  currency: string | null; source: string; observedAt: string;
+};
+export type BusinessHubMenuSummary = {
+  sectionCount: number; itemCount: number; minPrice: number | null; maxPrice: number | null;
+  currency: string | null; preview: BusinessHubMenuPreviewItem[]; source: string | null; observedAt: string | null;
+};
+export type BusinessHubContextSummary = { entryCount: number; ownerConfirmedCount: number; status: 'strong' | 'partial' | 'sparse' | string };
+export type BusinessHub = {
+  business: Business; profile: BusinessHubProfile | null; media: BusinessHubMedia[];
+  menu: BusinessHubMenuSummary; context: BusinessHubContextSummary; latestObservedAt: string | null;
+};
+export type BusinessMenuItem = {
+  id: string; section: string | null; name: string; description: string | null; price: number | null;
+  currency: string | null; source: string; sourceUrl: string; observedAt: string; confidence: string;
+  evidenceClass: string; ownerConfirmed: boolean;
+};
+export type BusinessMenu = { items: BusinessMenuItem[]; count: number };
 export type KnowledgeSection = { id: string; stableKey: string; category: string; title: string; content: string; metadataJson?: string | null; order: number; locale: string };
 export type KnowledgePack = { key: string; name: string; description: string; version: string; status: string; locale: string; sections: KnowledgeSection[]; assignedAt: string };
 export type TodayFocusOpportunity = {
@@ -70,6 +97,8 @@ export function getGoals(accessToken: string, businessId: string): Promise<Busin
 export async function saveGoals(accessToken: string, businessId: string, goals: BusinessGoal[]): Promise<BusinessGoal[]> { await request<void>(`/api/v1/businesses/${businessId}/goals`, accessToken, { method: 'PUT', body: JSON.stringify({ goals }) }); return getGoals(accessToken, businessId); }
 export function getContext(accessToken: string, businessId: string): Promise<BusinessContextEntry[]> { return request(`/api/v1/businesses/${businessId}/context`, accessToken); }
 export async function saveContext(accessToken: string, businessId: string, entries: BusinessContextEntry[]): Promise<BusinessContextEntry[]> { for (const entry of entries) { await request(`/api/v1/businesses/${businessId}/context/${encodeURIComponent(entry.key)}`, accessToken, { method: 'PUT', body: JSON.stringify(entry) }); } return getContext(accessToken, businessId); }
+export function getBusinessHub(accessToken: string, businessId: string): Promise<BusinessHub> { return request(`/api/v1/businesses/${businessId}/hub`, accessToken); }
+export function getBusinessMenu(accessToken: string, businessId: string): Promise<BusinessMenu> { return request(`/api/v1/businesses/${businessId}/offerings?kind=menu-item`, accessToken); }
 export function getKnowledgePack(accessToken: string, businessId: string): Promise<KnowledgePack> { return request(`/api/v1/businesses/${businessId}/knowledge-pack`, accessToken); }
 export function getTodayFocus(accessToken: string, businessId: string): Promise<TodayFocus> { return request(`/api/v1/businesses/${businessId}/today-focus`, accessToken); }
 export function getOpportunityDetail(accessToken: string, businessId: string, opportunityId: string): Promise<OpportunityDetail> { return request(`/api/v1/businesses/${businessId}/opportunities/${opportunityId}`, accessToken); }
