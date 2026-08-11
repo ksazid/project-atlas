@@ -5,9 +5,11 @@ import { createBusiness } from '@/api/atlas-client';
 import {
   createBusinessFromDiscovery,
   discoverBusiness,
+  enrichBusinessPlace,
   searchBusinessLocations,
   type BusinessDiscovery,
   type BusinessLocationSearchResponse,
+  type BusinessPlaceEnrichmentResponse,
 } from '@/api/business-discovery';
 import { loadSession, saveSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
@@ -24,6 +26,10 @@ import {
   displayMarket,
   type BusinessLocationCandidate,
 } from '@/features/business-discovery/location-model';
+import {
+  buildAboutBusinessItems,
+  buildConfirmedOperatingContext,
+} from '@/features/business-discovery/place-enrichment-model';
 import {
   canonicalBusinessUrlKey,
   canonicalizeBusinessUrlInput,
@@ -59,9 +65,14 @@ export default function CreateBusinessScreen() {
   const [locationSearch, setLocationSearch] = useState('');
   const [locationResult, setLocationResult] = useState<BusinessLocationSearchResponse | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [placeEnrichment, setPlaceEnrichment] = useState<BusinessPlaceEnrichmentResponse | null>(null);
+  const [placeEnrichmentBusy, setPlaceEnrichmentBusy] = useState(false);
+  const [placeEnrichmentError, setPlaceEnrichmentError] = useState<string | null>(null);
+  const [placeEnrichmentConfirmed, setPlaceEnrichmentConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
   const pulse = useRef(new Animated.Value(0)).current;
+  const placeEnrichmentRequestId = useRef(0);
 
   useEffect(() => {
     void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
@@ -108,12 +119,55 @@ export default function CreateBusinessScreen() {
     setError(null);
   }
 
+  function clearPlaceEnrichment() {
+    placeEnrichmentRequestId.current += 1;
+    setPlaceEnrichment(null);
+    setPlaceEnrichmentConfirmed(false);
+    setPlaceEnrichmentError(null);
+    setPlaceEnrichmentBusy(false);
+  }
+
+  async function loadPlaceEnrichment(
+    location: BusinessLocationCandidate,
+    accessToken?: string,
+    snapshotId?: string | null,
+  ) {
+    const activeSnapshotId = snapshotId ?? discovery?.snapshotId ?? null;
+    if (!activeSnapshotId) {
+      clearPlaceEnrichment();
+      return;
+    }
+
+    const requestId = placeEnrichmentRequestId.current + 1;
+    placeEnrichmentRequestId.current = requestId;
+    setPlaceEnrichment(null);
+    setPlaceEnrichmentConfirmed(false);
+    setPlaceEnrichmentError(null);
+    setPlaceEnrichmentBusy(true);
+    try {
+      const token = accessToken ?? (await loadSession())?.accessToken;
+      if (!token) {
+        router.replace('/sign-in');
+        return;
+      }
+      const result = await enrichBusinessPlace(token, activeSnapshotId, location.providerRef);
+      if (requestId !== placeEnrichmentRequestId.current) return;
+      if (buildAboutBusinessItems(result).length > 0) setPlaceEnrichment(result);
+    } catch {
+      if (requestId !== placeEnrichmentRequestId.current) return;
+      setPlaceEnrichmentError('Atlas could not add extra public details. You can still continue.');
+    } finally {
+      if (requestId === placeEnrichmentRequestId.current) setPlaceEnrichmentBusy(false);
+    }
+  }
+
   async function analyse() {
     if (!canDiscover) return;
     const additionalUrls = sourceUrls.slice(1).map(value => canonicalBusinessUrlKey(value) ?? '').filter(Boolean);
     setBusy(true);
     setError(null);
     setLocationError(null);
+    clearPlaceEnrichment();
     try {
       const session = await loadSession();
       if (!session) {
@@ -138,17 +192,23 @@ export default function CreateBusinessScreen() {
     if (locationBusy) return;
     setLocationBusy(true);
     setLocationError(null);
+    clearPlaceEnrichment();
     try {
       const token = accessToken ?? (await loadSession())?.accessToken;
       if (!token) {
         router.replace('/sign-in');
         return;
       }
+      const activeSnapshotId = snapshotId ?? discovery?.snapshotId ?? null;
       const searchQuery = query?.trim() || locationSearch.trim() || form.name.trim();
-      const result = await searchBusinessLocations(token, snapshotId ?? discovery?.snapshotId ?? null, searchQuery || undefined);
+      const result = await searchBusinessLocations(token, activeSnapshotId, searchQuery || undefined);
       setLocationResult(result);
-      if (result.selected) setForm(current => applyLocationToDraft(current, result.selected!));
-      else setForm(current => ({ ...current, primaryLocation: '', country: '', timezone: '', currency: '' }));
+      if (result.selected) {
+        setForm(current => applyLocationToDraft(current, result.selected!));
+        await loadPlaceEnrichment(result.selected, token, activeSnapshotId);
+      } else {
+        setForm(current => ({ ...current, primaryLocation: '', country: '', timezone: '', currency: '' }));
+      }
     } catch (cause) {
       setLocationResult(current => current ?? { state: 'search', candidates: [], selected: null, canChange: true });
       setLocationError(cause instanceof Error ? cause.message : 'Atlas could not search business locations.');
@@ -166,9 +226,11 @@ export default function CreateBusinessScreen() {
       canChange: true,
     }));
     setLocationError(null);
+    void loadPlaceEnrichment(location);
   }
 
   function changeLocation() {
+    clearPlaceEnrichment();
     setForm(current => ({ ...current, primaryLocation: '', country: '', timezone: '', currency: '' }));
     setLocationResult(current => current && current.candidates.length > 1
       ? { ...current, state: 'choose', selected: null }
@@ -187,8 +249,14 @@ export default function CreateBusinessScreen() {
         return;
       }
 
+      const confirmedOperatingContext = placeEnrichmentConfirmed && placeEnrichment
+        ? buildConfirmedOperatingContext(placeEnrichment)
+        : undefined;
       const business = discovery
-        ? await createBusinessFromDiscovery(session.accessToken, buildCreateBusinessFromDiscoveryRequest(form))
+        ? await createBusinessFromDiscovery(
+            session.accessToken,
+            buildCreateBusinessFromDiscoveryRequest(form, confirmedOperatingContext),
+          )
         : await createBusiness(session.accessToken, {
             name: form.name.trim(),
             category: form.category.trim(),
@@ -253,7 +321,7 @@ export default function CreateBusinessScreen() {
             </Pressable>
           ))}
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Search another business location" onPress={() => setLocationResult({ state: 'search', candidates: [], selected: null, canChange: true })} style={({ pressed }) => [s.locationLink, pressed && s.pressed]}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Search another business location" onPress={() => { clearPlaceEnrichment(); setLocationResult({ state: 'search', candidates: [], selected: null, canChange: true }); }} style={({ pressed }) => [s.locationLink, pressed && s.pressed]}>
           <Text style={s.editText}>Search another location</Text>
         </Pressable>
       </View>
@@ -368,12 +436,16 @@ export default function CreateBusinessScreen() {
       </View>
       {error ? <View style={s.errorBox}><Text accessibilityLiveRegion="polite" style={s.error}>{error}</Text></View> : null}
       {!busy ? <Pressable accessibilityLabel="Discover my business" accessibilityRole="button" accessibilityState={{ disabled: !canDiscover }} disabled={!canDiscover} onPress={analyse} style={({ pressed }) => [s.discoverButton, !canDiscover && s.disabled, pressed && s.pressed]}><Text style={s.discoverButtonText}>Discover my business</Text></Pressable> : null}
-      {!busy ? <Pressable accessibilityLabel="Set up manually instead" accessibilityRole="button" onPress={() => { setDiscovery(null); setForm(emptyDraft); setLocationResult(null); setLocationSearch(''); setError(null); setStage('manual'); }} style={({ pressed }) => [s.edit, pressed && s.pressed]}><Text style={s.editText}>Set up manually instead</Text></Pressable> : null}
+      {!busy ? <Pressable accessibilityLabel="Set up manually instead" accessibilityRole="button" onPress={() => { setDiscovery(null); setForm(emptyDraft); setLocationResult(null); setLocationSearch(''); clearPlaceEnrichment(); setError(null); setStage('manual'); }} style={({ pressed }) => [s.edit, pressed && s.pressed]}><Text style={s.editText}>Set up manually instead</Text></Pressable> : null}
     </ScrollView>
   );
 
   if (stage === 'confirm' && discovery) {
     const confidence = getDiscoveryFact(discovery, 'name')?.confidence ?? 'observed';
+    const aboutItems = placeEnrichment ? buildAboutBusinessItems(placeEnrichment) : [];
+    const thirdPartyAttributions = placeEnrichment?.attributions
+      .map(attribution => attribution.provider.trim())
+      .filter(Boolean) ?? [];
     return (
       <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Back />
@@ -397,6 +469,48 @@ export default function CreateBusinessScreen() {
         </View>
 
         {locationResolver()}
+
+        {placeEnrichmentBusy ? (
+          <View style={s.aboutLoading}>
+            <ActivityIndicator accessibilityLabel="Loading extra public business details" color={GREEN} size="small" />
+            <Text style={s.aboutLoadingCopy}>Checking a few useful operating details…</Text>
+          </View>
+        ) : null}
+        {placeEnrichmentError ? <Text accessibilityLiveRegion="polite" style={s.aboutError}>{placeEnrichmentError}</Text> : null}
+        {placeEnrichment && aboutItems.length > 0 ? (
+          <View style={s.aboutCard}>
+            <View style={s.aboutHeader}>
+              <Text style={s.sectionTitle}>About your business</Text>
+              <Text style={s.aboutHint}>These public operating details are shown only for your review. Confirm them only if they are correct for this Business.</Text>
+            </View>
+            <View style={s.aboutList}>
+              {aboutItems.map(item => (
+                <View key={item.label} style={s.aboutItem}>
+                  <Text style={s.aboutLabel}>{item.label}</Text>
+                  <Text style={s.aboutValue}>{item.value}</Text>
+                </View>
+              ))}
+            </View>
+            <View style={s.divider} />
+            <Text style={s.attribution}>Source: {placeEnrichment.attributionLabel || 'Google Maps'}</Text>
+            {thirdPartyAttributions.length > 0 ? <Text style={s.attribution}>Additional attribution: {thirdPartyAttributions.join(' · ')}</Text> : null}
+            <Pressable
+              accessibilityRole="checkbox"
+              accessibilityLabel="Confirm these operating details"
+              accessibilityState={{ checked: placeEnrichmentConfirmed }}
+              onPress={() => setPlaceEnrichmentConfirmed(current => !current)}
+              style={({ pressed }) => [s.confirmationToggle, placeEnrichmentConfirmed && s.confirmationToggleSelected, pressed && s.pressed]}
+            >
+              <View style={[s.confirmationBox, placeEnrichmentConfirmed && s.confirmationBoxSelected]}>
+                <Text style={s.confirmationCheck}>{placeEnrichmentConfirmed ? '✓' : ''}</Text>
+              </View>
+              <View style={s.confirmationCopy}>
+                <Text style={s.confirmationTitle}>Confirm these operating details</Text>
+                <Text style={s.confirmationHint}>Only details you explicitly confirm are added to Atlas as owner-provided business context.</Text>
+              </View>
+            </Pressable>
+          </View>
+        ) : null}
 
         <View style={s.detailsCard}>
           <Text style={s.sectionTitle}>Business details</Text>
@@ -496,6 +610,7 @@ const s = StyleSheet.create({
   discoverButton: { minHeight: 50, borderRadius: 10, backgroundColor: '#008B58', alignItems: 'center', justifyContent: 'center' }, discoverButtonText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
   confetti: { position: 'absolute', right: 20, top: 65 }, confettiText: { fontSize: 13, color: '#2FAF78' }, success: { alignSelf: 'center', width: 58, height: 58, borderRadius: 29, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center', marginBottom: 1 }, successText: { fontSize: 31, color: '#FFF', fontWeight: '700' },
   businessCard: { borderWidth: 1, borderColor: '#E4E9E6', borderRadius: 13, padding: 13, flexDirection: 'row', gap: 13, backgroundColor: '#FFF', shadowColor: '#173B2A', shadowOpacity: .035, shadowRadius: 7, elevation: 1 }, businessLogo: { width: 76, height: 76, resizeMode: 'contain' }, businessCopy: { flex: 1, gap: 5 }, nameRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 7 }, businessName: { fontSize: 17, lineHeight: 22, fontWeight: '900', color: '#12221C', flex: 1 }, verified: { backgroundColor: '#E1F4E9', paddingHorizontal: 8, paddingVertical: 5, borderRadius: 10 }, verifiedText: { fontSize: 8.4, fontWeight: '800', color: GREEN }, categoryPill: { alignSelf: 'flex-start', backgroundColor: '#E5F5EB', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 }, categoryPillText: { fontSize: 9.8, color: GREEN, fontWeight: '700' }, rating: { fontSize: 10.6, color: '#34423D' }, site: { fontSize: 10.6, color: '#44524C' },
+  aboutCard: { borderWidth: 1, borderColor: '#DCE8E1', borderRadius: 13, padding: 14, gap: 11, backgroundColor: '#F8FBF9' }, aboutHeader: { gap: 5 }, aboutHint: { fontSize: 11.2, lineHeight: 17, color: '#58655F' }, aboutList: { gap: 9 }, aboutItem: { gap: 2 }, aboutLabel: { color: GREEN, fontSize: 9.5, fontWeight: '900', letterSpacing: .45, textTransform: 'uppercase' }, aboutValue: { color: '#1F3029', fontSize: 12.2, lineHeight: 18, fontWeight: '700' }, aboutLoading: { minHeight: 48, borderWidth: 1, borderColor: '#E2E9E5', borderRadius: 11, backgroundColor: '#FAFCFB', flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 13 }, aboutLoadingCopy: { flex: 1, color: '#58655F', fontSize: 11.5, lineHeight: 17 }, aboutError: { borderRadius: 10, backgroundColor: '#F6F8F7', color: '#58655F', fontSize: 11.2, lineHeight: 17, padding: 12 }, attribution: { color: '#68766F', fontSize: 9.8, lineHeight: 15 }, confirmationToggle: { minHeight: 54, borderWidth: 1, borderColor: '#DCE5E0', borderRadius: 11, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', gap: 11, padding: 11 }, confirmationToggleSelected: { borderColor: '#A9DCC6', backgroundColor: '#F1FAF5' }, confirmationBox: { width: 24, height: 24, borderRadius: 6, borderWidth: 1.5, borderColor: '#9EAAA4', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF' }, confirmationBoxSelected: { borderColor: GREEN, backgroundColor: GREEN }, confirmationCheck: { color: '#FFF', fontSize: 14, fontWeight: '900' }, confirmationCopy: { flex: 1, gap: 2 }, confirmationTitle: { color: '#163128', fontSize: 11.8, lineHeight: 17, fontWeight: '900' }, confirmationHint: { color: '#5B6862', fontSize: 10.4, lineHeight: 15.5 },
   detailsCard: { borderWidth: 1, borderColor: '#E4E9E6', borderRadius: 13, padding: 14, gap: 11, backgroundColor: '#FFF' }, sectionTitle: { fontSize: 11.5, fontWeight: '900', color: '#1E2D27' }, detail: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' }, detailIcon: { width: 22, fontSize: 16, color: '#172720' }, detailText: { flex: 1, fontSize: 11.5, lineHeight: 17.5, color: '#26352F' }, divider: { height: 1, backgroundColor: '#E9EDEB' }, chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 }, chip: { backgroundColor: '#E3F3E9', paddingHorizontal: 11, paddingVertical: 7, borderRadius: 11 }, chipText: { fontSize: 9.8, color: GREEN, fontWeight: '700' },
   locationPanel: { borderWidth: 1, borderColor: '#DCE8E1', borderRadius: 13, padding: 14, gap: 10, backgroundColor: '#F8FBF9' }, locationHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 }, locationHeaderCopy: { flex: 1, gap: 4 }, locationCheck: { width: 25, height: 25, borderRadius: 13, textAlign: 'center', lineHeight: 25, overflow: 'hidden', backgroundColor: GREEN, color: '#FFF', fontWeight: '900' }, locationHint: { fontSize: 11.2, lineHeight: 17, color: '#58655F' }, locationName: { fontSize: 13.5, lineHeight: 19, fontWeight: '900', color: '#153128' }, locationAddress: { fontSize: 11.5, lineHeight: 17.5, color: '#33453E' }, locationMarket: { fontSize: 10.7, lineHeight: 16, color: GREEN, fontWeight: '800' }, locationLink: { alignSelf: 'flex-start', minHeight: 36, justifyContent: 'center' }, locationList: { gap: 8 }, locationCard: { minHeight: 74, borderWidth: 1, borderColor: '#DFE7E2', borderRadius: 11, padding: 11, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', gap: 10 }, locationDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: GREEN }, locationCardCopy: { flex: 1, gap: 3 }, chevron: { fontSize: 25, color: '#698078' }, locationSearchRow: { flexDirection: 'row', alignItems: 'stretch', gap: 8 }, locationInput: { flex: 1, minHeight: 48, borderWidth: 1, borderColor: '#DBE5DF', borderRadius: 10, backgroundColor: '#FFF', paddingHorizontal: 12, fontSize: 12.5, color: '#20312A' }, locationSearchButton: { minWidth: 74, borderRadius: 10, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 13 }, locationSearchButtonText: { color: '#FFF', fontSize: 12, fontWeight: '900' }, locationError: { fontSize: 11.2, lineHeight: 17, color: '#A1251B' },
   missingBox: { padding: 13, borderRadius: 10, borderWidth: 1, borderColor: '#DDE8E1', backgroundColor: '#F3F8F5', gap: 5 }, missingTitle: { color: '#0A2F25', fontSize: 12, fontWeight: '900' }, missingText: { color: '#52615A', fontSize: 11.5, lineHeight: 18 },
