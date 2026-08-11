@@ -73,7 +73,7 @@ public sealed class OpportunityGenerationTests
         var bundle = Bundle("restaurant-cafe", memory: [Fact("memory", "reviewSignal", "Recent reviews mention slow pickup", "public")]);
 
         var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
-        var candidate = Assert.Single(result.Candidates.Where(x => x.PatternKey == "reputation-signal-follow-up"));
+        var candidate = Assert.Single(result.Candidates, x => x.PatternKey == "reputation-signal-follow-up");
 
         Assert.Equal("Low", candidate.Confidence);
         Assert.Contains(candidate.Evidence, x => x.Key == "reviewSignal" && x.Source == "public");
@@ -124,8 +124,8 @@ public sealed class OpportunityGenerationTests
         var first = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
         var second = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
 
-        var item = Assert.Single(first.Selected!.Evidence.Where(x => x.Key == "primarychannels"));
-        var repeatedItem = Assert.Single(second.Selected!.Evidence.Where(x => x.Key == "primarychannels"));
+        var item = Assert.Single(first.Selected!.Evidence, x => x.Key == "primarychannels");
+        var repeatedItem = Assert.Single(second.Selected!.Evidence, x => x.Key == "primarychannels");
         Assert.False(string.IsNullOrWhiteSpace(item.EvidenceId));
         Assert.Equal(item.EvidenceId, repeatedItem.EvidenceId);
         Assert.All(first.Selected.Evidence.Where(x => x.Layer != "policy"), x =>
