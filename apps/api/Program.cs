@@ -30,19 +30,6 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 app.UseExceptionHandler();
 app.UseAuthentication();
-app.Use(async (context, next) =>
-{
-    const string demoToken = "Bearer atlas-expo-go-demo";
-    if (app.Environment.IsDevelopment() &&
-        string.Equals(context.Request.Headers.Authorization, demoToken, StringComparison.Ordinal))
-    {
-        var identity = new ClaimsIdentity(
-            [new Claim(ClaimTypes.NameIdentifier, "atlas-expo-go-demo-owner")],
-            authenticationType: "AtlasExpoGoDemo");
-        context.User = new ClaimsPrincipal(identity);
-    }
-    await next();
-});
 app.UseAuthorization();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" }));
@@ -217,6 +204,7 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/context/{key}", async (Guid bus
 }).RequireAuthorization("BusinessOwner");
 
 app.MapBusinessDiscoveryEndpoints();
+app.MapBusinessLocationEndpoints();
 app.MapProgressiveQuestionEndpoints();
 app.MapKnowledgePackEndpoints();
 app.MapOpportunityEndpoints();
