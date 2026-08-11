@@ -1,59 +1,47 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-23",
-  "title": "VS-23 — Evidence-Aware Restaurant/Café Opportunity Generation",
+  "sliceId": "VS-24",
+  "title": "VS-24 — End-to-End Category Intelligence Validation",
   "status": "active",
-  "lifecycle": "testing",
+  "lifecycle": "implementing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-05","FR-06","FR-07","FR-08","FR-16"],
+  "requirements": ["FR-02","FR-03","FR-04","FR-05","FR-06","FR-07","FR-08","FR-09","FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758"],
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758","VS-22","VS-23@0f05b24ab5ea3c6c1ab924ad65359d9403c0a590"],
   "blockers": [],
-  "allowedPaths": ["apps/api/**","tests/api/**","delivery/**","docs/**"],
-  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**","apps/mobile/**"],
+  "allowedPaths": ["apps/api/**","apps/mobile/**","tests/api/**","tests/mobile/**","delivery/**","docs/**"],
+  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
   "impact": {
-    "areas":["architecture","api","customer-flow"],
+    "areas":["frontend","api","customer-flow","architecture"],
     "notes":[
-      "Parallel track approved by Product Owner; VS-23 does not modify VS-22 multi-source discovery or VS-21 onboarding/location implementation.",
-      "Retains the certified VS-15 runtime baseline explicitly and consumes the certified VS-20 ResolvedKnowledgeBundle contract directly.",
-      "Deterministic evidence-aware generation only; no external AI/provider call.",
-      "No qualifying evidence returns no-focus rather than filler.",
-      "Today’s Focus now uses evidence-aware generation and Opportunity Detail safely parses the structured evidence snapshot.",
-      "A pre-existing runtime defect was fixed by registering the already-migrated Opportunity entity in AtlasDbContext; no new migration was required.",
-      "Before merge VS-23 must update to then-current main after VS-22 and rerun exact-head certification.",
-      "No production deployment is authorized."
+      "VS-24 is branched from the VS-23 pre-integration head so independent Today state work can proceed while VS-22 finishes.",
+      "Integrated certification is dependency-blocked until VS-22 and VS-23 are merged into main and this branch is reconciled onto that baseline.",
+      "The slice validates the approved Restaurant/Café hero journey and may make only bounded cross-slice compatibility fixes.",
+      "Live Bolt/Google requests are supplemental isolated smoke evidence and are never deterministic CI dependencies.",
+      "No production deployment or production enablement is authorized."
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner approved all remaining slices and instructed this chat to proceed fully on the parallel Opportunity Generation and E2E validation track."},
-    {"type":"policy","status":"not-required","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"VS-23 adds no new provider, external data source, AI call, retention policy or production release."},
-    {"type":"implementation","status":"approved","version":"VS-23@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner explicitly instructed implementation, fixes and thorough testing to proceed without routine checkpoints."},
-    {"type":"certification","status":"pending","version":"VS-23@1.0","commitSha":null,"by":null,"at":null,"rationale":"Exact-SHA certification approval cannot be granted before the final integrated implementation SHA exists."},
+    {"type":"scope","status":"approved","version":"VS-24@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner approved all remaining slices and instructed full implementation, fixes, testing and integration without routine checkpoints."},
+    {"type":"policy","status":"not-required","version":"VS-24@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"VS-24 introduces no new provider, private data source, AI model, retention policy or production deployment."},
+    {"type":"implementation","status":"approved","version":"VS-24@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T03:00:00+02:00","rationale":"Product Owner explicitly instructed this chat to proceed through all remaining slices, fix defects and test thoroughly."},
+    {"type":"certification","status":"pending","version":"VS-24@1.0","commitSha":null,"by":null,"at":null,"rationale":"Certification requires the final reconciled exact SHA after VS-22 and VS-23 are integrated."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":95,"certification":0,"release":0,"validation":0},
-  "certification": {"status":"not-started","commitSha":null,"evidence":[
-    "TDD RED CI 31448681701: generator contract absent after preflight/migrations passed",
-    "Goal compatibility RED CI 31449610592",
-    "Opportunity Detail RED CI 31451234172: structured goal object reproduced legacy parser crash",
-    "GREEN CI 31451583565: 224 API tests passed plus preflight, PostgreSQL migrations, Security and Product Intake"
-  ]},
+  "progress": {"discovery":100,"decisions":100,"implementation":10,"testing":0,"certification":0,"release":0,"validation":0},
+  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification":"docs/slices/VS-23.md",
-    "implementationPr":"https://github.com/ksazid/project-atlas/pull/30",
+    "specification":"docs/slices/VS-24.md",
+    "implementationPr":null,
     "evidence":[
-      "docs/superpowers/specs/2026-08-11-vs-23-evidence-aware-opportunity-generation-design.md",
-      "docs/superpowers/plans/2026-08-11-vs-23-evidence-aware-opportunity-generation.md",
-      "tests/api/OpportunityGenerationTests.cs",
-      "tests/api/OpportunityGoalMappingTests.cs",
-      "tests/api/OpportunityGenerationIntegrationTests.cs",
-      "tests/api/OpportunityGenerationDetailTests.cs"
+      "docs/superpowers/specs/2026-08-11-vs-24-category-intelligence-e2e-validation-design.md",
+      "docs/superpowers/plans/2026-08-11-vs-24-category-intelligence-e2e-validation.md"
     ]
   },
   "maxAttempts": 3
