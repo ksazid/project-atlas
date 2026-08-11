@@ -241,7 +241,11 @@ public sealed record PublicBusinessSnapshot(
     string Provider,
     string SourceUrl,
     DateTimeOffset ObservedAt,
-    IReadOnlyList<PublicBusinessFact> Facts);
+    IReadOnlyList<PublicBusinessFact> Facts)
+{
+    public IReadOnlyList<PublicBusinessMedia> Media { get; init; } = [];
+    public IReadOnlyList<PublicBusinessOffering> Offerings { get; init; } = [];
+}
 
 public static class PublicBusinessExtractor
 {
@@ -294,7 +298,14 @@ public static class PublicBusinessExtractor
         Add("category", category.CategoryKey, category.Confidence);
         Add("subcategory", category.SubcategoryKey, category.Confidence);
 
-        return new PublicBusinessSnapshot(provider, sourceUrl, observedAt, facts.Values.ToList());
+        var enrichment = PublicBusinessMediaMenuExtractor.Extract(provider, sourceUri, html, observedAt);
+        Add("menuUrl", enrichment.MenuUrl, "high");
+
+        return new PublicBusinessSnapshot(provider, sourceUrl, observedAt, facts.Values.ToList())
+        {
+            Media = enrichment.Media,
+            Offerings = enrichment.Offerings
+        };
 
         void Add(string key, string? value, string confidence)
         {
