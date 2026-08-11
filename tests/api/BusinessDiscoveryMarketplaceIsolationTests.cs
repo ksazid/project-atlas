@@ -63,4 +63,27 @@ public sealed class BusinessDiscoveryMarketplaceIsolationTests
         Assert.DoesNotContain(snapshot.Facts, x => x.Key == "phone");
         Assert.DoesNotContain(snapshot.Facts, x => x.Value.Contains("Unrelated", StringComparison.OrdinalIgnoreCase) || x.Value.Contains("Another Merchant", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void Bolt_extractor_uses_validated_business_url_identity_when_page_title_is_generic_provider_branding()
+    {
+        const string html = """
+            <html><head>
+            <meta property="og:title" content="Bolt Food" />
+            <meta property="og:description" content="Order food delivery and takeaway with Bolt Food" />
+            <title>Bolt Food</title>
+            </head></html>
+            """;
+
+        var snapshot = PublicBusinessExtractor.Extract(
+            "bolt-food",
+            new Uri("https://food.bolt.eu/en/324/p/11881-gun-turkish-kebab"),
+            html,
+            DateTimeOffset.UtcNow);
+
+        var name = snapshot.Facts.Single(x => x.Key == "name");
+        Assert.Equal("Gun Turkish Kebab", name.Value);
+        Assert.Equal("medium", name.Confidence);
+        Assert.DoesNotContain(snapshot.Facts, fact => fact.Key == "name" && string.Equals(fact.Value, "Bolt Food", StringComparison.OrdinalIgnoreCase));
+    }
 }
