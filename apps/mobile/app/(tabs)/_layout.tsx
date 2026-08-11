@@ -1,12 +1,8 @@
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { AtlasIcon } from '@/components/AtlasIcon';
 
 const GREEN = '#00754A';
 const MUTED = '#7A857F';
-
-function TabIcon({ symbol, focused }: { symbol: string; focused: boolean }) {
-  return <Text style={{ fontSize: 18, fontWeight: '900', color: focused ? GREEN : MUTED }}>{symbol}</Text>;
-}
 
 export default function TabsLayout() {
   return (
@@ -30,11 +26,11 @@ export default function TabsLayout() {
         },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ focused }) => <TabIcon symbol="⌂" focused={focused} /> }} />
-      <Tabs.Screen name="profile" options={{ title: 'Business', tabBarIcon: ({ focused }) => <TabIcon symbol="◎" focused={focused} /> }} />
-      <Tabs.Screen name="goals" options={{ title: 'Goals', tabBarIcon: ({ focused }) => <TabIcon symbol="↗" focused={focused} /> }} />
-      <Tabs.Screen name="context" options={{ title: 'Context', tabBarIcon: ({ focused }) => <TabIcon symbol="◌" focused={focused} /> }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: ({ focused }) => <TabIcon symbol="⚙" focused={focused} /> }} />
+      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color }) => <AtlasIcon name="home" color={color} /> }} />
+      <Tabs.Screen name="profile" options={{ title: 'Business', tabBarIcon: ({ color }) => <AtlasIcon name="business" color={color} /> }} />
+      <Tabs.Screen name="goals" options={{ title: 'Goals', tabBarIcon: ({ color }) => <AtlasIcon name="goals" color={color} /> }} />
+      <Tabs.Screen name="context" options={{ title: 'Context', tabBarIcon: ({ color }) => <AtlasIcon name="context" color={color} /> }} />
+      <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: ({ color }) => <AtlasIcon name="settings" color={color} /> }} />
     </Tabs>
   );
 }
