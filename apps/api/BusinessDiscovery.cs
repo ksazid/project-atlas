@@ -248,10 +248,10 @@ public static class PublicBusinessExtractor
     public const int MaxFactValueCharacters = BusinessDiscoveryProvenance.MaxValueCharacters;
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
     private static readonly Regex JsonLdRegex = new(@"<script[^>]+type=[""']application/ld\+json[""'][^>]*>(.*?)</script>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
-    private static readonly Regex OgTitleRegex = new(@"<meta[^>]+property=[""']og:title[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex OgTitleRegex = new(@"<meta[^>]+property=[""']og:title[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex TitleRegex = new(@"<title[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
-    private static readonly Regex OgDescriptionRegex = new(@"<meta[^>]+property=[""']og:description[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
-    private static readonly Regex MetaDescriptionRegex = new(@"<meta[^>]+name=[""']description[""'][^>]+content=[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex OgDescriptionRegex = new(@"<meta[^>]+property=[""']og:description[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex MetaDescriptionRegex = new(@"<meta[^>]+name=[""']description[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex StreetAddressRegex = new(@"[""']streetAddress[""']\s*:\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
 
     public static PublicBusinessSnapshot Extract(string provider, Uri sourceUri, string html, DateTimeOffset observedAt)
@@ -405,7 +405,9 @@ public static class PublicBusinessExtractor
     private static string? FirstMatch(Regex regex, string value)
     {
         var match = regex.Match(value);
-        return match.Success ? match.Groups[1].Value.Trim() : null;
+        if (!match.Success) return null;
+        var namedValue = match.Groups["value"];
+        return (namedValue.Success ? namedValue.Value : match.Groups[1].Value).Trim();
     }
 
     private static string? Decode(string? value) => string.IsNullOrWhiteSpace(value) ? null : WebUtility.HtmlDecode(value).Trim();
