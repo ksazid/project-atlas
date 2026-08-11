@@ -33,12 +33,12 @@ test('discovery draft uses observed facts and leaves unavailable facts unknown',
   assert.equal(draft.businessHours, '');
 });
 
-test('required manual fields are explicit instead of silently assuming Malta defaults', () => {
+test('missing technical market metadata is presented to the owner as one unresolved business location', () => {
   const missing = discoveryModel.getMissingRequiredFields(discoveryModel.createDiscoveryDraft(discovery));
-  assert.deepEqual(missing, ['timezone', 'currency']);
+  assert.deepEqual(missing, ['location']);
 });
 
-test('confirmation request consumes the exact persisted discovery snapshot', () => {
+test('confirmation request consumes canonical metadata from the resolved location', () => {
   const draft = {
     ...discoveryModel.createDiscoveryDraft(discovery),
     timezone: 'Europe/Malta',
@@ -62,6 +62,15 @@ test('fact lookup preserves provenance for trust presentation', () => {
   assert.equal(discoveryModel.getDiscoveryFact(discovery, 'openingHours'), undefined);
 });
 
+test('owner-facing confirmation uses provider-neutral public-source copy', () => {
+  const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
+  assert.match(source, /Public business page/);
+  assert.match(source, /Observed from public business page/);
+  assert.doesNotMatch(source, /providerLabel\(discovery\.provider\)/);
+  assert.doesNotMatch(source, /sourceHost\(discovery\.sourceUrl\)/);
+  assert.doesNotMatch(source, /Bolt Food|Wolt/i);
+});
+
 test('approved discovery screen contains no fabricated Starbucks demo facts', () => {
   const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
   assert.doesNotMatch(source, /starbucks/i);
@@ -69,13 +78,23 @@ test('approved discovery screen contains no fabricated Starbucks demo facts', ()
   assert.doesNotMatch(source, /reviews,\s*social profiles/i);
 });
 
+test('discovery URL can be cleared in one accessible action', () => {
+  const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
+  assert.match(source, /accessibilityLabel="Clear business page URL"/);
+  assert.match(source, /setUrl\(''\)/);
+  assert.match(source, />×<\/Text>/);
+});
+
 test('discovery screen respects reduced motion and exposes explicit action semantics', () => {
   const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
   assert.match(source, /AccessibilityInfo/);
   assert.match(source, /isReduceMotionEnabled/);
-  for (const label of ['Discover my business', 'Set up manually instead', 'Edit details', 'Review details', 'Create business']) {
+  for (const label of ['Discover my business', 'Clear business page URL', 'Set up manually instead', 'Edit details', 'Review details', 'Create business', 'Confirm and continue', 'Change location', 'Search Google Maps']) {
     assert.match(source, new RegExp(`accessibilityLabel=["'{][^\\n]*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'), `Missing explicit accessibility label for ${label}`);
   }
-  assert.match(source, /const confirmLabel = missing\.length > 0 \? 'Complete missing details' : 'Confirm and continue'/);
-  assert.match(source, /accessibilityLabel=\{confirmLabel\}/);
+  assert.match(source, /Which location are you setting up\?/);
+  assert.match(source, /Find your business location/);
+  assert.doesNotMatch(source, /<Field label="Country"/);
+  assert.doesNotMatch(source, /<Field label="Timezone"/);
+  assert.doesNotMatch(source, /<Field label="Currency"/);
 });

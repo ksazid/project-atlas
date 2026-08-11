@@ -215,17 +215,15 @@ public static class PublicBusinessHtmlReader
         var builder = new StringBuilder(Math.Min(MaxCharacters, 64 * 1024));
         var buffer = new char[BufferCharacters];
 
-        while (builder.Length <= MaxCharacters)
+        while (builder.Length < MaxCharacters)
         {
-            var remaining = MaxCharacters + 1 - builder.Length;
+            var remaining = MaxCharacters - builder.Length;
             var read = await reader.ReadAsync(buffer.AsMemory(0, Math.Min(buffer.Length, remaining)), ct);
-            if (read == 0) return builder.ToString();
+            if (read == 0) break;
             builder.Append(buffer, 0, read);
-            if (builder.Length > MaxCharacters)
-                throw new BusinessDiscoveryException("business_source_too_large", "That business page is too large for safe discovery. Use a smaller public page or set up manually.");
         }
 
-        throw new BusinessDiscoveryException("business_source_too_large", "That business page is too large for safe discovery. Use a smaller public page or set up manually.");
+        return builder.ToString();
     }
 }
 

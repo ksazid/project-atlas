@@ -15,27 +15,52 @@ public sealed class BusinessDiscoverySnapshot
     public Guid? BusinessId { get; set; }
     public ICollection<BusinessDiscoveryFact> Facts { get; set; } = [];
 
-    public static BusinessDiscoverySnapshot Create(Guid accountId, PublicBusinessSnapshot snapshot) => new()
+    public static BusinessDiscoverySnapshot Create(Guid accountId, PublicBusinessSnapshot snapshot)
     {
-        Id = Guid.NewGuid(),
-        UserAccountId = accountId,
-        Provider = snapshot.Provider,
-        SourceUrl = snapshot.SourceUrl,
-        ObservedAt = snapshot.ObservedAt,
-        CreatedAt = DateTimeOffset.UtcNow,
-        Facts = snapshot.Facts.Select(fact => new BusinessDiscoveryFact
+        var normalizedFacts = snapshot.Facts.ToList();
+        if (snapshot.Provider is "bolt-food" or "wolt" && Uri.TryCreate(snapshot.SourceUrl, UriKind.Absolute, out var sourceUri))
+        {
+            var nameIndex = normalizedFacts.FindIndex(x => x.Key.Equals("name", StringComparison.OrdinalIgnoreCase));
+            var observedName = nameIndex >= 0 ? normalizedFacts[nameIndex].Value : null;
+            var resolvedName = MarketplaceBusinessIdentity.ResolveName(snapshot.Provider, sourceUri, observedName);
+            if (!string.IsNullOrWhiteSpace(resolvedName.Value))
+            {
+                if (nameIndex >= 0)
+                {
+                    var existing = normalizedFacts[nameIndex];
+                    normalizedFacts[nameIndex] = existing with { Value = resolvedName.Value, Confidence = resolvedName.Confidence };
+                }
+                else
+                {
+                    normalizedFacts.Add(new PublicBusinessFact(
+                        "name", resolvedName.Value, snapshot.Provider, snapshot.SourceUrl, snapshot.ObservedAt,
+                        resolvedName.Confidence, "public-observed", false));
+                }
+            }
+        }
+
+        return new BusinessDiscoverySnapshot
         {
             Id = Guid.NewGuid(),
-            Key = fact.Key,
-            Value = fact.Value,
-            Source = fact.Source,
-            SourceUrl = fact.SourceUrl,
-            ObservedAt = fact.ObservedAt,
-            Confidence = fact.Confidence,
-            EvidenceClass = fact.EvidenceClass,
-            OwnerConfirmed = fact.OwnerConfirmed
-        }).ToList()
-    };
+            UserAccountId = accountId,
+            Provider = snapshot.Provider,
+            SourceUrl = snapshot.SourceUrl,
+            ObservedAt = snapshot.ObservedAt,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Facts = normalizedFacts.Select(fact => new BusinessDiscoveryFact
+            {
+                Id = Guid.NewGuid(),
+                Key = fact.Key,
+                Value = fact.Value,
+                Source = fact.Source,
+                SourceUrl = fact.SourceUrl,
+                ObservedAt = fact.ObservedAt,
+                Confidence = fact.Confidence,
+                EvidenceClass = fact.EvidenceClass,
+                OwnerConfirmed = fact.OwnerConfirmed
+            }).ToList()
+        };
+    }
 
     public bool CanBeConsumedBy(Guid accountId) => UserAccountId == accountId && ConsumedAt is null && BusinessId is null;
 
@@ -126,6 +151,25 @@ public sealed record CreateBusinessFromDiscoveryRequest(
         if (!BusinessCategoryTaxonomy.IsKnownSubcategory(Category, Subcategory)) errors[nameof(Subcategory)] = ["Choose a subcategory that belongs to the selected category."];
         if (string.IsNullOrWhiteSpace(Language)) errors[nameof(Language)] = ["Language is required."];
         if (!OwnerConfirmed) errors[nameof(OwnerConfirmed)] = ["Review and confirm the discovered business details before continuing."];
+
+        BusinessMarketMetadata? market = null;
+        if (!string.IsNullOrWhiteSpace(Country) && !string.IsNullOrWhiteSpace(Timezone))
+        {
+            try
+            {
+                market = BusinessMarketMetadata.Resolve(Country, Timezone);
+            }
+            catch (ArgumentException ex) when (ex.ParamName == "countryCode")
+            {
+                errors[nameof(Country)] = ["Choose a resolved business location so Atlas can set the country automatically."];
+            }
+            catch (ArgumentException ex) when (ex.ParamName == "timezone")
+            {
+                errors[nameof(Timezone)] = ["Choose a resolved business location so Atlas can set the timezone automatically."];
+            }
+        }
+        if (market is not null && !string.Equals(Currency.Trim(), market.Currency, StringComparison.OrdinalIgnoreCase))
+            errors[nameof(Currency)] = [$"Currency must match the selected business location ({market.Currency})."];
 
         CheckLength(nameof(Name), Name);
         CheckLength(nameof(Category), Category);
