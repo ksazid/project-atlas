@@ -216,6 +216,7 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/context/{key}", async (Guid bus
     return Results.Ok(entry);
 }).RequireAuthorization("BusinessOwner");
 
+app.MapBusinessHubEndpoints();
 app.MapBusinessDiscoveryEndpoints();
 app.MapBusinessLocationEndpoints();
 app.MapBusinessPlaceEnrichmentEndpoints();
