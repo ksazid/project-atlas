@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Atlas.Api;
 
-public sealed class MultiSourceBusinessDiscoveryService(
+public sealed partial class MultiSourceBusinessDiscoveryService(
     BusinessDiscoveryService pageDiscovery,
     GoogleBusinessSourceResolver googleResolver,
     IBusinessLocationProvider locationProvider)
