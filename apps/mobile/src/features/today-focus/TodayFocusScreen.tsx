@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { decideOpportunity, getTodayFocus, type OpportunityDecision, type TodayFocus } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
+import { todayFocusRecoveryAction } from './today-focus-recovery';
 
 type ScreenState = 'loading' | 'ready' | 'empty' | 'error';
 
@@ -78,7 +79,8 @@ export function TodayFocusScreen() {
   }
 
   if (focus?.state === 'insufficient-context') {
-    return <ScrollView contentContainerStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>◌</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>No suitable focus yet.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>Why Atlas is waiting</Text><Text style={styles.noteText}>Atlas will not create filler recommendations when the available context is insufficient.</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Review business context" onPress={() => router.push('/profile')} style={styles.primaryButton}><Text style={styles.primaryText}>Review business context</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.secondaryWide}><Text style={styles.secondaryText}>View business history</Text></Pressable></ScrollView>;
+    const recoveryAction = todayFocusRecoveryAction(focus.code);
+    return <ScrollView contentContainerStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>◌</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>No suitable focus yet.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>Why Atlas is waiting</Text><Text style={styles.noteText}>Atlas will not create filler recommendations when the available context is insufficient.</Text></View><Pressable accessibilityRole="button" accessibilityLabel={recoveryAction.label} onPress={() => router.push(recoveryAction.route)} style={styles.primaryButton}><Text style={styles.primaryText}>{recoveryAction.label}</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.secondaryWide}><Text style={styles.secondaryText}>View business history</Text></Pressable></ScrollView>;
   }
 
   if (focus?.state === 'no-focus') {
