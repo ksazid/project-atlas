@@ -218,6 +218,7 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/context/{key}", async (Guid bus
 
 app.MapBusinessDiscoveryEndpoints();
 app.MapBusinessLocationEndpoints();
+app.MapBusinessPlaceEnrichmentEndpoints();
 app.MapProgressiveQuestionEndpoints();
 app.MapKnowledgePackEndpoints();
 app.MapOpportunityEndpoints();
