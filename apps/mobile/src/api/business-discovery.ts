@@ -45,14 +45,18 @@ function headers(accessToken: string) {
   };
 }
 
-export async function discoverBusiness(accessToken: string, url: string): Promise<BusinessDiscovery> {
+export async function discoverBusiness(
+  accessToken: string,
+  url: string,
+  additionalUrls?: string[],
+): Promise<BusinessDiscovery> {
   const response = await fetch(`${env.apiUrl}/api/v1/business-discovery`, {
     method: 'POST',
     headers: headers(accessToken),
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ url, additionalUrls }),
   });
 
-  if (!response.ok) return problemFor(response, 'Atlas could not analyse that business page.');
+  if (!response.ok) return problemFor(response, 'Atlas could not analyse those business pages.');
   return (await response.json()) as BusinessDiscovery;
 }
 
