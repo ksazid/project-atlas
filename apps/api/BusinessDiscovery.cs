@@ -507,14 +507,13 @@ public static class BusinessDiscoveryEndpoints
             {
                 var discovery = new MultiSourceBusinessDiscoveryService(pageDiscovery, httpClientFactory, configuration);
                 var reconciliation = await discovery.DiscoverAsync(request.Url, request.AdditionalUrls, ct);
-                var publicSnapshot = reconciliation.Snapshot;
                 var account = await db.UserAccounts.SingleOrDefaultAsync(x => x.ProviderSubject == subject, ct);
                 if (account is null)
                 {
                     account = new UserAccount { Id = Guid.NewGuid(), ProviderSubject = subject, CreatedAt = DateTimeOffset.UtcNow };
                     db.UserAccounts.Add(account);
                 }
-                var snapshot = BusinessDiscoverySnapshot.Create(account.Id, publicSnapshot);
+                var snapshot = BusinessDiscoverySnapshot.Create(account.Id, reconciliation);
                 foreach (var fact in snapshot.Facts)
                 {
                     fact.SnapshotId = snapshot.Id;
