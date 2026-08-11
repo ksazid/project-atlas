@@ -112,6 +112,22 @@
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-11T13:58:00+02:00",
       "rationale": "The Product Owner explicitly instructed Atlas to store restaurant images when available and approved the sequence to add business-media capture followed by structured menu/menu-price ingestion. The selected approach preserves Atlas's provider-neutral core, data-minimisation policy and public-source safety boundary."
+    },
+    {
+      "id": "DEC-08",
+      "sliceId": "VS-26",
+      "status": "approved",
+      "question": "How should Atlas use a uniquely resolved Google Place to reduce repetitive onboarding while respecting owner authority and Google Places content restrictions?",
+      "options": [
+        "Ask all operating questions manually and do not enrich",
+        "Fetch rich Place Details for every search candidate and persist the provider response",
+        "After one exact Place is selected, fetch one bounded Place Details response transiently, let the owner explicitly submit canonical operating answers, retain only the Place ID as Google provider content, then ask Goals first and suppress satisfied questions"
+      ],
+      "decision": "After Atlas uniquely resolves a Business to one Google Place, use at most one bounded Places API (New) Place Details request for the current owner interaction regardless of whether discovery began from a website, Bolt, Wolt or Google URL. Google rich response content remains transient and Atlas retains only the Place ID as Google provider content. Persist canonical operating context only through a separate explicit owner submit/confirm action; do not persist copied Google payloads, attribution payloads or hidden Google-derived facts. For sufficiently enriched Businesses, optional non-goal onboarding targets 0–3 questions, with five retained only as the degraded/missing-context ceiling. Goals remain owner-only and are presented before optional non-goal context.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-11T16:47:00+02:00",
+      "rationale": "The Product Owner approved the VS-26 design and implementation plan and instructed Atlas to proceed. The execution-time official Google policy review confirmed mandatory field masks, Place ID storage exemption, broader Places content storage/caching restrictions and EEA-specific permitted-use constraints, so the implementation adopts the stricter transient-content boundary."
     }
   ]
 }

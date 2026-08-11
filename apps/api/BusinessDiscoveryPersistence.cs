@@ -282,6 +282,76 @@ public static class BusinessDiscoveryProvenance
     }
 }
 
+public sealed record ConfirmedOperatingContext(
+    string ProviderRef,
+    IReadOnlyList<string> OperatingChannels,
+    bool? Reservable,
+    IReadOnlyList<string> ServicePeriods,
+    string? PricePosition)
+{
+    private static readonly IReadOnlyList<string> AllowedChannels =
+        ["Dine in", "Takeaway", "Delivery", "Marketplace/platform", "Own website/app"];
+    private static readonly IReadOnlyList<string> AllowedServicePeriods =
+        ["Breakfast", "Brunch", "Lunch", "Dinner"];
+    private static readonly IReadOnlyList<string> AllowedPricePositions =
+        ["Free", "Inexpensive", "Moderate", "Expensive", "Very expensive"];
+
+    public bool IsValid()
+    {
+        if (string.IsNullOrWhiteSpace(ProviderRef) || ProviderRef.Trim().Length > 2048) return false;
+        if (!AllAllowed(OperatingChannels, AllowedChannels)) return false;
+        if (!AllAllowed(ServicePeriods, AllowedServicePeriods)) return false;
+        if (PricePosition is not null && Canonical(PricePosition, AllowedPricePositions) is null) return false;
+        return true;
+    }
+
+    public IReadOnlyList<BusinessContextEntry> ToOwnerContext(Guid businessId, DateTimeOffset at)
+    {
+        var entries = new List<BusinessContextEntry>(4);
+        var channels = CanonicalValues(OperatingChannels, AllowedChannels);
+        var periods = CanonicalValues(ServicePeriods, AllowedServicePeriods);
+        var price = PricePosition is null ? null : Canonical(PricePosition, AllowedPricePositions);
+
+        if (channels.Count > 0) Add("operatingchannels", string.Join(" | ", channels));
+        if (Reservable is not null) Add("reservationcapability", Reservable.Value ? "Available" : "Unavailable");
+        if (periods.Count > 0) Add("serviceperiods", string.Join(" | ", periods));
+        if (price is not null) Add("priceposition", price);
+        return entries;
+
+        void Add(string key, string value) => entries.Add(new BusinessContextEntry
+        {
+            Id = Guid.NewGuid(),
+            BusinessId = businessId,
+            Key = key,
+            Value = value,
+            Source = FieldSources.Owner,
+            OwnerConfirmed = true,
+            UpdatedAt = at
+        });
+    }
+
+    private static bool AllAllowed(IReadOnlyList<string>? values, IReadOnlyList<string> allowed)
+    {
+        if (values is null) return false;
+        return values.All(value => Canonical(value, allowed) is not null) &&
+               CanonicalValues(values, allowed).Count == values.Count;
+    }
+
+    private static List<string> CanonicalValues(IReadOnlyList<string> values, IReadOnlyList<string> allowed) =>
+        values.Select(value => Canonical(value, allowed))
+            .Where(value => value is not null)
+            .Select(value => value!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+    private static string? Canonical(string? value, IReadOnlyList<string> allowed)
+    {
+        var normalized = value?.Trim();
+        if (string.IsNullOrWhiteSpace(normalized)) return null;
+        return allowed.FirstOrDefault(candidate => string.Equals(candidate, normalized, StringComparison.OrdinalIgnoreCase));
+    }
+}
+
 public sealed record CreateBusinessFromDiscoveryRequest(
     Guid SnapshotId,
     string Name,
@@ -297,7 +367,8 @@ public sealed record CreateBusinessFromDiscoveryRequest(
     string? Phone,
     string? BusinessHours,
     string Language,
-    bool OwnerConfirmed)
+    bool OwnerConfirmed,
+    ConfirmedOperatingContext? ConfirmedOperatingContext = null)
 {
     public Dictionary<string, string[]> Validate()
     {
@@ -306,6 +377,8 @@ public sealed record CreateBusinessFromDiscoveryRequest(
         if (!BusinessCategoryTaxonomy.IsKnownSubcategory(Category, Subcategory)) errors[nameof(Subcategory)] = ["Choose a subcategory that belongs to the selected category."];
         if (string.IsNullOrWhiteSpace(Language)) errors[nameof(Language)] = ["Language is required."];
         if (!OwnerConfirmed) errors[nameof(OwnerConfirmed)] = ["Review and confirm the discovered business details before continuing."];
+        if (ConfirmedOperatingContext is not null && !ConfirmedOperatingContext.IsValid())
+            errors[nameof(ConfirmedOperatingContext)] = ["Confirm only supported operating details shown during this business setup."];
 
         BusinessMarketMetadata? market = null;
         if (!string.IsNullOrWhiteSpace(Country) && !string.IsNullOrWhiteSpace(Timezone))
@@ -433,6 +506,13 @@ public static class BusinessDiscoveryBusinessCreator
             if (!string.IsNullOrWhiteSpace(profile.Phone)) AddField("phone", profile.Phone!);
             if (!string.IsNullOrWhiteSpace(profile.BusinessHours)) AddField("openingHours", profile.BusinessHours!);
             AddField("language", profile.Language);
+
+            var confirmedContext = request.ConfirmedOperatingContext?.ToOwnerContext(business.Id, now) ?? [];
+            if (confirmedContext.Count > 0)
+            {
+                db.BusinessContextEntries.AddRange(confirmedContext);
+                db.AuditRecords.Add(AuditRecord.Create(account.Id, business.Id, "business.operating-context.confirmed"));
+            }
 
             foreach (var media in BusinessMediaMenuPersistence.BusinessMedia(snapshot, business, now))
                 snapshot.MaterializedMedia.Add(media);

@@ -1,61 +1,99 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-25",
-  "title": "VS-25 — Business Media & Menu Intelligence",
+  "sliceId": "VS-26",
+  "title": "VS-26 — Google Place Intelligence & Goal-First Onboarding",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-03","FR-05","FR-14","FR-16"],
-  "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-24-test-baseline@16de00aa28eccc8890a5a9132f37978bb20ec005","DEC-07"],
+  "requirements": ["FR-02", "FR-03", "FR-04", "FR-05", "FR-16"],
+  "owners": {"product": "ksazid", "engineering": "ksazid", "operations": "ksazid", "security": "ksazid"},
+  "dependencies": [
+    "ATLAS-PRD-001",
+    "ATLAS-TRD-001",
+    "ATLAS-DESIGN-001@1.2",
+    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
+    "VS-25@170ff58125b6efcf299191117d01f09dd0270896",
+    "DEC-08"
+  ],
   "blockers": [],
-  "allowedPaths": ["apps/api/**","tests/api/**","delivery/**","docs/**"],
-  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
+  "allowedPaths": ["apps/api/**", "apps/mobile/**", "tests/api/**", "tests/mobile/**", "delivery/**", "docs/**"],
+  "protectedPaths": [".github/workflows/release.yml", "infrastructure/**", "**/Payments/**", "**/Uploads/**"],
   "impact": {
-    "areas":["api","customer-flow","architecture"],
-    "notes":[
-      "VS-25 extends the existing provider-neutral public discovery boundary; it does not add private provider connectors.",
-      "VS-25 adds PostgreSQL persistence through the existing API architecture and forward-only migration policy.",
-      "Third-party public image binaries are never copied or rehosted; only bounded remote references and provenance are retained.",
-      "Structured menu facts use the generic Business Offering model with menu-item as the initial kind so Atlas Core remains industry-agnostic.",
-      "Supported marketplace semantic-HTML fallbacks operate only on the same public page already accepted by the discovery boundary and fail closed when expected markers are absent.",
-      "Public media/menu observations remain unconfirmed unless explicitly confirmed by the owner in a future UI.",
-      "No production deployment or production enablement is authorized."
+    "areas": ["product-policy", "architecture", "frontend", "api", "customer-flow"],
+    "notes": [
+      "VS-26 reuses the existing Google Place ID location-resolution boundary and does not create a second identity matcher.",
+      "Rich Google Places attributes are interaction-transient. Only the Place ID is retained as Google provider content.",
+      "Canonical operating context is persisted only through an explicit owner submit/confirm action; copied Google payloads and hidden Google-derived facts are not persisted.",
+      "Goals remain owner-only and move ahead of optional non-goal progressive context.",
+      "For sufficiently enriched Businesses optional non-goal context targets 0–3 questions; five remains only the degraded/missing-context ceiling.",
+      "The approved Atlas design baseline remains authoritative; no navigation redesign or new visual system is in scope.",
+      "No production release, production enablement, EAS build/submit/OTA or deployment is authorized."
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-25@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T13:58:00+02:00","rationale":"Product Owner explicitly approved the sequence: fix readiness CTA, add restaurant/business media capture, then add structured menu/menu-price ingestion."},
-    {"type":"policy","status":"approved","version":"VS-25@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T13:58:00+02:00","rationale":"Approved retention is bounded to public remote media references and factual offering metadata with provenance. Third-party binaries, private APIs, OCR and owner-upload storage remain out of scope."},
-    {"type":"implementation","status":"approved","version":"VS-25@1.0","commitSha":null,"by":"ksazid","at":"2026-08-11T13:58:00+02:00","rationale":"Product Owner instructed implementation to proceed with 'Go' on the explicitly highlighted media/menu sequence."},
-    {"type":"certification","status":"approved","version":"VS-25@1.0","commitSha":"298b523033dcea7294921a5fe3adf52262178a2e","by":"PES/Loop","at":"2026-08-11T14:31:42Z","rationale":"Exact implementation SHA passed CI, Security baseline, Product intake, clean PostgreSQL migration replay, persistence/materialisation coverage and the supplemental live Hasan public-source smoke. Certification does not authorize merge, release or production enablement."},
-    {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
-    {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
+    {
+      "type": "scope",
+      "status": "approved",
+      "version": "VS-26@1.0",
+      "commitSha": null,
+      "by": "ksazid",
+      "at": "2026-08-11T16:47:00+02:00",
+      "rationale": "Product Owner approved the VS-26 design and implementation plan covering bounded Place enrichment, compact owner confirmation, Goals-first onboarding and redundant-question suppression."
+    },
+    {
+      "type": "policy",
+      "status": "approved",
+      "version": "VS-26@1.0",
+      "commitSha": null,
+      "by": "ksazid",
+      "at": "2026-08-11T16:47:00+02:00",
+      "rationale": "Product Owner approved proceeding under the execution-time Google policy refinement recorded in DEC-08: Place ID retention only for Google provider content, transient rich attributes, explicit owner-submitted canonical persistence, required attribution and no Google Maps HTML scraping."
+    },
+    {
+      "type": "implementation",
+      "status": "approved",
+      "version": "VS-26@1.0",
+      "commitSha": null,
+      "by": "ksazid",
+      "at": "2026-08-11T16:47:00+02:00",
+      "rationale": "Product Owner explicitly instructed 'Check now and proceed' after approving the VS-26 plan. Runtime implementation is authorized on a fresh branch from merged VS-25 main."
+    },
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-26@1.0",
+      "commitSha": "9a58bebd90b599732b50158c9e6a4a98b94027be",
+      "by": "PES/Loop",
+      "at": "2026-08-11T17:25:00Z",
+      "rationale": "Exact implementation SHA passed CI, Security baseline and Product Intake. CI completed mobile preflight, .NET restore/build, EF database update, API tests and dashboard build successfully. Certification does not authorize merge, release or production enablement."
+    },
+    {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
-  "decisionIds": ["DEC-07"],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
+  "decisionIds": ["DEC-08"],
+  "progress": {"discovery": 100, "decisions": 100, "implementation": 100, "testing": 100, "certification": 100, "release": 0, "validation": 0},
   "certification": {
-    "status":"passed",
-    "commitSha":"298b523033dcea7294921a5fe3adf52262178a2e",
-    "evidence":[
-      "CI run 31500477489: exact implementation SHA green",
-      "Security baseline run 31500477617: green",
-      "Product intake run 31500478608: green",
-      "PostgreSQL 17 clean migration replay including 20260811131000_BusinessMediaMenuIntelligence",
-      "Render test deploy dep-d9tj1dad0e5s739ao9r0: atlas-api-test live on exact implementation SHA",
-      "PR #46 supplemental live Hasan smoke commit 7669f44441790c59fa1b3bb564502402f3203932 / CI run 31501492828: 294 API tests passed, 0 failed"
+    "status": "passed",
+    "commitSha": "9a58bebd90b599732b50158c9e6a4a98b94027be",
+    "evidence": [
+      "CI run 31512300780: exact implementation SHA green; mobile preflight, .NET restore/build, EF database update, API tests and dashboard build all succeeded",
+      "Security baseline run 31512300909: green",
+      "Product Intake run 31512300722: green",
+      "VS-26 API coverage includes bounded Place enrichment, owner/business authorization and explicit owner-submitted operating-context persistence",
+      "VS-26 mobile coverage includes Place enrichment presentation, Goals-first onboarding and business-discovery regressions"
     ]
   },
-  "release": {"status":"not-authorized","releaseId":null},
-  "rollback": {"status":"not-applicable","rollbackId":null},
-  "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
+  "release": {"status": "not-authorized", "releaseId": null},
+  "rollback": {"status": "not-applicable", "rollbackId": null},
+  "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
-    "specification":"docs/slices/VS-25.md",
-    "implementationPr":45,
-    "evidence":[
-      "docs/superpowers/specs/2026-08-11-vs-25-business-media-menu-intelligence-design.md",
-      "docs/superpowers/plans/2026-08-11-vs-25-business-media-menu-intelligence.md",
-      "docs/slices/VS-25.md"
+    "specification": "docs/slices/VS-26.md",
+    "implementationPr": 47,
+    "evidence": [
+      "docs/superpowers/specs/2026-08-11-vs-26-google-place-intelligence-goal-first-onboarding-design.md",
+      "docs/superpowers/plans/2026-08-11-vs-26-google-place-intelligence-goal-first-onboarding.md",
+      "docs/slices/VS-26.md"
     ]
   },
   "maxAttempts": 3
