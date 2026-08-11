@@ -62,6 +62,15 @@ test('fact lookup preserves provenance for trust presentation', () => {
   assert.equal(discoveryModel.getDiscoveryFact(discovery, 'openingHours'), undefined);
 });
 
+test('owner-facing confirmation uses provider-neutral public-source copy', () => {
+  const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
+  assert.match(source, /Public business page/);
+  assert.match(source, /Observed from public business page/);
+  assert.doesNotMatch(source, /providerLabel\(discovery\.provider\)/);
+  assert.doesNotMatch(source, /sourceHost\(discovery\.sourceUrl\)/);
+  assert.doesNotMatch(source, /Bolt Food|Wolt/i);
+});
+
 test('approved discovery screen contains no fabricated Starbucks demo facts', () => {
   const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
   assert.doesNotMatch(source, /starbucks/i);
