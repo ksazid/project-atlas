@@ -8,7 +8,7 @@
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-05","FR-06","FR-07","FR-08","FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758"],
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-20@45a91b1095eef5077c303ba75fed2eb03a988758"],
   "blockers": [],
   "allowedPaths": ["apps/api/**","tests/api/**","delivery/**","docs/**"],
   "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**","apps/mobile/**"],
@@ -16,7 +16,7 @@
     "areas":["architecture","api","customer-flow"],
     "notes":[
       "Parallel track approved by Product Owner; VS-23 must not modify VS-22 multi-source discovery or VS-21 onboarding/location implementation.",
-      "Consumes the certified VS-20 ResolvedKnowledgeBundle contract directly.",
+      "Retains the certified VS-15 runtime baseline explicitly and consumes the certified VS-20 ResolvedKnowledgeBundle contract directly.",
       "Deterministic evidence-aware generation only; no external AI/provider call.",
       "No qualifying evidence returns no-focus rather than filler.",
       "Before merge VS-23 must update to then-current main after VS-22 and rerun exact-head certification.",
@@ -39,7 +39,7 @@
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
     "specification":"docs/slices/VS-23.md",
-    "implementationPr":null,
+    "implementationPr":"https://github.com/ksazid/project-atlas/pull/30",
     "evidence":[
       "docs/superpowers/specs/2026-08-11-vs-23-evidence-aware-opportunity-generation-design.md",
       "docs/superpowers/plans/2026-08-11-vs-23-evidence-aware-opportunity-generation.md"
