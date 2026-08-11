@@ -30,7 +30,7 @@ test('Today screen handles degraded separately from client network error', () =>
 test('non-ready server states never render opportunity decision controls', () => {
   const noFocusIndex = screen.indexOf("focus?.state === 'no-focus'");
   const degradedIndex = screen.indexOf("focus?.state === 'degraded'");
-  const readyGuardIndex = screen.indexOf("focus?.state !== 'ready'");
+  const readyGuardIndex = screen.indexOf("focus?.state !== 'ready'", degradedIndex);
   const applyIndex = screen.indexOf('Apply this move');
 
   assert.ok(noFocusIndex >= 0);
