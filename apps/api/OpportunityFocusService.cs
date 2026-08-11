@@ -10,6 +10,13 @@ public static class OpportunityFocusGenerationStates
     public const string Degraded = "degraded";
 }
 
+public static class OpportunityReadinessCodes
+{
+    public const string ProfileMissing = "opportunity_profile_missing";
+    public const string GoalMissing = "opportunity_goal_missing";
+    public const string KnowledgePackMissing = "opportunity_knowledge_pack_missing";
+}
+
 public sealed record OpportunityFocusGenerationResult(
     string State,
     Opportunity? Opportunity,
@@ -56,14 +63,28 @@ public static class OpportunityFocusService
         var assignment = await db.BusinessKnowledgeAssignments
             .SingleOrDefaultAsync(x => x.BusinessId == businessId && x.IsCurrent, ct);
 
-        if (business is null || !OpportunityPolicy.IsEligible(profile, goals, assignment))
+        if (business is null || profile is not { OwnerConfirmed: true })
         {
             await SaveStatusChangeIfNeeded(db, current, ct);
-            return new OpportunityFocusGenerationResult(
-                OpportunityFocusGenerationStates.InsufficientContext,
-                null,
-                "opportunity_context_incomplete",
-                "Confirm your Business Profile, choose at least one goal and keep an active Knowledge Pack to receive Today’s Focus.");
+            return Incomplete(
+                OpportunityReadinessCodes.ProfileMissing,
+                "Confirm your Business Profile to receive Today’s Focus.");
+        }
+
+        if (goals.Count == 0)
+        {
+            await SaveStatusChangeIfNeeded(db, current, ct);
+            return Incomplete(
+                OpportunityReadinessCodes.GoalMissing,
+                "Choose at least one goal to receive Today’s Focus.");
+        }
+
+        if (assignment is not { IsCurrent: true })
+        {
+            await SaveStatusChangeIfNeeded(db, current, ct);
+            return Incomplete(
+                OpportunityReadinessCodes.KnowledgePackMissing,
+                "Keep an active Knowledge Pack to receive Today’s Focus.");
         }
 
         var profileFields = await db.BusinessProfileFields
@@ -85,7 +106,7 @@ public static class OpportunityFocusService
         {
             bundle = KnowledgeBundleResolver.Resolve(
                 business,
-                assignment!,
+                assignment,
                 profileFields,
                 contextEntries,
                 memoryItems);
@@ -124,7 +145,7 @@ public static class OpportunityFocusService
             Status = OpportunityStatuses.Available,
             KnowledgePackKey = candidate.KnowledgePackKey,
             KnowledgePackVersion = candidate.KnowledgePackVersion,
-            KnowledgePackVersionId = assignment!.KnowledgePackVersionId,
+            KnowledgePackVersionId = assignment.KnowledgePackVersionId,
             CreatedAt = now,
             ExpiresAt = candidate.ExpiresAt
         };
@@ -152,6 +173,12 @@ public static class OpportunityFocusService
         opportunity,
         null,
         "Today’s Focus is ready.");
+
+    private static OpportunityFocusGenerationResult Incomplete(string code, string message) => new(
+        OpportunityFocusGenerationStates.InsufficientContext,
+        null,
+        code,
+        message);
 
     private static OpportunityFocusGenerationResult Degraded(string code, string message) => new(
         OpportunityFocusGenerationStates.Degraded,
