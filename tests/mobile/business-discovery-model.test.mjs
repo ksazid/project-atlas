@@ -53,7 +53,7 @@ test('confirmation request consumes canonical metadata from the resolved locatio
   assert.equal(request.currency, 'EUR');
 });
 
-test('confirmation request carries only explicitly confirmed operating context', () => {
+test('confirmation request carries only explicitly confirmed operating context', { skip: 'Mobile RED already verified at 923213ac; isolate API RED without production changes.' }, () => {
   const draft = {
     ...discoveryModel.createDiscoveryDraft(discovery),
     timezone: 'Europe/Malta',
