@@ -131,8 +131,20 @@ public static class OpportunityGenerator
 
     private static bool MatchesGoal(KnowledgeOpportunityPattern pattern, BusinessGoal goal)
     {
-        var type = goal.Type.Trim();
-        return pattern.GoalTypes.Any(candidate => string.Equals(candidate, type, StringComparison.OrdinalIgnoreCase));
+        var ownerType = goal.Type.Trim();
+        if (pattern.GoalTypes.Any(candidate => string.Equals(candidate, ownerType, StringComparison.OrdinalIgnoreCase)))
+            return true;
+
+        var canonicalIntent = ownerType.ToLowerInvariant() switch
+        {
+            "revenue" or "acquisition" => "growth",
+            "saved-time" or "reduced-waste" or "operational-consistency" => "efficiency",
+            "reputation" when string.Equals(pattern.Key, "reputation-signal-follow-up", StringComparison.Ordinal) => "customer-experience",
+            _ => null
+        };
+
+        return canonicalIntent is not null &&
+            pattern.GoalTypes.Any(candidate => string.Equals(candidate, canonicalIntent, StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool TryResolveEvidence(
