@@ -51,7 +51,14 @@ The VS-20 resolver already filters Context entries to owner-confirmed values. Th
 
 ## Goal matching
 
-Patterns are evaluated only for Business Goals whose canonical `Type` appears in the pattern `GoalTypes`. Lower numerical priority ranks higher. No matching goal means no candidate.
+Manifest-native goal types continue to match directly. Atlas also has existing owner-facing goal types that predate the v2 manifest vocabulary, so VS-23 uses the following explicit deterministic compatibility map without mutating the stored owner goal:
+
+- `revenue` and `acquisition` may satisfy manifest intent `growth`;
+- `saved-time`, `reduced-waste`, and `operational-consistency` may satisfy manifest intent `efficiency`;
+- `reputation` may satisfy manifest intent `customer-experience` only for the `reputation-signal-follow-up` pattern and only when that pattern’s reputation evidence rule passes;
+- `profitability` and `custom` are not silently remapped in VS-23.
+
+Lower numerical priority ranks higher. A goal with neither a direct manifest match nor an explicit compatibility mapping does not qualify that pattern.
 
 ## Confidence policy
 
@@ -79,15 +86,15 @@ Missing minimum setup returns `insufficient-context`. Valid setup with no eviden
 
 ## Opportunity detail
 
-Detail parses the VS-23 evidence snapshot and exposes goal alignment, Evidence separately from Reason/Why Now, assumptions, limitations, source categories and exact pack version. Legacy snapshots retain the current safe fallback.
+Detail parses the VS-23 evidence snapshot and exposes goal alignment, Evidence separately from Reason/Why Now, assumptions, limitations, source categories and exact pack version. Recorded goal alignment remains available if the goal record is later removed. Malformed or incompatible legacy evidence degrades to the recorded evidence summary instead of throwing.
 
 ## Degraded behaviour
 
-Bundle resolution failures do not create Opportunities and return a stable degraded/no-focus response. Unsupported categories are Core-only. Malformed legacy evidence remains readable via summary fallback.
+Bundle resolution failures do not create Opportunities and return a stable degraded/no-focus response. Unsupported categories are Core-only. Malformed legacy evidence remains readable via summary fallback. Cross-Business generation is rejected before any Opportunity is created.
 
 ## Testing
 
-Tests prove Restaurant/Café rule eligibility, missing-evidence rejection, unsupported-category isolation, goal matching, no-focus behavior, evidence-ID integrity, confidence policy, exact manifest/fingerprint retention, cooldown suppression, deterministic ranking, Today’s Focus integration, tenant isolation, detail parsing and legacy compatibility. Existing Opportunity/Execution/Decision/Outcome/History/Weekly Review suites must remain green.
+Tests prove Restaurant/Café rule eligibility, missing-evidence rejection, unsupported-category isolation, real Atlas goal compatibility, no-focus behavior, evidence-ID integrity, confidence policy, exact manifest/fingerprint retention, cooldown suppression, deterministic ranking, Today’s Focus integration, tenant isolation, detail parsing and legacy compatibility. Existing Opportunity/Execution/Decision/Outcome/History/Weekly Review suites must remain green.
 
 ## Out of scope
 
