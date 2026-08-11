@@ -266,7 +266,7 @@ Add timeout-bounded regex or HTML-attribute helpers consistent with the existing
 
 Expected policy:
 
-```csharp
+```text
 structured email > one unambiguous public mailto fallback > no email fact
 structured phone > one unambiguous public tel fallback > no phone fact
 ```
@@ -302,14 +302,12 @@ git commit -m "feat(vs29): enrich public business contact facts"
 
 **Interfaces:**
 
-Add one small deterministic policy boundary, for example:
+Use one deterministic policy boundary:
 
 ```csharp
 internal static class OfficialWebsiteEnrichmentPolicy
 {
-    public static bool TrySelectWebsite(
-        PublicBusinessSnapshot anchor,
-        out string websiteUrl);
+    public static string? SelectWebsite(PublicBusinessSnapshot anchor);
 
     public static bool StrongIdentityMatch(
         PublicBusinessSnapshot anchor,
@@ -317,7 +315,7 @@ internal static class OfficialWebsiteEnrichmentPolicy
 }
 ```
 
-Automatic official-site contribution is a **secondary observation**, never a replacement anchor.
+Automatic official-site contribution is a **secondary observation**, never a replacement anchor. Keep the successful source snapshots in-memory during this request so facts/media/offerings from the official website retain their own provider/source URL/observed time when converted to a `BusinessSourceObservation`.
 
 - [ ] **Step 1: Write RED tests for selection and identity safety**
 
@@ -329,42 +327,87 @@ Cover:
 - a website matching normalized business name plus at least one supporting strong signal (same phone or compatible location/name evidence) is accepted;
 - only one automatic website fetch occurs per discovery request.
 
-- [ ] **Step 2: Implement the bounded one-hop orchestration**
+- [ ] **Step 2: Retain successful snapshots while collecting source observations**
 
-After user-supplied observations are collected, inspect the reconciled/anchor evidence for one official website candidate. Fetch it using the existing `BusinessDiscoveryService`, which already applies public HTTPS/SSRF/redirect/size protections.
-
-Do **not** recursively call `MultiSourceBusinessDiscoveryService`.
-
-Pseudo-flow:
+In `DiscoverAsync`, keep a request-local map beside `observations`:
 
 ```csharp
-var observations = await DiscoverSuppliedSourcesAsync(...);
-var anchor = observations.FirstOrDefault(x => x.IsPrimary && x.Status == "success");
-
-if (anchor is not null && OfficialWebsiteEnrichmentPolicy.TrySelectWebsite(anchorSnapshot, out var url))
-{
-    var websiteSnapshot = await pageDiscovery.DiscoverAsync(url, ct);
-    if (OfficialWebsiteEnrichmentPolicy.StrongIdentityMatch(anchorSnapshot, websiteSnapshot))
-        observations.Add(WebsiteObservation(websiteSnapshot, order: observations.Count));
-}
-
-return BusinessDiscoveryReconciler.Reconcile(observations);
+var successfulSnapshots = new Dictionary<int, PublicBusinessSnapshot>();
 ```
 
-Keep the actual implementation aligned with existing `BusinessSourceObservation` shapes; do not duplicate reconciliation logic.
+When a user-supplied source succeeds:
 
-- [ ] **Step 3: Ensure failure is non-blocking**
+```csharp
+successfulSnapshots[index] = snapshot;
+observations.Add(new BusinessSourceObservation(
+    index,
+    index == 0,
+    snapshot.Provider,
+    source.Value,
+    "success",
+    snapshot.Facts,
+    Media: snapshot.Media,
+    Offerings: snapshot.Offerings));
+```
+
+This map exists only for the current request and is not persisted independently.
+
+- [ ] **Step 3: Implement the bounded one-hop orchestration**
+
+After user-supplied sources are collected, select the successful primary snapshot:
+
+```csharp
+var primaryObservation = observations.FirstOrDefault(x => x.IsPrimary && x.Status == "success");
+if (primaryObservation is not null &&
+    successfulSnapshots.TryGetValue(primaryObservation.Order, out var anchorSnapshot))
+{
+    var websiteUrl = OfficialWebsiteEnrichmentPolicy.SelectWebsite(anchorSnapshot);
+    if (websiteUrl is not null)
+    {
+        try
+        {
+            var websiteSnapshot = await pageDiscovery.DiscoverAsync(websiteUrl, ct);
+            if (OfficialWebsiteEnrichmentPolicy.StrongIdentityMatch(anchorSnapshot, websiteSnapshot))
+            {
+                var order = observations.Count;
+                observations.Add(new BusinessSourceObservation(
+                    order,
+                    false,
+                    websiteSnapshot.Provider,
+                    websiteSnapshot.SourceUrl,
+                    "success",
+                    websiteSnapshot.Facts,
+                    Media: websiteSnapshot.Media,
+                    Offerings: websiteSnapshot.Offerings));
+            }
+        }
+        catch (BusinessDiscoveryException ex) when (CanDegradeSource(ex.Code))
+        {
+            // Automatic official-site enrichment is optional; the anchor remains usable.
+        }
+    }
+}
+```
+
+Keep the catch list as narrow as the existing degraded-source policy; do not swallow cancellation.
+
+- [ ] **Step 4: Implement strong identity matching without fuzzy provider guessing**
+
+Minimum acceptance policy:
+- normalized `name` must match exactly after the existing conservative normalization; and
+- at least one of these must also agree when present on both sides: `phone`, `primaryLocation`, or another exact high-confidence identifier already supported by discovery.
+
+If no supporting signal is available, reject the automatic website contribution and leave it for owner/manual input.
+
+- [ ] **Step 5: Ensure failure is non-blocking and provenance remains separate**
 
 Tests must prove:
 - official website timeout/unavailable/invalid content does not invalidate the successful anchor;
 - blocked redirect/private address fails closed;
-- diagnostics are retained only where existing reconciliation supports them; do not expose sensitive network details.
+- website evidence is represented as a separate secondary source/evidence source URL;
+- conflicting website facts do not silently replace a stronger selected anchor fact.
 
-- [ ] **Step 4: Verify owner-confirmed precedence remains unchanged**
-
-Add/retain reconciliation tests showing conflicting website facts do not silently replace a stronger selected anchor fact.
-
-- [ ] **Step 5: Run tests**
+- [ ] **Step 6: Run tests**
 
 ```bash
 dotnet test tests/api/Atlas.Api.Tests.csproj --filter "MultiSourceBusinessDiscoveryService|BusinessDiscoveryReconciliation"
@@ -373,7 +416,7 @@ dotnet test tests/api/Atlas.Api.Tests.csproj
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add apps/api/MultiSourceBusinessDiscoveryService.cs apps/api/BusinessDiscoveryReconciliation.cs tests/api
@@ -570,10 +613,26 @@ if (!string.IsNullOrWhiteSpace(profile.SocialChannels)) AddField("socialChannels
 
 - [ ] **Step 4: Implement confirmed opening-hours canonicalization**
 
-Add bounded validation:
-- at most 7 descriptions;
-- trim/dedupe;
-- each entry bounded so the joined value remains under `MaxValueCharacters`.
+Add a method on `ConfirmedOperatingContext`:
+
+```csharp
+public string? CanonicalOpeningHours()
+{
+    var values = OpeningHours
+        .Select(x => x?.Trim())
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Select(x => x!)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Take(7)
+        .ToList();
+
+    if (values.Count == 0) return null;
+    var joined = string.Join("\n", values);
+    return joined.Length <= BusinessDiscoveryProvenance.MaxValueCharacters ? joined : null;
+}
+```
+
+`IsValid()` must reject more than 7 non-empty descriptions or a joined value exceeding the public/profile limit.
 
 During creation choose:
 
@@ -647,12 +706,13 @@ AND owner-confirmed non-empty operatingchannels exists
 [Fact]
 public void Restaurant_service_channel_is_suppressed_when_operating_channels_are_owner_confirmed()
 {
+    var businessId = Guid.NewGuid();
     var context = new[]
     {
         new BusinessContextEntry
         {
             Id = Guid.NewGuid(),
-            BusinessId = Guid.NewGuid(),
+            BusinessId = businessId,
             Key = "operatingchannels",
             Value = "Takeaway | Delivery",
             Source = FieldSources.Owner,
@@ -677,7 +737,7 @@ Also add negative tests:
 
 - [ ] **Step 2: Implement the policy**
 
-Refactor selection from exact-key-only logic:
+Keep the exact-key suppression and add semantic satisfaction:
 
 ```csharp
 .Where(question => !authoritativeContextKeys.Contains(question.TargetContextKey))
@@ -734,7 +794,7 @@ Extend `DiscoveryDraft`:
 
 ```ts
 export type DiscoveryDraft = {
-  // existing fields...
+  // existing fields remain unchanged
   email: string;
   socialChannels: string;
 };
@@ -893,7 +953,7 @@ git commit -m "feat(vs29): enrich business confirmation review"
 - Reuse: `apps/mobile/src/features/business-hub/business-hub-api.ts`
 - Modify: `apps/mobile/app/create-business.tsx`
 - Modify: `tests/mobile/business-hub-reset.test.mjs`
-- Add focused test if useful: `tests/mobile/business-discovery-reset-switch.test.mjs`
+- Add: `tests/mobile/business-discovery-reset-switch.test.mjs`
 - Verify backend policy: `tests/api/DevelopmentResetPolicyTests.cs`
 
 **Existing server primitive:**
@@ -914,11 +974,11 @@ const EXPO_DEMO_TOKEN = 'atlas-expo-go-demo';
 const isExpoDemo = __DEV__ && session?.accessToken === EXPO_DEMO_TOKEN;
 ```
 
-- [ ] **Step 1: Write RED tests for ownership-conflict interpretation**
+- [ ] **Step 1: Export the stable API error type for deterministic branching**
 
-`createBusinessFromDiscovery` already throws `BusinessDiscoveryApiError` with stable server code. Test that code `initial_business_exists` can be distinguished from generic failures.
+`BusinessDiscoveryApiError` already exposes `code`. Keep `initial_business_exists` as the server-owned signal; do not string-match the message “already owns a Business”.
 
-No string matching on “already owns a Business”.
+Add/adjust tests proving the code survives `problemFor()`.
 
 - [ ] **Step 2: Write RED UI behavior tests**
 
@@ -934,7 +994,7 @@ For production/non-demo session, assert **no reset-and-use action** exists and n
 
 - [ ] **Step 3: Implement a small switch state, not implicit deletion**
 
-Add explicit state in `create-business.tsx`, for example:
+Add explicit state in `create-business.tsx`:
 
 ```ts
 type ExistingBusinessConflict = {
@@ -943,25 +1003,19 @@ type ExistingBusinessConflict = {
 } | null;
 ```
 
-In `submit()`:
+Construct the discovery request once before the API call so it can be safely retried after an explicit reset.
+
+In the catch branch, require all of:
 
 ```ts
-catch (cause) {
-  if (
-    cause instanceof BusinessDiscoveryApiError &&
-    cause.code === 'initial_business_exists' &&
-    __DEV__ &&
-    session.accessToken === EXPO_DEMO_TOKEN &&
-    discovery
-  ) {
-    setExistingBusinessConflict({ candidateName: form.name.trim(), request });
-    return;
-  }
-  setError(...);
-}
+cause instanceof BusinessDiscoveryApiError
+cause.code === 'initial_business_exists'
+__DEV__
+session.accessToken === EXPO_DEMO_TOKEN
+discovery !== null
 ```
 
-Refactor enough to avoid duplicating the create request construction.
+Only then set `ExistingBusinessConflict`.
 
 - [ ] **Step 4: Implement explicit Reset and use…**
 
@@ -970,7 +1024,7 @@ On tap:
 1. reload session;
 2. verify exact demo token again;
 3. call existing `resetExpoDemoBusiness(session.accessToken)`;
-4. clear local business selection while preserving auth token;
+4. after the server reset succeeds, clear local business selection while preserving auth token;
 5. retry `createBusinessFromDiscovery` with the **same unconsumed discovery request**;
 6. save the returned business ID;
 7. continue to the existing goals-first route.
@@ -1035,7 +1089,7 @@ If persistence/caching is restricted, do not put raw Google content into discove
 
 Tests must prove:
 - field is transient response content only;
-- no new DB persistence occurs from the enrichment GET/POST itself;
+- no new DB persistence occurs from the enrichment request itself;
 - attribution handling remains correct;
 - unavailable fields degrade cleanly.
 
