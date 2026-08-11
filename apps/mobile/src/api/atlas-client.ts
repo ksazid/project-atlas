@@ -17,7 +17,11 @@ export type TodayFocusOpportunity = {
   confidence: string; evidenceSummary: string; status: string; expiresAt: string; knowledgePackKey: string;
   knowledgePackVersion: string; version: number;
 };
-export type TodayFocus = { state: 'ready'; opportunity: TodayFocusOpportunity } | { state: 'insufficient-context'; message: string };
+export type TodayFocus =
+  | { state: 'ready'; opportunity: TodayFocusOpportunity }
+  | { state: 'insufficient-context'; code?: string; message: string }
+  | { state: 'no-focus'; code?: string; message: string }
+  | { state: 'degraded'; code?: string; message: string };
 export type OpportunityDecision = 'apply' | 'skip' | 'not-relevant';
 export type OpportunityEvidenceItem = { category: string; label: string; value: string; source: string };
 export type OpportunityDetail = {
