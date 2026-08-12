@@ -47,7 +47,7 @@
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
     "specification":"docs/slices/VS-37.md",
-    "implementationPr":null,
+    "implementationPr":"https://github.com/ksazid/project-atlas/pull/61",
     "evidence":[
       "docs/slices/VS-37.md",
       "docs/superpowers/specs/2026-08-13-vs-37-evidence-aware-today-cooldown-design.md",
