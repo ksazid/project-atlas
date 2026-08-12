@@ -46,7 +46,14 @@ public static class OpportunityFocusService
             x.UserAccountId == actorUserAccountId &&
             x.Role == MembershipRoles.BusinessOwner, ct);
         if (!ownerMembershipExists)
+        {
+            if (await db.Businesses.AnyAsync(x => x.Id == businessId, ct))
+            {
+                AddDiagnostic(db, businessId, actorUserAccountId, OpportunityFocusGenerationStates.Degraded, "business_access_unavailable", 0, null, now);
+                await db.SaveChangesAsync(ct);
+            }
             return Degraded("business_access_unavailable", "Atlas could not safely resolve this Business for the current owner.");
+        }
 
         var current = await db.Set<Opportunity>()
             .Where(x => x.BusinessId == businessId && x.Status == OpportunityStatuses.Available)
@@ -55,7 +62,11 @@ public static class OpportunityFocusService
             .FirstOrDefaultAsync(ct);
 
         if (current is not null && current.ExpiresAt > now)
+        {
+            AddDiagnostic(db, businessId, actorUserAccountId, OpportunityFocusGenerationStates.Ready, null, 0, current.Id, now);
+            await db.SaveChangesAsync(ct);
             return Ready(current);
+        }
 
         if (current is not null)
             current.Status = OpportunityStatuses.Expired;
@@ -72,7 +83,8 @@ public static class OpportunityFocusService
 
         if (business is null || profile is not { OwnerConfirmed: true })
         {
-            await SaveStatusChangeIfNeeded(db, current, ct);
+            AddDiagnostic(db, businessId, actorUserAccountId, OpportunityFocusGenerationStates.InsufficientContext, OpportunityReadinessCodes.ProfileMissing, 0, null, now);
+            await db.SaveChangesAsync(ct);
             return Incomplete(
                 OpportunityReadinessCodes.ProfileMissing,
                 "Confirm your Business Profile to receive Today’s Focus.");
@@ -80,7 +92,8 @@ public static class OpportunityFocusService
 
         if (goals.Count == 0)
         {
-            await SaveStatusChangeIfNeeded(db, current, ct);
+            AddDiagnostic(db, businessId, actorUserAccountId, OpportunityFocusGenerationStates.InsufficientContext, OpportunityReadinessCodes.GoalMissing, 0, null, now);
+            await db.SaveChangesAsync(ct);
             return Incomplete(
                 OpportunityReadinessCodes.GoalMissing,
                 "Choose at least one goal to receive Today’s Focus.");
@@ -88,7 +101,8 @@ public static class OpportunityFocusService
 
         if (assignment is not { IsCurrent: true })
         {
-            await SaveStatusChangeIfNeeded(db, current, ct);
+            AddDiagnostic(db, businessId, actorUserAccountId, OpportunityFocusGenerationStates.InsufficientContext, OpportunityReadinessCodes.KnowledgePackMissing, 0, null, now);
+            await db.SaveChangesAsync(ct);
             return Incomplete(
                 OpportunityReadinessCodes.KnowledgePackMissing,
                 "Keep an active Knowledge Pack to receive Today’s Focus.");
@@ -120,7 +134,8 @@ public static class OpportunityFocusService
         }
         catch (KnowledgeBundleResolutionException ex)
         {
-            await SaveStatusChangeIfNeeded(db, current, ct);
+            AddDiagnostic(db, businessId, actorUserAccountId, OpportunityFocusGenerationStates.Degraded, ex.Code, 0, null, now);
+            await db.SaveChangesAsync(ct);
             return Degraded(ex.Code, "Atlas could not safely resolve the current intelligence inputs. Review the Business setup and try again.");
         }
 
@@ -128,7 +143,8 @@ public static class OpportunityFocusService
         var candidate = SelectEligibleCandidate(generation);
         if (candidate is null)
         {
-            await SaveStatusChangeIfNeeded(db, current, ct);
+            AddDiagnostic(db, businessId, actorUserAccountId, OpportunityFocusGenerationStates.NoFocus, "opportunity_no_eligible_candidate", generation.Candidates.Count, null, now);
+            await db.SaveChangesAsync(ct);
             return new OpportunityFocusGenerationResult(
                 OpportunityFocusGenerationStates.NoFocus,
                 null,
@@ -159,8 +175,32 @@ public static class OpportunityFocusService
 
         db.Set<Opportunity>().Add(opportunity);
         db.AuditRecords.Add(AuditRecord.Create(actorUserAccountId, businessId, $"opportunity.created:{opportunity.Id}:{candidate.PatternKey}"));
+        AddDiagnostic(db, businessId, actorUserAccountId, OpportunityFocusGenerationStates.Ready, null, generation.Candidates.Count, opportunity.Id, now);
         await db.SaveChangesAsync(ct);
         return Ready(opportunity);
+    }
+
+    private static void AddDiagnostic(
+        AtlasDbContext db,
+        Guid businessId,
+        Guid? actorUserAccountId,
+        string outcome,
+        string? code,
+        int candidateCount,
+        Guid? opportunityId,
+        DateTimeOffset now)
+    {
+        db.IntelligenceRuns.Add(new IntelligenceRunRecord
+        {
+            Id = Guid.NewGuid(),
+            BusinessId = businessId,
+            ActorUserAccountId = actorUserAccountId,
+            Outcome = outcome,
+            Code = code,
+            CandidateCount = candidateCount,
+            OpportunityId = opportunityId,
+            OccurredAt = now
+        });
     }
 
     private static string EvidenceSummary(GeneratedOpportunityCandidate candidate)
@@ -168,11 +208,6 @@ public static class OpportunityFocusService
         var factualEvidenceCount = candidate.Evidence.Count(x => x.Layer != "policy");
         var evidenceLabel = factualEvidenceCount == 1 ? "1 evidence item" : $"{factualEvidenceCount} evidence items";
         return $"{evidenceLabel}; priority goal #{candidate.GoalPriority}: {candidate.GoalTitle}; {candidate.KnowledgePackKey} v{candidate.KnowledgePackVersion}.";
-    }
-
-    private static async Task SaveStatusChangeIfNeeded(AtlasDbContext db, Opportunity? expired, CancellationToken ct)
-    {
-        if (expired is not null) await db.SaveChangesAsync(ct);
     }
 
     private static OpportunityFocusGenerationResult Ready(Opportunity opportunity) => new(
