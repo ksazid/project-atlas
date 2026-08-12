@@ -10,11 +10,11 @@ test('VS-28 preserves all five certified routes', () => {
   }
 });
 
-test('tab shell derives safe-area geometry and uses bounded material chrome', () => {
-  assert.match(source, /getAtlasTabBarMetrics/);
-  assert.match(source, /useSafeAreaInsets/);
-  assert.match(source, /useWindowDimensions/);
-  assert.match(source, /AtlasMaterialSurface/);
-  assert.match(source, /tabBarBackground/);
-  assert.doesNotMatch(source, /height:\s*76\b/);
+test('iOS top-level navigation delegates to Expo native system tabs', () => {
+  assert.match(source, /expo-router\/unstable-native-tabs/);
+  assert.match(source, /<NativeTabs\b/);
+  assert.match(source, /<NativeTabs\.Trigger\s+name="index"/);
+  assert.match(source, /<Icon\s+sf=/);
+  assert.doesNotMatch(source, /import\s*\{\s*Tabs\s*\}\s*from\s*['"]expo-router['"]/);
+  assert.doesNotMatch(source, /tabBarBackground/);
 });
