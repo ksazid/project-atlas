@@ -227,6 +227,7 @@ app.MapExecutionKitEndpoints();
 app.MapActionDecisionEndpoints();
 app.MapOutcomeEndpoints();
 app.MapFeedbackEndpoints();
+app.MapPilotOperationsEndpoints();
 app.MapHistoryEndpoints();
 app.MapWeeklyReviewEndpoints();
 app.MapNotificationEndpoints();
