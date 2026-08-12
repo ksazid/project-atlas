@@ -14,6 +14,7 @@
     "ATLAS-DESIGN-001@1.2",
     "DEC-04",
     "DEC-07",
+    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "VS-25@ffec93593d40c6911f936673cb009788d7b86a20",
     "VS-29@689c984040ec72e0cb7cfa314b3efe71d50ee74e",
     "VS-34@345045cd40a97daac547aa2b847e793a20bb5fb5",
@@ -52,7 +53,7 @@
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
     "specification":"docs/slices/VS-36.md",
-    "implementationPr":null,
+    "implementationPr":"https://github.com/ksazid/project-atlas/pull/60",
     "evidence":[
       "docs/slices/VS-36.md",
       "docs/superpowers/specs/2026-08-12-vs-36-menu-media-coverage-recovery-design.md",
