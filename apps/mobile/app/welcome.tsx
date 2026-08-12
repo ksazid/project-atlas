@@ -1,12 +1,13 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { BrandMark } from '@/components/BrandMark';
+import { AtlasScreen } from '@/components/AtlasScreen';
 
 const DARK = '#003B2F';
 
 export default function WelcomeScreen() {
   return (
-    <ScrollView contentContainerStyle={s.container} showsVerticalScrollIndicator={false}>
+    <AtlasScreen contentStyle={s.container} showsVerticalScrollIndicator={false}>
       <View style={[s.leaf,s.leafTopA]}/><View style={[s.leaf,s.leafTopB]}/><View style={[s.leaf,s.leafLeftA]}/><View style={[s.leaf,s.leafLeftB]}/><View style={[s.leaf,s.leafRightA]}/><View style={[s.leaf,s.leafRightB]}/>
 
       <BrandMark size={78} style={s.logo}/>
@@ -27,12 +28,12 @@ export default function WelcomeScreen() {
       <Pressable accessibilityRole="button" onPress={()=>router.push('/sign-in')} style={({pressed})=>[s.cta,pressed&&s.pressed]}>
         <Text style={s.ctaText}>Get started</Text>
       </Pressable>
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
 const s=StyleSheet.create({
-  container:{flexGrow:1,minHeight:'100%',paddingHorizontal:31,paddingTop:74,paddingBottom:32,backgroundColor:DARK,overflow:'hidden'},
+  container:{minHeight:'100%',backgroundColor:DARK,overflow:'hidden'},
   logo:{width:78,height:78,resizeMode:'contain',marginBottom:31},
   title:{fontFamily:'Georgia',fontSize:37,lineHeight:43,fontWeight:'800',letterSpacing:-.7,color:'#FFF'},
   accent:{color:'#32C987'},
