@@ -17,6 +17,7 @@
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "VS-04",
+    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "VS-26",
     "VS-28@060d0fcb94dbf0d9f8cb55bf59dc0833f246e807"
   ],
@@ -29,6 +30,7 @@
       "Corrects an integration mismatch between owner-confirmed operating context and the existing Today’s Focus evidence resolver.",
       "Requires at least one non-policy factual evidence item before a generated candidate can qualify, restoring the approved no-filler FR-07 behavior.",
       "Preserves stored Business Context, Knowledge Pack versions, category-specific ranking, confidence policy, provenance and owner control.",
+      "Retains the certified VS-15 integrated MVP dependency boundary required by later active slices.",
       "No migration, new provider, AI generation, navigation/UI redesign, deployment, release, production enablement or production database mutation is authorized."
     ]
   },
@@ -80,7 +82,7 @@
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
     "specification": "docs/slices/VS-30.md",
-    "implementationPr": null,
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/52",
     "evidence": ["docs/slices/VS-30.md"]
   },
   "maxAttempts": 3
