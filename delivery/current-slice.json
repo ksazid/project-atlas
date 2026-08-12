@@ -3,20 +3,13 @@
   "sliceId": "VS-35",
   "title": "VS-35 — Pilot Operations",
   "status": "active",
-  "lifecycle": "testing",
+  "lifecycle": "certification",
   "riskLevel": "high",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-18"],
-  "owners": {
-    "product": "ksazid",
-    "engineering": "ksazid",
-    "operations": "ksazid",
-    "security": "ksazid"
-  },
+  "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
   "dependencies": [
-    "ATLAS-PRD-001",
-    "ATLAS-TRD-001",
-    "ATLAS-DESIGN-001@1.2",
+    "ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001@1.2",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "VS-31@9cd153aae1f0e0962548ecf2cfb5f112350a5a73",
     "VS-32@66e2b7979d68b390d74b395f650b0b6d215e71a8",
@@ -24,32 +17,10 @@
     "VS-34@345045cd40a97daac547aa2b847e793a20bb5fb5"
   ],
   "blockers": [],
-  "allowedPaths": [
-    "apps/api/**",
-    "apps/mobile/**",
-    "tests/api/**",
-    "tests/mobile/**",
-    "delivery/**",
-    "docs/**"
-  ],
-  "protectedPaths": [
-    ".github/workflows/release.yml",
-    "infrastructure/**",
-    "**/Payments/**",
-    "**/Uploads/**"
-  ],
+  "allowedPaths": ["apps/api/**","apps/mobile/**","tests/api/**","tests/mobile/**","delivery/**","docs/**"],
+  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
   "impact": {
-    "areas": [
-      "frontend",
-      "api",
-      "database",
-      "authorization",
-      "customer-flow",
-      "operator-flow",
-      "analytics",
-      "legal-privacy",
-      "operations-support"
-    ],
+    "areas": ["frontend","api","database","authorization","customer-flow","operator-flow","analytics","legal-privacy","operations-support"],
     "notes": [
       "Completes FR-18 as a minimal internal Pilot Operations capability, not a general administration platform.",
       "Internal operators never impersonate Business owners; dedicated InternalOperator commands preserve actor, target, reason/provenance and audit.",
@@ -64,68 +35,23 @@
     ]
   },
   "approvals": [
-    {
-      "type": "scope",
-      "status": "approved",
-      "version": "VS-35@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-12T17:05:00+02:00",
-      "rationale": "Product Owner re-authorized Pilot Operations after VS-34 merged and instructed this chat to proceed while avoiding conflicts with the Today work."
-    },
-    {
-      "type": "policy",
-      "status": "not-required",
-      "version": "VS-35@1.0",
-      "commitSha": null,
-      "by": "PES/Loop",
-      "at": "2026-08-12T17:05:00+02:00",
-      "rationale": "VS-35 introduces no new external provider, attachment flow, release boundary or production enablement. Privileged operator authority remains governed by InternalOperator plus DEC-11 and exact-head security/product/certification gates."
-    },
-    {
-      "type": "implementation",
-      "status": "approved",
-      "version": "VS-35@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-12T17:05:00+02:00",
-      "rationale": "Product Owner explicitly authorized fixing the stalled VS-35 RED state and proceeding through implementation and deterministic gates."
-    },
-    {
-      "type": "certification",
-      "status": "pending",
-      "version": "VS-35@1.0",
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
-    },
+    {"type":"scope","status":"approved","version":"VS-35@1.0","commitSha":null,"by":"ksazid","at":"2026-08-12T17:05:00+02:00","rationale":"Product Owner re-authorized Pilot Operations after VS-34 merged and instructed this chat to proceed while avoiding conflicts with the Today work."},
+    {"type":"policy","status":"not-required","version":"VS-35@1.0","commitSha":null,"by":"PES/Loop","at":"2026-08-12T17:05:00+02:00","rationale":"VS-35 introduces no new external provider, attachment flow, release boundary or production enablement. Privileged operator authority remains governed by InternalOperator plus DEC-11 and exact-head security/product/certification gates."},
+    {"type":"implementation","status":"approved","version":"VS-35@1.0","commitSha":null,"by":"ksazid","at":"2026-08-12T17:05:00+02:00","rationale":"Product Owner explicitly authorized fixing the stalled VS-35 RED state and proceeding through implementation and deterministic gates."},
+    {"type":"certification","status":"pending","version":"VS-35@1.0","commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": ["DEC-11"],
-  "progress": {
-    "discovery": 100,
-    "decisions": 100,
-    "implementation": 100,
-    "testing": 100,
-    "certification": 0,
-    "release": 0,
-    "validation": 0
-  },
-  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":90,"release":0,"validation":0},
+  "certification": {"status":"running","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification": "docs/slices/VS-35.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/59",
-    "evidence": [
-      "docs/slices/VS-35.md",
-      "docs/superpowers/specs/2026-08-12-vs-35-pilot-operations-design.md",
-      "docs/superpowers/plans/2026-08-12-vs-35-pilot-operations.md",
-      "preserved TDD history: PR #57"
-    ]
+    "specification":"docs/slices/VS-35.md",
+    "implementationPr":"https://github.com/ksazid/project-atlas/pull/59",
+    "evidence":["docs/slices/VS-35.md","docs/superpowers/specs/2026-08-12-vs-35-pilot-operations-design.md","docs/superpowers/plans/2026-08-12-vs-35-pilot-operations.md","preserved TDD history: PR #57"]
   },
   "maxAttempts": 3
 }
