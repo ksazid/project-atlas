@@ -128,10 +128,11 @@ app.MapPut("/api/v1/businesses/{businessId:guid}/profile", async (Guid businessI
 {
     var account = await OwnerAccount(businessId, user, db, ct);
     if (account is null) return Results.NotFound();
-    var errors = request.Validate();
-    if (errors.Count > 0) return Results.ValidationProblem(errors, extensions: new Dictionary<string, object?> { ["code"] = "profile_invalid" });
 
     var profile = await db.BusinessProfiles.SingleOrDefaultAsync(x => x.BusinessId == businessId, ct);
+    var errors = request.Validate(profile?.Source);
+    if (errors.Count > 0) return Results.ValidationProblem(errors, extensions: new Dictionary<string, object?> { ["code"] = "profile_invalid" });
+
     if (profile is null)
     {
         profile = new BusinessProfile { BusinessId = businessId, Language = request.Language.Trim(), Source = request.Source, OwnerConfirmed = request.OwnerConfirmed, UpdatedAt = DateTimeOffset.UtcNow };
@@ -227,6 +228,8 @@ app.MapExecutionKitEndpoints();
 app.MapActionDecisionEndpoints();
 app.MapOutcomeEndpoints();
 app.MapFeedbackEndpoints();
+app.MapPilotOperationsEndpoints();
+app.MapPilotOpportunityOperationsEndpoints();
 app.MapHistoryEndpoints();
 app.MapWeeklyReviewEndpoints();
 app.MapNotificationEndpoints();

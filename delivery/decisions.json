@@ -114,16 +114,24 @@
       "sliceId": "VS-31",
       "status": "approved",
       "question": "How should Atlas resolve the long-standing four-vs-five primary navigation mismatch after VS-28 and VS-29?",
-      "options": [
-        "Keep five persistent tabs indefinitely",
-        "Align persistent navigation to Today, History, Goals and Profile while keeping Business Hub as Profile root and moving Context/Settings to pushed Profile details",
-        "Replace NativeTabs with a new custom navigation system"
-      ],
+      "options": ["Keep five persistent tabs indefinitely","Align persistent navigation to Today, History, Goals and Profile while keeping Business Hub as Profile root and moving Context/Settings to pushed Profile details","Replace NativeTabs with a new custom navigation system"],
       "decision": "Align persistent navigation to ATLAS-DESIGN-001 v1.2: Today, History, Goals and Profile. Keep the existing Business Hub as the Profile root; move Context and Settings to pushed Profile-detail routes while preserving all capabilities and stable /context and /settings paths; move History into the native tab group while preserving /history; retain Expo Router NativeTabs and make no domain/API/database changes.",
       "blocks": [],
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-12T08:01:00+02:00",
       "rationale": "DEC-02, DEC-03 and DEC-09 explicitly deferred the mismatch to a dedicated governed navigation slice. The Product Owner has now granted standing approval for upcoming slices including required design changes. This option satisfies the approved design baseline with the smallest runtime change and preserves Business, Context and Settings functionality."
+    },
+    {
+      "id": "DEC-11",
+      "sliceId": "VS-35",
+      "status": "approved",
+      "question": "How should internal Pilot Operations act on Business data without weakening owner authority?",
+      "options": ["Impersonate the Business owner and reuse owner endpoints","Use dedicated InternalOperator commands with explicit actor/provenance/audit","Build a separate full administration service"],
+      "decision": "Internal operators never impersonate Business owners. All Pilot Operations mutations use dedicated InternalOperator commands and preserve the acting internal account, Business target, entity target where relevant, reason/provenance, timestamp and audit. Operator-assisted Profile changes set Source to operator-assisted and OwnerConfirmed to false until the owner reconfirms.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-12T17:05:00+02:00",
+      "rationale": "The Product Owner re-authorized Pilot Operations as VS-35 after VS-34 merged. Dedicated operator commands preserve owner authority and auditability while satisfying FR-18 without a full admin platform."
     }
   ]
 }

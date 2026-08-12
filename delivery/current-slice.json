@@ -1,172 +1,73 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-34",
-  "title": "VS-34 — Today Clarity & Navigation Consistency",
+  "sliceId": "VS-35",
+  "title": "VS-35 — Pilot Operations",
   "status": "active",
   "lifecycle": "certified",
-  "riskLevel": "medium",
+  "riskLevel": "high",
   "implementationMode": "runtime-enabled",
-  "requirements": [
-    "FR-07",
-    "FR-10",
-    "FR-16"
-  ],
-  "owners": {
-    "product": "ksazid",
-    "engineering": "ksazid",
-    "operations": "ksazid",
-    "security": "ksazid"
-  },
+  "requirements": ["FR-18"],
+  "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
   "dependencies": [
-    "ATLAS-PRD-001",
-    "ATLAS-TRD-001",
-    "ATLAS-DESIGN-001@1.2",
+    "ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001@1.2",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "VS-31@9cd153aae1f0e0962548ecf2cfb5f112350a5a73",
     "VS-32@66e2b7979d68b390d74b395f650b0b6d215e71a8",
-    "VS-33@cbf9c21ba440a6691e1344efcd598e5a0193745e"
+    "VS-33@cbf9c21ba440a6691e1344efcd598e5a0193745e",
+    "VS-34@345045cd40a97daac547aa2b847e793a20bb5fb5"
   ],
   "blockers": [],
-  "allowedPaths": [
-    "apps/mobile/src/features/today-focus/**",
-    "apps/mobile/app/settings.tsx",
-    "apps/mobile/app/context.tsx",
-    "apps/mobile/app/feedback.tsx",
-    "tests/mobile/**",
-    "delivery/**",
-    "docs/**"
-  ],
-  "protectedPaths": [
-    ".github/workflows/release.yml",
-    "infrastructure/**",
-    "apps/api/**",
-    "tests/api/**",
-    "apps/mobile/src/components/AtlasScreen.tsx",
-    "**/Payments/**",
-    "**/Uploads/**"
-  ],
+  "allowedPaths": ["apps/api/**","apps/mobile/**","tests/api/**","tests/mobile/**","delivery/**","docs/**"],
+  "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
   "impact": {
-    "areas": [
-      "frontend",
-      "customer-flow"
-    ],
+    "areas": ["frontend","api","database","authorization","customer-flow","operator-flow","analytics","legal-privacy","operations-support"],
     "notes": [
-      "Refines Today from a simplified recommendation card into a single obvious daily task surface with one concise reason and compact evidence strength.",
-      "Recommendation/task typography becomes strong sans-serif while the Today page title retains the established editorial serif treatment.",
-      "Impact, Effort and Confidence use one compact row containing only existing server-provided values; no fabricated percentages or metrics are introduced.",
-      "I’ll do this reuses Apply semantics, Why this? opens Opportunity Detail, Later reuses Skip semantics, and Not relevant reuses the existing not-relevant decision.",
-      "The duplicate reasoning card is removed; Opportunity Detail remains authoritative for deeper evidence, assumptions, limitations, expiry and Knowledge Pack metadata.",
-      "Native pull-to-refresh, stale-refresh labeling, no-filler recommendation policy and cross-industry behavior remain unchanged.",
-      "Settings, Context and Feedback replace the custom Profile text headerLeft with the native/light Atlas back treatment while retaining a safe Profile fallback for deep links.",
-      "Today / History / Goals / Profile route topology remains unchanged.",
-      "Pilot Operations remains paused and is reserved to resume later as VS-35.",
-      "No API, database, migration, connector, menu/media, infrastructure, release or production deployment change is authorized."
+      "Completes FR-18 as a minimal internal Pilot Operations capability, not a general administration platform.",
+      "Internal operators never impersonate Business owners; dedicated InternalOperator commands preserve actor, target, reason/provenance and audit.",
+      "Adds compact append-only generation diagnostics without raw provider/model payloads, prompts, stack traces or end-customer data.",
+      "Adds append-only support/intervention records and bounded operator queue/detail read models.",
+      "Operator-assisted Profile correction preserves source operator-assisted, clears OwnerConfirmed, and requires a truthful owner reconfirmation path that cannot be spoofed from an owner-sourced profile.",
+      "Collaborative Opportunity preparation reuses the existing current evidence-aware generator; no free-form recommendation authoring is introduced.",
+      "Adds explicit terminal Opportunity withdrawal with required reason and optimistic concurrency; unsafe feedback alone never auto-withdraws content.",
+      "Owner Today, History, Goals and Profile navigation remains unchanged; operator routes live outside the persistent tab shell.",
+      "VS-35 is based on merged VS-34 main. Old PR #57 is preserved only as TDD/evidence history and is never a merge candidate.",
+      "No production release, deployment, EAS build/submit/OTA, production enablement or production database mutation is authorised."
     ]
   },
   "approvals": [
-    {
-      "type": "scope",
-      "status": "approved",
-      "version": "VS-34@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-12T15:16:00+02:00",
-      "rationale": "Product Owner approved the written VS-34 Today Clarity & Navigation Consistency design after Expo harness review, prioritizing Today clarity before menu/media recovery."
-    },
-    {
-      "type": "policy",
-      "status": "not-required",
-      "version": "VS-34@1.0",
-      "commitSha": null,
-      "by": "PES/Loop",
-      "at": "2026-08-12T15:16:00+02:00",
-      "rationale": "VS-34 is a bounded mobile presentation/navigation correction using existing Opportunity and decision semantics; it introduces no new provider, data collection, retention, authorization, external action, release or production boundary."
-    },
-    {
-      "type": "implementation",
-      "status": "approved",
-      "version": "VS-34@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-12T15:16:00+02:00",
-      "rationale": "Product Owner explicitly authorized proceeding with VS-34 using Superpowers + TDD through implementation and deterministic gates, with no deployment."
-    },
-    {
-      "type": "certification",
-      "status": "approved",
-      "version": "VS-34@1.0",
-      "commitSha": "128bb7b79e44a238d3ab506c8e25f3722a49f985",
-      "by": "PES/Loop",
-      "at": "2026-08-12T16:40:00+02:00",
-      "rationale": "The frozen runtime SHA passed the complete mobile/native-runtime, TypeScript, Expo lint, PostgreSQL 17 migration replay, API regression, Release build, dashboard, Security baseline and Product Intake gates after verified Today and Profile-navigation RED-to-GREEN cycles and changed-file review. Runtime certification binds only 128bb7b79e44a238d3ab506c8e25f3722a49f985; the later 8b4da80066801951c69397a6ea1966322c78ea77 governance-only testing head supplied the final exact-head verification. Release and deployment remain unauthorized."
-    },
-    {
-      "type": "release",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
-    },
-    {
-      "type": "production-enable",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
-    }
+    {"type":"scope","status":"approved","version":"VS-35@1.0","commitSha":null,"by":"ksazid","at":"2026-08-12T17:05:00+02:00","rationale":"Product Owner re-authorized Pilot Operations after VS-34 merged and instructed this chat to proceed while avoiding conflicts with the Today work."},
+    {"type":"policy","status":"not-required","version":"VS-35@1.0","commitSha":null,"by":"PES/Loop","at":"2026-08-12T17:05:00+02:00","rationale":"VS-35 introduces no new external provider, attachment flow, release boundary or production enablement. Privileged operator authority remains governed by InternalOperator plus DEC-11 and exact-head security/product/certification gates."},
+    {"type":"implementation","status":"approved","version":"VS-35@1.0","commitSha":null,"by":"ksazid","at":"2026-08-12T17:05:00+02:00","rationale":"Product Owner explicitly authorized fixing the stalled VS-35 RED state and proceeding through implementation and deterministic gates."},
+    {"type":"certification","status":"approved","version":"VS-35@1.0","commitSha":"dc44533cb34cf1b14e8f44c7083ebfb7e77ce45d","by":"PES/Loop","at":"2026-08-12T22:02:00+02:00","rationale":"Frozen VS-35 runtime dc44533cb34cf1b14e8f44c7083ebfb7e77ce45d passed the bounded operator UI/API, authorization, migration, owner-authority and regression contracts after strict RED-to-GREEN cycles and changed-file review. Verification head 5314494987a0d4ee12d56f0b9bc4382f470b38d9 contains only a compatibility test update after the frozen runtime and passed CI 31634849396, Security baseline 31634849429 and Product Intake 31634849393. Release and deployment remain unauthorized."},
+    {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
-  "decisionIds": [],
-  "progress": {
-    "discovery": 100,
-    "decisions": 100,
-    "implementation": 100,
-    "testing": 100,
-    "certification": 100,
-    "release": 0,
-    "validation": 0
-  },
+  "decisionIds": ["DEC-11"],
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
   "certification": {
-    "status": "passed",
-    "commitSha": "128bb7b79e44a238d3ab506c8e25f3722a49f985",
-    "evidence": [
-      "Activation baseline 6a2339b102fa29379a263f9914de942390a42ecd: CI 31601591564, Security baseline 31601591554 and Product Intake 31601591588 passed before VS-34 runtime edits",
-      "Today TDD RED a29d6f85d0ec0489a40bd588abc4dcd787e87da2: 3 intended VS-34 clarity failures reproduced while 174 existing tests passed and the authentic Today runtime remained green",
-      "Today GREEN efb366403a465c9921d131a3416f437c2ef39269: Today structural contract and authentic Expo Web Today-to-Opportunity-Detail runtime passed with Security baseline 31604504039 and Product Intake 31604504064 green",
-      "Navigation TDD RED ca0133a5798f95e1026cbb90215608356a5d82b6: exactly 3 intended Settings, Context and Feedback Profile-navigation failures reproduced while 177 of 180 tests passed and Today remained green",
-      "Frozen runtime SHA 128bb7b79e44a238d3ab506c8e25f3722a49f985 contains the final VS-34 runtime change; subsequent VS-34 commits before certification are governance/documentation only",
-      "Exact verification head 8b4da80066801951c69397a6ea1966322c78ea77: CI 31607101677, Security baseline 31607101748 and Product Intake 31607101728 all passed while validating the frozen runtime",
-      "CI 31607101677: 180 mobile tests passed with 0 failures and 0 skipped, including authentic Expo Web VS-21 discovery, VS-15 Context, VS-17 progressive questions, VS-34 Today-to-Opportunity-Detail and VS-34 native/light Profile back-navigation coverage",
-      "CI 31607101677: TypeScript, Expo lint, Expo SDK 54 platform validation, clean PostgreSQL 17 migration replay, API Release build and dashboard artifact all passed",
-      "CI 31607101677: 346 API tests passed with 0 failures and 0 skipped",
-      "Changed-file review of PR #58 confirmed runtime changes are limited to TodayFocusScreen, Settings/Context/Feedback pushed-route shells and mobile tests; no API, migration, infrastructure, release workflow, menu/media or Pilot Operations runtime change was introduced"
+    "status":"passed",
+    "commitSha":"dc44533cb34cf1b14e8f44c7083ebfb7e77ce45d",
+    "evidence":[
+      "API TDD RED dd0cc1274db1d7e60ccd84894667b7f216c7443a: 4 intended terminal-withdrawal/operator-route failures reproduced while 364 existing API tests passed",
+      "API GREEN 9ad0c4b565119bbe05d56f78b15365edf569928e: operator-only preparation/withdrawal routes, terminal withdrawal, optimistic concurrency, audit and no-free-form-authoring contracts passed exact-head CI/Security/Product Intake",
+      "Mobile TDD RED a74de738690e854fafb0d80402b5df3f6c42de6d: all 180 existing mobile tests passed and exactly 3 new operator client/route/review contracts failed before implementation",
+      "Mobile GREEN 92385345d2e0537b8512186c7a19dfcc8e29b2c5: root /operator Stack, bounded queue/detail review, support note, profile assistance, evidence-backed preparation and explicit withdrawal confirmation passed full deterministic gates",
+      "Changed-file review identified an owner-authority defect before certification: an operator-assisted profile could not be legitimately owner-reconfirmed; certification was blocked until a dedicated RED-to-GREEN remediation proved both reconfirmation and anti-spoofing behavior",
+      "Owner-authority RED 17d92a11a80f12a5db6522224ab2511db6a55826: 183 of 184 mobile tests passed with exactly the new provenance/reconfirmation contract failing; the corresponding API RED also reproduced rejection of legitimate operator-assisted reconfirmation",
+      "Frozen runtime SHA dc44533cb34cf1b14e8f44c7083ebfb7e77ce45d preserves operator-assisted provenance, requires owner confirmation, prevents an owner from fabricating operator-assisted provenance, and contains the final VS-35 runtime change",
+      "Verification head 5314494987a0d4ee12d56f0b9bc4382f470b38d9 differs from the frozen runtime only by the stale Business Hub static-test compatibility assertion and passed CI 31634849396, Security baseline 31634849429 and Product Intake 31634849393",
+      "CI 31634849396: 184 mobile tests passed with 0 failures and 0 skipped, including authentic Expo Web owner journeys and all VS-35 operator/provenance contracts; TypeScript, Expo lint and Expo SDK 54 validation passed",
+      "CI 31634849396: clean PostgreSQL 17 migration replay including 20260812150000_PilotOperations, API Release build, dashboard generation/artifact and 369 API tests passed with 0 failures and 0 skipped",
+      "Final changed-file review confirmed operator routes require InternalOperator, owner tabs remain exactly Today/History/Goals/Profile, no impersonation or free-form recommendation authoring was added, unsafe feedback alone never withdraws content, and release/infrastructure paths remain untouched"
     ]
   },
-  "release": {
-    "status": "not-authorized",
-    "releaseId": null
-  },
-  "rollback": {
-    "status": "not-applicable",
-    "rollbackId": null
-  },
-  "postRelease": {
-    "status": "not-started",
-    "reviewAt": null,
-    "expectedOutcome": null,
-    "metrics": []
-  },
+  "release": {"status":"not-authorized","releaseId":null},
+  "rollback": {"status":"not-applicable","rollbackId":null},
+  "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification": "docs/slices/VS-34.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/58",
-    "evidence": [
-      "docs/slices/VS-34.md",
-      "docs/superpowers/specs/2026-08-12-vs-34-today-clarity-navigation-design.md",
-      "docs/superpowers/plans/2026-08-12-vs-34-today-clarity-navigation.md"
-    ]
+    "specification":"docs/slices/VS-35.md",
+    "implementationPr":"https://github.com/ksazid/project-atlas/pull/59",
+    "evidence":["docs/slices/VS-35.md","docs/superpowers/specs/2026-08-12-vs-35-pilot-operations-design.md","docs/superpowers/plans/2026-08-12-vs-35-pilot-operations.md","preserved TDD history: PR #57"]
   },
   "maxAttempts": 3
 }

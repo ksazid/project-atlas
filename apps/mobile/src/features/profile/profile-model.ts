@@ -1,4 +1,4 @@
-import type { BusinessProfile } from '@/api/atlas-client';
+import type { OwnerBusinessProfile } from './profile-api';
 
 export type ProfileFieldKey = 'description' | 'address' | 'website' | 'phone' | 'email' | 'socialChannels' | 'businessHours' | 'language';
 export type ProfileField = {
@@ -28,12 +28,12 @@ export const profileSections = [
   ] }
 ] as const satisfies readonly ProfileSection[];
 
-export function createEmptyProfile(): BusinessProfile {
+export function createEmptyProfile(): OwnerBusinessProfile {
   return { description: '', address: '', website: '', phone: '', email: '', socialChannels: '', businessHours: '', language: 'English', source: 'owner', ownerConfirmed: true };
 }
 
-export function canSaveProfile(profile: BusinessProfile, saving: boolean): boolean {
-  return !saving && (profile.source !== 'public' || profile.ownerConfirmed);
+export function canSaveProfile(profile: OwnerBusinessProfile, saving: boolean): boolean {
+  return !saving && (profile.source === 'owner' || profile.ownerConfirmed);
 }
 
 export function getProfileConfirmationState(ownerConfirmed: boolean) {

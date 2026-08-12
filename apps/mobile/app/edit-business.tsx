@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getProfile, saveProfile, type BusinessProfile } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
 import { AtlasScreen } from '@/components/AtlasScreen';
+import { getOwnerProfile, saveOwnerProfile, type OwnerBusinessProfile } from '@/features/profile/profile-api';
 import { canSaveProfile, createEmptyProfile, getProfileConfirmationState, getProfileSavePresentation, getProfileStatePresentation, profileSections, resolveProfileFailure, type ProfileField, type ProfileScreenState } from '@/features/profile/profile-model';
 import { tokens } from '@/theme/tokens';
 
@@ -12,7 +12,7 @@ type ScreenState = 'loading' | 'ready' | 'missing' | 'error';
 
 export default function EditBusinessScreen() {
   const router = useRouter();
-  const [form, setForm] = useState<BusinessProfile>(createEmptyProfile);
+  const [form, setForm] = useState<OwnerBusinessProfile>(createEmptyProfile);
   const [state, setState] = useState<ScreenState>('loading');
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -29,7 +29,7 @@ export default function EditBusinessScreen() {
         setState('missing');
         return;
       }
-      setForm((await getProfile(session.accessToken, session.businessId)) ?? createEmptyProfile());
+      setForm((await getOwnerProfile(session.accessToken, session.businessId)) ?? createEmptyProfile());
       setState('ready');
     } catch {
       if (manual) {
@@ -54,7 +54,7 @@ export default function EditBusinessScreen() {
     try {
       const session = await loadSession();
       if (!session?.businessId) throw new Error('Business session is missing.');
-      setForm(await saveProfile(session.accessToken, session.businessId, form));
+      setForm(await saveOwnerProfile(session.accessToken, session.businessId, form));
       setMessage('Profile saved.');
     } catch {
       const failure = resolveProfileFailure('save');
@@ -71,6 +71,17 @@ export default function EditBusinessScreen() {
   const saveEnabled = canSaveProfile(form, saving);
   const savePresentation = getProfileSavePresentation(saving, saveEnabled);
   const confirmationState = getProfileConfirmationState(form.ownerConfirmed);
+  const provenanceTitle = form.source === 'public'
+    ? 'Public business information'
+    : form.source === 'operator-assisted'
+      ? 'Operator-assisted information'
+      : 'Owner-provided information';
+  const provenanceCopy = form.source === 'public'
+    ? 'We started with public information. Confirm it is accurate before saving.'
+    : form.source === 'operator-assisted'
+      ? 'Atlas pilot support proposed these changes. Please review and confirm them before Atlas treats the details as owner-confirmed.'
+      : 'These details are managed by you and shape more relevant guidance.';
+
   return (
     <AtlasScreen
       automaticallyAdjustKeyboardInsets
@@ -90,9 +101,9 @@ export default function EditBusinessScreen() {
 
         <View style={styles.provenanceCard}>
           <Text style={styles.cardEyebrow}>PROFILE PROVENANCE</Text>
-          <Text style={styles.provenanceTitle}>{form.source === 'public' ? 'Public business information' : 'Owner-provided information'}</Text>
-          <Text style={styles.provenanceCopy}>{form.source === 'public' ? 'We started with public information. Confirm it is accurate before saving.' : 'These details are managed by you and shape more relevant guidance.'}</Text>
-          {form.source === 'public' ? (
+          <Text style={styles.provenanceTitle}>{provenanceTitle}</Text>
+          <Text style={styles.provenanceCopy}>{provenanceCopy}</Text>
+          {form.source !== 'owner' ? (
             <Pressable
               aria-checked={confirmationState.ariaChecked}
               accessibilityLabel="Confirm profile information"
