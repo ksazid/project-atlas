@@ -273,8 +273,10 @@ public static class PublicBusinessExtractor
         var typeText = structured is JsonElement structuredValue ? ReadTypes(structuredValue) : string.Empty;
         var name = Decode(structuredName ?? FirstMatch(OgTitleRegex, html) ?? FirstMatch(TitleRegex, html));
         var description = Decode(structuredDescription ?? FirstMatch(OgDescriptionRegex, html) ?? FirstMatch(MetaDescriptionRegex, html));
+        var cleanedName = CleanTitle(name, provider);
+        var urlIdentityName = IsGenericMarketplaceTitle(cleanedName, provider) ? MarketplaceDisplayName(provider, sourceUri) : null;
 
-        Add("name", CleanTitle(name, provider), structuredName is null ? "medium" : "high");
+        Add("name", urlIdentityName ?? cleanedName, urlIdentityName is null && structuredName is not null ? "high" : "medium");
         Add("description", description, structuredDescription is null ? "medium" : "high");
         Add("website", Decode(structuredUrl), "high");
         Add("phone", Decode(structuredPhone), "high");
@@ -365,11 +367,41 @@ public static class PublicBusinessExtractor
             StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string MarketplaceSourceIdentity(string provider, Uri sourceUri)
+    private static string MarketplaceSourceIdentity(string provider, Uri sourceUri) =>
+        NormalizeIdentity(MarketplaceSourceSegment(provider, sourceUri));
+
+    private static string MarketplaceSourceSegment(string provider, Uri sourceUri)
     {
-        var segment = sourceUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? string.Empty;
+        var segment = Uri.UnescapeDataString(sourceUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? string.Empty);
         if (provider == "bolt-food") segment = Regex.Replace(segment, @"^\d+-", string.Empty, RegexOptions.CultureInvariant);
-        return NormalizeIdentity(segment);
+        return segment.Trim('-', '_', ' ');
+    }
+
+    private static string? MarketplaceDisplayName(string provider, Uri sourceUri)
+    {
+        if (provider is not "bolt-food" and not "wolt") return null;
+        if (!BusinessSourceUrlPolicy.TryCanonicalize(sourceUri.AbsoluteUri, out var canonical, out _) || canonical is null) return null;
+        if (provider == "bolt-food" && canonical.Kind != BusinessSourceKind.BoltFood) return null;
+        if (provider == "wolt" && canonical.Kind != BusinessSourceKind.Wolt) return null;
+
+        var canonicalUri = new Uri(canonical.Value);
+        var segment = MarketplaceSourceSegment(provider, canonicalUri);
+        if (string.IsNullOrWhiteSpace(segment)) return null;
+        var words = Regex.Replace(segment, @"[-_]+", " ", RegexOptions.CultureInvariant);
+        words = Regex.Replace(words, @"\s+", " ", RegexOptions.CultureInvariant).Trim();
+        if (words.Length == 0) return null;
+        return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(words.ToLowerInvariant());
+    }
+
+    private static bool IsGenericMarketplaceTitle(string? value, string provider)
+    {
+        var identity = NormalizeIdentity(value);
+        return provider switch
+        {
+            "bolt-food" => identity is "boltfood" or "bolt",
+            "wolt" => identity == "wolt",
+            _ => false
+        };
     }
 
     private static bool IdentityMatches(string sourceIdentity, string? candidateName)
