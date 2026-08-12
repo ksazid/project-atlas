@@ -300,6 +300,20 @@ export default function ContextScreen() {
           {saving ? <ActivityIndicator color={tokens.color.surface} /> : null}
           <Text style={styles.buttonText}>{savePresentation.text}</Text>
         </Pressable>
+
+        <View style={styles.guidanceCard}>
+          <Text style={styles.cardEyebrow}>REPORT A PROBLEM</Text>
+          <Text style={styles.guidanceTitle}>Something here does not look right?</Text>
+          <Text style={styles.guidanceCopy}>You can edit context directly above to correct what Atlas uses, and report incorrect context separately for review.</Text>
+          <Pressable
+            accessibilityLabel="Report incorrect context"
+            accessibilityRole="button"
+            onPress={() => router.push('/feedback?kind=incorrect-context')}
+            style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.secondaryButtonText}>Report incorrect context</Text>
+          </Pressable>
+        </View>
       </View>
     </AtlasScreen>
   );
