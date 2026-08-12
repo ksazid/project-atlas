@@ -1,13 +1,14 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-32",
-  "title": "VS-32 — Feedback, Safety Reporting & Support",
+  "sliceId": "VS-33",
+  "title": "VS-33 — Today Experience Simplification",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "implementing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
-    "FR-17",
+    "FR-07",
+    "FR-10",
     "FR-16"
   ],
   "owners": {
@@ -20,14 +21,13 @@
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
-    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-31@9cd153aae1f0e0962548ecf2cfb5f112350a5a73"
+    "VS-30@c01eb6f395ffdd4520b94d3253ea099af0c42447",
+    "VS-31@9cd153aae1f0e0962548ecf2cfb5f112350a5a73",
+    "VS-32@66e2b7979d68b390d74b395f650b0b6d215e71a8"
   ],
   "blockers": [],
   "allowedPaths": [
-    "apps/api/**",
-    "apps/mobile/**",
-    "tests/api/**",
+    "apps/mobile/src/features/today-focus/**",
     "tests/mobile/**",
     "delivery/**",
     "docs/**"
@@ -35,66 +35,65 @@
   "protectedPaths": [
     ".github/workflows/release.yml",
     "infrastructure/**",
+    "apps/api/**",
+    "tests/api/**",
+    "apps/mobile/app/**",
+    "apps/mobile/src/components/AtlasScreen.tsx",
     "**/Payments/**",
     "**/Uploads/**"
   ],
   "impact": {
     "areas": [
       "frontend",
-      "api",
-      "database",
-      "customer-flow",
-      "legal-privacy"
+      "customer-flow"
     ],
     "notes": [
-      "Completes the remaining FR-17 owner feedback/support gap without overloading Action Decision or Outcome semantics.",
-      "Adds append-only Business-scoped feedback for Opportunity usefulness, incorrect context, unsafe guidance, general feedback and support requests.",
-      "Opportunity references are accepted only when they belong to the authenticated owner's Business; cross-Business references fail with safe not-found behavior.",
-      "Unsafe-guidance reports record a review signal only and do not automatically mutate, withdraw, suppress or expire an Opportunity.",
-      "Incorrect-context reports do not overwrite Business Context; the existing owner Context editor remains the correction mechanism.",
-      "Owner notes are optional, text-only, trimmed and capped at 1200 characters; the mobile flow explicitly warns against including customer names, contact details or other end-customer personal data.",
-      "No attachments, external helpdesk/CRM, email/chat transport, queue, Redis dependency, automated moderation or analytics dashboard is introduced.",
-      "VS-31 native navigation remains unchanged: Today, History, Goals and Profile are the only persistent tabs; Feedback & Support is a pushed root Stack detail route.",
-      "FR-18 Pilot Operations is explicitly deferred to a separate governed slice and may consume immutable feedback records later.",
-      "No production release, deployment, EAS build/submit/OTA, production enablement or production database mutation is authorized."
+      "Simplifies Today into a calm daily decision surface with one primary Best move and one primary Apply action.",
+      "Native pull-to-refresh remains available and successful loads expose a concise freshness cue while safe existing content is preserved during manual refresh where practical.",
+      "Why Now, Evidence, interpretation, assumptions, limitations, expiry and Knowledge Pack metadata move out of the Today surface and remain available through Opportunity Detail.",
+      "Later reuses the existing Skip decision semantics; no new Action Decision state or backend change is introduced.",
+      "Empty and degraded states become shorter and recovery-oriented without weakening the no-filler recommendation policy.",
+      "The implementation remains cross-industry and must not fabricate BI metrics or leak restaurant-specific assumptions into Atlas Core.",
+      "Today / History / Goals / Profile persistent navigation remains unchanged.",
+      "No API, database, migration, connector, infrastructure, release or production deployment change is authorized."
     ]
   },
   "approvals": [
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-32@1.0",
+      "version": "VS-33@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-12T10:38:00+02:00",
-      "rationale": "Product Owner granted standing approval for all upcoming governed slices, including required bounded design changes, implementation, fixes, certification and merge. VS-32 closes the approved PRD FR-17 gap only."
+      "at": "2026-08-12T13:40:00+02:00",
+      "rationale": "Product Owner approved completing the Today page first, including the proposed concise Best move experience, pull-to-refresh, one- to two-tap actions and restrained semantic card colours."
     },
     {
       "type": "policy",
       "status": "not-required",
-      "version": "VS-32@1.0",
+      "version": "VS-33@1.0",
       "commitSha": null,
       "by": "PES/Loop",
-      "at": "2026-08-12T10:38:00+02:00",
-      "rationale": "VS-32 introduces no external provider, attachments, automated moderation, external action, end-customer data collection requirement, release or production boundary. Bounded optional owner notes remain inside the existing data-minimisation model with explicit privacy guidance."
+      "at": "2026-08-12T13:40:00+02:00",
+      "rationale": "VS-33 is a bounded mobile presentation/interaction change using existing server states and Action Decision semantics; it introduces no provider, new data collection, retention, external action, authorization, release or production boundary."
     },
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-32@1.0",
+      "version": "VS-33@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-12T10:38:00+02:00",
-      "rationale": "Product Owner explicitly authorized implementation, fixes and bounded design changes for upcoming governed slices, with the appropriate repository and Superpowers skills."
+      "at": "2026-08-12T13:40:00+02:00",
+      "rationale": "Product Owner explicitly approved the written VS-33 design and authorized implementation of the Today page before subsequent suggested intelligence features."
     },
     {
       "type": "certification",
-      "status": "approved",
-      "version": "VS-32@1.0",
-      "commitSha": "9889b06656c00a25ce2236f45634519bc365be61",
-      "by": "PES/Loop",
-      "at": "2026-08-12T12:56:00+02:00",
-      "rationale": "The frozen runtime SHA passed the complete exact-head mobile/native-runtime, Release build, clean PostgreSQL 17 migration replay, API regression, dashboard build, Security baseline and Product Intake gates after verified RED-to-GREEN cycles and changed-file review. Certification binds only this exact runtime SHA; release and production enablement remain unauthorized."
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
     },
     {
       "type": "release",
@@ -119,29 +118,16 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 100,
-    "testing": 100,
-    "certification": 100,
+    "implementation": 0,
+    "testing": 0,
+    "certification": 0,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "passed",
-    "commitSha": "9889b06656c00a25ce2236f45634519bc365be61",
-    "evidence": [
-      "Task 1 TDD RED ba1a0962: 14 intended feedback-policy failures reproduced while 325 existing API tests passed; GREEN c4a4d823 passed exact-head gates",
-      "Task 2 corrected TDD RED 5b30befcd7312156ba7e9ee53e90e0e4998f57a5: 7 intended persistence/wiring failures reproduced while 339 API tests passed; GREEN 40cfead2c978cdaf38c68c4cbc72a8f5628065d7 passed clean PostgreSQL replay and 346 API tests",
-      "Task 3 TDD RED 08af17ff78a2ec7c3a09ff8d7f5526410de8c422: 3 intended mobile contract failures reproduced while 158 existing mobile tests passed; GREEN f9bc2d224c662fb31c13642e978e9aa527c21198 passed exact-head gates",
-      "Task 4 TDD RED 169cbaea8beb3afddd44b6eaec61c92dfdcfbb01: 3 intended pushed-feedback-screen failures reproduced while 161 existing mobile tests passed; GREEN 25de292a2d1550f082dd22f0836342f139966c2a cleared authentic mobile preflight",
-      "Task 5 TDD RED 73a28c3c535538f4200b4eabcd537e5cef5cd895: 3 intended entry-point failures reproduced while 165 existing mobile tests passed; the no-fifth-tab guard already passed",
-      "CI 31591140162: exact runtime SHA 9889b06656c00a25ce2236f45634519bc365be61 passed governance/preflight, Expo SDK 54 platform validation, TypeScript, Expo lint, authentic Expo Web runtime checks, Release build, clean PostgreSQL 17 migration replay through 20260812113000_FeedbackSupport, API tests and dashboard build/artifact upload",
-      "CI 31591140162: 168 mobile tests passed with 0 failures",
-      "CI 31591140162: 346 API tests passed with 0 failures and 0 skipped",
-      "Security baseline 31591140170: green on exact runtime SHA",
-      "Product Intake 31591140189: green on exact runtime SHA",
-      "Changed-file review confirmed the slice boundary is limited to FR-17 API/domain/migration, reusable feedback UI and three approved entry points, tests and governance/docs; no infrastructure, release workflow, payments/uploads, authentication or recommendation files changed",
-      "Review confirmed unsafe-guidance feedback is append-only and cannot mutate, withdraw, suppress or expire Opportunity/Action/Outcome state; incorrect-context reporting remains separate from Context editing"
-    ]
+    "status": "not-started",
+    "commitSha": null,
+    "evidence": []
   },
   "release": {
     "status": "not-authorized",
@@ -158,11 +144,11 @@
     "metrics": []
   },
   "links": {
-    "specification": "docs/slices/VS-32.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/55",
+    "specification": "docs/slices/VS-33.md",
+    "implementationPr": null,
     "evidence": [
-      "docs/superpowers/specs/2026-08-12-vs-32-feedback-support-design.md",
-      "docs/superpowers/plans/2026-08-12-vs-32-feedback-support.md"
+      "docs/superpowers/specs/2026-08-12-vs-33-today-experience-simplification-design.md",
+      "docs/superpowers/plans/2026-08-12-vs-33-today-experience-simplification.md"
     ]
   },
   "maxAttempts": 3
