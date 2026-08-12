@@ -8,7 +8,7 @@ export type FeedbackDraft = {
   message?: string;
 };
 
-export const feedbackChoices: ReadonlyArray<{ kind: FeedbackScreenKind; label: string; description: string }> = [
+export const feedbackChoices: readonly { kind: FeedbackScreenKind; label: string; description: string }[] = [
   { kind: 'incorrect-context', label: 'Incorrect business context', description: 'Tell Atlas when saved business context does not reflect how your business works.' },
   { kind: 'unsafe-guidance', label: 'Unsafe guidance', description: 'Report guidance that may be unsafe, inappropriate, or unsuitable for your business.' },
   { kind: 'general-feedback', label: 'General feedback', description: 'Share product feedback about your Atlas experience.' },
