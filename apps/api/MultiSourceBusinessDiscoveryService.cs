@@ -4,6 +4,58 @@ using System.Text.RegularExpressions;
 
 namespace Atlas.Api;
 
+internal static class OfficialWebsiteEnrichmentPolicy
+{
+    public static string? SelectWebsite(PublicBusinessSnapshot anchor)
+    {
+        var candidate = anchor.Facts
+            .Where(fact => fact.Key.Equals("website", StringComparison.OrdinalIgnoreCase) &&
+                           fact.Confidence.Equals("high", StringComparison.OrdinalIgnoreCase))
+            .Select(fact => fact.Value.Trim())
+            .FirstOrDefault(value => value.Length > 0);
+        if (candidate is null || !PublicBusinessUrlPolicy.TryValidate(candidate, out var uri, out _) || uri is null)
+            return null;
+        return uri.AbsoluteUri;
+    }
+
+    public static bool StrongIdentityMatch(PublicBusinessSnapshot anchor, PublicBusinessSnapshot website)
+    {
+        var anchorName = Fact(anchor, "name");
+        var websiteName = Fact(website, "name");
+        if (string.IsNullOrWhiteSpace(anchorName) || string.IsNullOrWhiteSpace(websiteName) ||
+            !Normalize(anchorName).Equals(Normalize(websiteName), StringComparison.Ordinal))
+            return false;
+
+        return SameSupportingFact(anchor, website, "phone") ||
+               SameSupportingFact(anchor, website, "primaryLocation");
+    }
+
+    private static bool SameSupportingFact(PublicBusinessSnapshot left, PublicBusinessSnapshot right, string key)
+    {
+        var leftValue = Fact(left, key);
+        var rightValue = Fact(right, key);
+        return !string.IsNullOrWhiteSpace(leftValue) &&
+               !string.IsNullOrWhiteSpace(rightValue) &&
+               Normalize(leftValue).Equals(Normalize(rightValue), StringComparison.Ordinal);
+    }
+
+    private static string? Fact(PublicBusinessSnapshot snapshot, string key) =>
+        snapshot.Facts.FirstOrDefault(fact => fact.Key.Equals(key, StringComparison.OrdinalIgnoreCase))?.Value;
+
+    private static string Normalize(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var decomposed = value.Normalize(NormalizationForm.FormD);
+        var builder = new StringBuilder(decomposed.Length);
+        foreach (var ch in decomposed)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.NonSpacingMark) continue;
+            if (char.IsLetterOrDigit(ch)) builder.Append(char.ToLowerInvariant(ch));
+        }
+        return builder.ToString();
+    }
+}
+
 public sealed partial class MultiSourceBusinessDiscoveryService(
     BusinessDiscoveryService pageDiscovery,
     GoogleBusinessSourceResolver googleResolver,
@@ -30,7 +82,8 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
         // Canonicalise the complete set before the first outbound request so an unsafe
         // secondary source can never be hidden behind a successful primary source.
         var sources = BusinessSourceUrlPolicy.CanonicalizeMany(primaryUrl, additionalUrls);
-        var observations = new List<BusinessSourceObservation>(sources.Count);
+        var observations = new List<BusinessSourceObservation>(sources.Count + 1);
+        var successfulSnapshots = new Dictionary<int, PublicBusinessSnapshot>();
 
         for (var index = 0; index < sources.Count; index++)
         {
@@ -41,6 +94,7 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
                     ? await DiscoverGoogleAsync(source, ct)
                     : await pageDiscovery.DiscoverAsync(source.Value, ct);
 
+                successfulSnapshots[index] = snapshot;
                 observations.Add(new BusinessSourceObservation(
                     index,
                     index == 0,
@@ -69,7 +123,55 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
             }
         }
 
+        var primary = observations.FirstOrDefault(observation => observation.IsPrimary && observation.Status == "success");
+        if (primary is not null && successfulSnapshots.TryGetValue(primary.Order, out var anchorSnapshot))
+        {
+            var websiteUrl = OfficialWebsiteEnrichmentPolicy.SelectWebsite(anchorSnapshot);
+            if (websiteUrl is not null && !AlreadySupplied(websiteUrl, sources))
+            {
+                try
+                {
+                    var websiteSnapshot = await pageDiscovery.DiscoverAsync(websiteUrl, ct);
+                    if (OfficialWebsiteEnrichmentPolicy.StrongIdentityMatch(anchorSnapshot, websiteSnapshot))
+                    {
+                        var order = observations.Count;
+                        observations.Add(new BusinessSourceObservation(
+                            order,
+                            false,
+                            websiteSnapshot.Provider,
+                            websiteSnapshot.SourceUrl,
+                            "success",
+                            websiteSnapshot.Facts,
+                            Media: websiteSnapshot.Media,
+                            Offerings: websiteSnapshot.Offerings));
+                    }
+                }
+                catch (BusinessDiscoveryException ex) when (CanDegradeSource(ex.Code))
+                {
+                    // Optional enrichment cannot invalidate a usable owner-supplied source.
+                }
+                catch (TaskCanceledException) when (!ct.IsCancellationRequested)
+                {
+                    // Optional enrichment timeout degrades to the accepted anchor.
+                }
+                catch (HttpRequestException)
+                {
+                    // Optional enrichment transport failure degrades to the accepted anchor.
+                }
+            }
+        }
+
         return BusinessDiscoveryReconciler.Reconcile(observations);
+    }
+
+    private static bool AlreadySupplied(string websiteUrl, IReadOnlyList<CanonicalBusinessUrl> sources)
+    {
+        if (!Uri.TryCreate(websiteUrl, UriKind.Absolute, out var website)) return true;
+        return sources.Any(source =>
+            Uri.TryCreate(source.Value, UriKind.Absolute, out var supplied) &&
+            string.Equals(website.Scheme, supplied.Scheme, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(website.IdnHost.TrimEnd('.'), supplied.IdnHost.TrimEnd('.'), StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(website.AbsolutePath.TrimEnd('/'), supplied.AbsolutePath.TrimEnd('/'), StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task<PublicBusinessSnapshot> DiscoverGoogleAsync(CanonicalBusinessUrl source, CancellationToken ct)
