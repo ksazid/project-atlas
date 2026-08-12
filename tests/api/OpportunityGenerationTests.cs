@@ -26,6 +26,26 @@ public sealed class OpportunityGenerationTests
     }
 
     [Fact]
+    public void Restaurant_confirmed_operating_channels_generate_category_specific_candidate()
+    {
+        var businessId = Guid.NewGuid();
+        var goal = Goal(businessId, "revenue", "Increase revenue", 1);
+        var bundle = Bundle("restaurant-cafe",
+            context: [Fact("context", "operatingchannels", "Dine in | Takeaway | Delivery", "owner")]);
+
+        var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
+        var focusCandidate = OpportunityFocusService.SelectEligibleCandidate(result);
+
+        Assert.NotNull(result.Selected);
+        Assert.Equal("ordering-path-clarity-review", result.Selected!.PatternKey);
+        Assert.Equal(RestaurantCafeKnowledgeManifestV2.PackKey, result.Selected.KnowledgePackKey);
+        Assert.Contains(result.Selected.Evidence, x =>
+            x.Key == "operatingchannels" && x.Value == "Dine in | Takeaway | Delivery");
+        Assert.NotNull(focusCandidate);
+        Assert.Equal("ordering-path-clarity-review", focusCandidate!.PatternKey);
+    }
+
+    [Fact]
     public void Missing_ordering_channel_blocks_ordering_pattern()
     {
         var businessId = Guid.NewGuid();
@@ -111,6 +131,22 @@ public sealed class OpportunityGenerationTests
 
         Assert.Null(result.Selected);
         Assert.Empty(result.Candidates);
+    }
+
+    [Fact]
+    public void Policy_only_profile_and_goal_do_not_qualify_for_todays_focus()
+    {
+        var businessId = Guid.NewGuid();
+        var result = OpportunityGenerator.Generate(
+            ConfirmedProfile(businessId),
+            [Goal(businessId, "revenue", "Increase revenue", 1)],
+            Bundle("restaurant-cafe"),
+            [],
+            Now);
+
+        Assert.NotNull(result.Selected);
+        Assert.Empty(result.Selected!.Evidence.Where(x => x.Layer != "policy"));
+        Assert.Null(OpportunityFocusService.SelectEligibleCandidate(result));
     }
 
     [Fact]

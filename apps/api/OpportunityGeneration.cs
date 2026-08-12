@@ -45,7 +45,7 @@ public static class OpportunityGenerator
 {
     private static readonly HashSet<string> OrderingChannelKeys = new(StringComparer.OrdinalIgnoreCase)
     {
-        "primarychannels", "orderingChannel", "orderingChannels", "primaryOrderingChannel", "serviceChannel", "serviceChannels"
+        "operatingchannels", "primarychannels", "orderingChannel", "orderingChannels", "primaryOrderingChannel", "serviceChannel", "serviceChannels"
     };
 
     private static readonly HashSet<string> HoursKeys = new(StringComparer.OrdinalIgnoreCase)

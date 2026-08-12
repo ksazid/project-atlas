@@ -11,7 +11,7 @@ public sealed class OpportunityGenerationIntegrationTests
     public async Task Restaurant_bundle_persists_one_category_specific_today_focus()
     {
         await using var db = CreateDb();
-        var setup = SeedBusiness(db, category: "restaurant-cafe", goalType: "revenue", contextKey: "primarychannels", contextValue: "Takeaway");
+        var setup = SeedBusiness(db, category: "restaurant-cafe", goalType: "revenue", contextKey: "operatingchannels", contextValue: "Dine in | Takeaway | Delivery");
         await db.SaveChangesAsync();
 
         var result = await OpportunityFocusService.GenerateAsync(db, setup.Business.Id, setup.Account.Id, Now, CancellationToken.None);
@@ -22,6 +22,7 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.Equal(RestaurantCafeKnowledgeManifestV2.Version, opportunity.KnowledgePackVersion);
         Assert.Equal(setup.Assignment.KnowledgePackVersionId, opportunity.KnowledgePackVersionId);
         Assert.Equal(setup.Goal.Id, opportunity.GoalId);
+        Assert.False(opportunity.EvidenceSummary.StartsWith("0 evidence items", StringComparison.Ordinal));
         Assert.Single(await db.Set<Opportunity>().ToListAsync());
 
         using var snapshot = JsonDocument.Parse(opportunity.EvidenceJson);
@@ -29,6 +30,23 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.False(string.IsNullOrWhiteSpace(snapshot.RootElement.GetProperty("bundleFingerprint").GetString()));
         Assert.Contains(snapshot.RootElement.GetProperty("manifests").EnumerateArray(),
             x => x.GetProperty("packKey").GetString() == RestaurantCafeKnowledgeManifestV2.PackKey);
+        Assert.Contains(snapshot.RootElement.GetProperty("evidence").EnumerateArray(),
+            x => x.GetProperty("key").GetString() == "operatingchannels");
+    }
+
+    [Fact]
+    public async Task Policy_only_candidate_returns_no_focus_and_persists_nothing()
+    {
+        await using var db = CreateDb();
+        var setup = SeedBusiness(db, category: "restaurant-cafe", goalType: "revenue");
+        await db.SaveChangesAsync();
+
+        var result = await OpportunityFocusService.GenerateAsync(db, setup.Business.Id, setup.Account.Id, Now, CancellationToken.None);
+
+        Assert.Equal(OpportunityFocusGenerationStates.NoFocus, result.State);
+        Assert.Equal("opportunity_no_eligible_candidate", result.Code);
+        Assert.Null(result.Opportunity);
+        Assert.Empty(await db.Set<Opportunity>().ToListAsync());
     }
 
     [Fact]
