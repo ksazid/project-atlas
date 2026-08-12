@@ -3,7 +3,7 @@
   "sliceId": "VS-35",
   "title": "VS-35 — Pilot Operations",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "testing",
   "riskLevel": "high",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-18"],
@@ -55,11 +55,11 @@
       "Internal operators never impersonate Business owners; dedicated InternalOperator commands preserve actor, target, reason/provenance and audit.",
       "Adds compact append-only generation diagnostics without raw provider/model payloads, prompts, stack traces or end-customer data.",
       "Adds append-only support/intervention records and bounded operator queue/detail read models.",
-      "Operator-assisted Profile correction uses source operator-assisted and clears OwnerConfirmed so owner authority is not fabricated.",
+      "Operator-assisted Profile correction preserves source operator-assisted, clears OwnerConfirmed, and requires a truthful owner reconfirmation path that cannot be spoofed from an owner-sourced profile.",
       "Collaborative Opportunity preparation reuses the existing current evidence-aware generator; no free-form recommendation authoring is introduced.",
       "Adds explicit terminal Opportunity withdrawal with required reason and optimistic concurrency; unsafe feedback alone never auto-withdraws content.",
       "Owner Today, History, Goals and Profile navigation remains unchanged; operator routes live outside the persistent tab shell.",
-      "VS-35 is rebased conceptually on merged VS-34 main. Old PR #57 is preserved only as TDD/evidence history and is never a merge candidate.",
+      "VS-35 is based on merged VS-34 main. Old PR #57 is preserved only as TDD/evidence history and is never a merge candidate.",
       "No production release, deployment, EAS build/submit/OTA, production enablement or production database mutation is authorised."
     ]
   },
@@ -89,7 +89,7 @@
       "commitSha": null,
       "by": "ksazid",
       "at": "2026-08-12T17:05:00+02:00",
-      "rationale": "Product Owner explicitly said Go ahead after confirming VS-34 was approved/merged and Pilot Operations should resume as VS-35."
+      "rationale": "Product Owner explicitly authorized fixing the stalled VS-35 RED state and proceeding through implementation and deterministic gates."
     },
     {
       "type": "certification",
@@ -107,8 +107,8 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 0,
-    "testing": 0,
+    "implementation": 100,
+    "testing": 100,
     "certification": 0,
     "release": 0,
     "validation": 0
@@ -119,8 +119,9 @@
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
     "specification": "docs/slices/VS-35.md",
-    "implementationPr": null,
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/59",
     "evidence": [
+      "docs/slices/VS-35.md",
       "docs/superpowers/specs/2026-08-12-vs-35-pilot-operations-design.md",
       "docs/superpowers/plans/2026-08-12-vs-35-pilot-operations.md",
       "preserved TDD history: PR #57"
