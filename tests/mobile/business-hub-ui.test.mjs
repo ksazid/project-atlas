@@ -16,7 +16,7 @@ test('Profile tab is a read-first business hub with approved sections and second
   assert.match(hubSource, /getBusinessHub/);
   assert.match(profileRouteSource, /BusinessHubScreen/);
   assert.doesNotMatch(profileRouteSource, /TextInput/);
-  assert.match(editRouteSource, /saveProfile/);
+  assert.match(editRouteSource, /saveOwnerProfile/);
   for (const forbidden of ['Add to cart', 'Order now', 'Checkout']) {
     assert.ok(!hubSource.includes(forbidden));
   }
