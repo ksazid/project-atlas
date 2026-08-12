@@ -22,6 +22,7 @@ const files = [
 ];
 
 const sources = files.map(path => [path, readFileSync(new URL(path, import.meta.url), 'utf8')]);
+const todaySource = readFileSync(new URL('../../apps/mobile/src/features/today-focus/TodayFocusScreen.tsx', import.meta.url), 'utf8');
 
 test('every current first-party screen uses AtlasScreen', () => {
   for (const [path, source] of sources) {
@@ -33,4 +34,9 @@ test('migrated screens do not retain known one-device page offsets', () => {
   for (const [path, source] of sources) {
     assert.doesNotMatch(source, /paddingTop:\s*(54|57|58)\b/, `${path} retains legacy page top padding`);
   }
+});
+
+test('Today non-ready states do not vertically center the entire tall-device viewport', () => {
+  assert.match(todaySource, /stateContainer:\s*\{[^}]*justifyContent:\s*'flex-start'/s);
+  assert.doesNotMatch(todaySource, /stateContainer:\s*\{[^}]*justifyContent:\s*'center'/s);
 });
