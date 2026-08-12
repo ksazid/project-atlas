@@ -85,6 +85,7 @@ public static class PublicBusinessMediaMenuExtractor
 
         foreach (var root in StructuredRoots(html))
         {
+            var graphById = BuildGraphIndex(root);
             foreach (var business in EnumerateObjects(root).Where(IsBusinessObject))
             {
                 if (business.TryGetProperty("image", out var images))
@@ -101,9 +102,10 @@ public static class PublicBusinessMediaMenuExtractor
                     }
                 }
 
+                var visited = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var menu in MenuValues(business))
                 {
-                    ReadMenu(menu, null);
+                    ReadMenu(menu, null, graphById, visited);
                     if (offerings.Count >= MaxOfferingsPerSource) break;
                 }
             }
@@ -138,27 +140,34 @@ public static class PublicBusinessMediaMenuExtractor
             menuUrl,
             coverage);
 
-        void ReadMenu(JsonElement element, string? inheritedSection)
+        void ReadMenu(
+            JsonElement input,
+            string? inheritedSection,
+            IReadOnlyDictionary<string, JsonElement> graphById,
+            HashSet<string> visited)
         {
             if (offerings.Count >= MaxOfferingsPerSource) return;
 
-            if (element.ValueKind == JsonValueKind.String)
+            if (input.ValueKind == JsonValueKind.String)
             {
-                CaptureMenuUrl(element.GetString());
+                CaptureMenuUrl(input.GetString());
                 return;
             }
 
-            if (element.ValueKind == JsonValueKind.Array)
+            if (input.ValueKind == JsonValueKind.Array)
             {
-                foreach (var item in element.EnumerateArray())
+                foreach (var item in input.EnumerateArray())
                 {
-                    ReadMenu(item, inheritedSection);
+                    ReadMenu(item, inheritedSection, graphById, visited);
                     if (offerings.Count >= MaxOfferingsPerSource) break;
                 }
                 return;
             }
 
-            if (element.ValueKind != JsonValueKind.Object) return;
+            if (input.ValueKind != JsonValueKind.Object) return;
+
+            var element = ResolveReference(input, graphById);
+            if (TryGetString(element, "@id", out var id) && id is not null && !visited.Add(id)) return;
 
             if (TryGetString(element, "url", out var url)) CaptureMenuUrl(url);
 
@@ -174,7 +183,7 @@ public static class PublicBusinessMediaMenuExtractor
 
             foreach (var property in new[] { "hasMenuSection", "hasMenuItem", "itemListElement" })
             {
-                if (element.TryGetProperty(property, out var child)) ReadMenu(child, section);
+                if (element.TryGetProperty(property, out var child)) ReadMenu(child, section, graphById, visited);
                 if (offerings.Count >= MaxOfferingsPerSource) break;
             }
         }
@@ -200,6 +209,23 @@ public static class PublicBusinessMediaMenuExtractor
                 observedAt,
                 "high"));
             foundStructuredContribution = true;
+
+            if (item.TryGetProperty("image", out var itemImages))
+            {
+                foreach (var candidate in ImageUrls(itemImages))
+                {
+                    if (media.Count >= MaxMediaPerSource) break;
+                    if (!TryCanonicalPublicUrl(sourceUri, candidate.Url, out var canonical)) continue;
+                    media.TryAdd(canonical, new PublicBusinessMedia(
+                        "menu-item-image",
+                        canonical,
+                        provider,
+                        sourceUrl,
+                        observedAt,
+                        "high",
+                        AltText: name.Trim()));
+                }
+            }
         }
 
         void CaptureBoltSemanticMenu()
@@ -275,6 +301,27 @@ public static class PublicBusinessMediaMenuExtractor
                 foundStructuredContribution = true;
             }
         }
+    }
+
+    private static Dictionary<string, JsonElement> BuildGraphIndex(JsonElement root)
+    {
+        var graph = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        foreach (var candidate in EnumerateObjects(root))
+        {
+            if (TryGetString(candidate, "@id", out var id) && id is not null)
+                graph.TryAdd(id, candidate);
+        }
+        return graph;
+    }
+
+    private static JsonElement ResolveReference(JsonElement element, IReadOnlyDictionary<string, JsonElement> graphById)
+    {
+        if (element.ValueKind == JsonValueKind.Object &&
+            TryGetString(element, "@id", out var id) &&
+            id is not null &&
+            graphById.TryGetValue(id, out var resolved))
+            return resolved;
+        return element;
     }
 
     private static bool IsSupportedRendererProvider(string provider) =>
