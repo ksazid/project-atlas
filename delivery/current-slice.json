@@ -3,7 +3,7 @@
   "sliceId": "VS-28",
   "title": "VS-28 — Device-Adaptive Native Polish & Motion",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-16"],
@@ -24,6 +24,7 @@
       "VS-28 is presentation, accessibility and runtime-shell work only; it does not change domain, API, persistence, authentication/session, provider or recommendation behavior.",
       "The certified five-tab route names, order and destination meaning remain unchanged under DEC-09; structural navigation alignment remains deferred.",
       "Safe-area geometry derives from actual device insets, viewport width and font scale rather than device-name checks or fixed notch/home-indicator constants.",
+      "Top-level mobile navigation delegates to Expo Router NativeTabs; iOS uses system SF Symbols while Android retains Atlas icon fallbacks.",
       "Liquid Glass is limited to approved floating/structural chrome with a complete solid Atlas fallback for unsupported conditions, Reduce Transparency and Android.",
       "Motion is restrained, interruptible and reduced-motion aware; it must never delay content or block navigation.",
       "No production release, production enablement, EAS build/submit/OTA or deployment is authorized."
@@ -57,19 +58,38 @@
       "at": "2026-08-12T01:26:00+02:00",
       "rationale": "Product Owner selected inline Superpowers execution option 2 for the approved VS-28 implementation plan."
     },
-    {"type": "certification", "status": "pending", "version": "VS-28@1.0", "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-28@1.0",
+      "commitSha": "7b27107aeab106c7f8285e27c042051f6700a9d8",
+      "by": "PES/Loop",
+      "at": "2026-08-12T02:10:00Z",
+      "rationale": "Exact implementation SHA passed CI, Security baseline and Product Intake. Product Owner then accepted the corrected Expo Go physical-device experience using the native iOS tab shell after the earlier custom-tab candidate was rejected. Certification does not authorize merge, release, production enablement or deployment."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
   "decisionIds": ["DEC-09"],
-  "progress": {"discovery": 100, "decisions": 100, "implementation": 0, "testing": 0, "certification": 0, "release": 0, "validation": 0},
-  "certification": {"status": "not-started", "commitSha": null, "evidence": []},
+  "progress": {"discovery": 100, "decisions": 100, "implementation": 100, "testing": 100, "certification": 100, "release": 0, "validation": 0},
+  "certification": {
+    "status": "passed",
+    "commitSha": "7b27107aeab106c7f8285e27c042051f6700a9d8",
+    "evidence": [
+      "CI run 31555196422: exact implementation SHA green; repository preflight, .NET restore/build, EF database update, API tests and dashboard build all succeeded",
+      "Security baseline run 31555196419: green on exact implementation SHA",
+      "Product Intake run 31555196410: green on exact implementation SHA",
+      "Corrective TDD regression required Expo Router NativeTabs and rejected the superseded JavaScript Tabs/tabBarBackground shell before the production correction",
+      "atlas/expo-go-test-harness was fast-forwarded to exact implementation SHA 7b27107aeab106c7f8285e27c042051f6700a9d8",
+      "Product Owner accepted the corrected physical-device experience on 2026-08-12 after checking the native iOS tab treatment and VS-28 device-adaptive polish"
+    ]
+  },
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
     "specification": "docs/slices/VS-28.md",
-    "implementationPr": null,
+    "implementationPr": 51,
     "evidence": [
       "docs/superpowers/specs/2026-08-12-vs-28-device-adaptive-native-polish-motion-design.md",
       "docs/superpowers/plans/2026-08-12-vs-28-device-adaptive-native-polish-motion.md",
