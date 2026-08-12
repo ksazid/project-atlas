@@ -48,8 +48,7 @@
   "impact": {
     "areas": [
       "frontend",
-      "customer-flow",
-      "navigation"
+      "customer-flow"
     ],
     "notes": [
       "Refines Today from a simplified recommendation card into a single obvious daily task surface with one concise reason and compact evidence strength.",
