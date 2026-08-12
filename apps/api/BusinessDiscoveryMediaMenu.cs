@@ -32,10 +32,21 @@ public sealed record PublicBusinessOffering(
     bool OwnerConfirmed = false,
     int SourceOrder = 0);
 
+public static class PublicBusinessMediaMenuCoverage
+{
+    public const string Structured = "structured";
+    public const string SemanticHtml = "semantic-html";
+    public const string EmbeddedPublicState = "embedded-public-state";
+    public const string MediaOnly = "media-only";
+    public const string RendererRequired = "renderer-required";
+    public const string None = "none";
+}
+
 public sealed record PublicBusinessMediaMenuExtraction(
     IReadOnlyList<PublicBusinessMedia> Media,
     IReadOnlyList<PublicBusinessOffering> Offerings,
-    string? MenuUrl);
+    string? MenuUrl,
+    string Coverage);
 
 public static class PublicBusinessMediaMenuExtractor
 {
@@ -55,6 +66,12 @@ public static class PublicBusinessMediaMenuExtractor
     private static readonly Regex HtmlTagRegex = new(@"<[^>]+>", RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex WhitespaceRegex = new(@"\s+", RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex PriceNumberRegex = new(@"(?<amount>\d+(?:[.,]\d{1,2})?)", RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly string[] RendererMarkers =
+    [
+        "javascript is not enabled",
+        "please enable javascript",
+        "requires javascript"
+    ];
 
     public static PublicBusinessMediaMenuExtraction Extract(string provider, Uri sourceUri, string html, DateTimeOffset observedAt)
     {
@@ -63,9 +80,12 @@ public static class PublicBusinessMediaMenuExtractor
         var offerings = new Dictionary<string, PublicBusinessOffering>(StringComparer.OrdinalIgnoreCase);
         string? menuUrl = null;
         var foundStructuredImage = false;
+        var foundStructuredContribution = false;
+        var foundSemanticContribution = false;
 
         foreach (var root in StructuredRoots(html))
         {
+            var graphById = BuildGraphIndex(root);
             foreach (var business in EnumerateObjects(root).Where(IsBusinessObject))
             {
                 if (business.TryGetProperty("image", out var images))
@@ -75,15 +95,17 @@ public static class PublicBusinessMediaMenuExtractor
                         if (media.Count >= MaxMediaPerSource) break;
                         if (!TryCanonicalPublicUrl(sourceUri, candidate.Url, out var canonical)) continue;
                         foundStructuredImage = true;
+                        foundStructuredContribution = true;
                         media.TryAdd(canonical, new PublicBusinessMedia(
                             "business-image", canonical, provider, sourceUrl, observedAt, "high",
                             AltText: candidate.AltText));
                     }
                 }
 
+                var visited = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var menu in MenuValues(business))
                 {
-                    ReadMenu(menu, null);
+                    ReadMenu(menu, null, graphById, visited);
                     if (offerings.Count >= MaxOfferingsPerSource) break;
                 }
             }
@@ -102,29 +124,50 @@ public static class PublicBusinessMediaMenuExtractor
             }
         }
 
-        return new PublicBusinessMediaMenuExtraction(media.Values.Take(MaxMediaPerSource).ToList(), offerings.Values.ToList(), menuUrl);
+        var coverage = foundStructuredContribution
+            ? PublicBusinessMediaMenuCoverage.Structured
+            : foundSemanticContribution
+                ? PublicBusinessMediaMenuCoverage.SemanticHtml
+                : media.Count > 0
+                    ? PublicBusinessMediaMenuCoverage.MediaOnly
+                    : IsSupportedRendererProvider(provider) && HasRendererMarker(html)
+                        ? PublicBusinessMediaMenuCoverage.RendererRequired
+                        : PublicBusinessMediaMenuCoverage.None;
 
-        void ReadMenu(JsonElement element, string? inheritedSection)
+        return new PublicBusinessMediaMenuExtraction(
+            media.Values.Take(MaxMediaPerSource).ToList(),
+            offerings.Values.ToList(),
+            menuUrl,
+            coverage);
+
+        void ReadMenu(
+            JsonElement input,
+            string? inheritedSection,
+            IReadOnlyDictionary<string, JsonElement> graphById,
+            HashSet<string> visited)
         {
             if (offerings.Count >= MaxOfferingsPerSource) return;
 
-            if (element.ValueKind == JsonValueKind.String)
+            if (input.ValueKind == JsonValueKind.String)
             {
-                CaptureMenuUrl(element.GetString());
+                CaptureMenuUrl(input.GetString());
                 return;
             }
 
-            if (element.ValueKind == JsonValueKind.Array)
+            if (input.ValueKind == JsonValueKind.Array)
             {
-                foreach (var item in element.EnumerateArray())
+                foreach (var item in input.EnumerateArray())
                 {
-                    ReadMenu(item, inheritedSection);
+                    ReadMenu(item, inheritedSection, graphById, visited);
                     if (offerings.Count >= MaxOfferingsPerSource) break;
                 }
                 return;
             }
 
-            if (element.ValueKind != JsonValueKind.Object) return;
+            if (input.ValueKind != JsonValueKind.Object) return;
+
+            var element = ResolveReference(input, graphById);
+            if (TryGetString(element, "@id", out var id) && id is not null && !visited.Add(id)) return;
 
             if (TryGetString(element, "url", out var url)) CaptureMenuUrl(url);
 
@@ -140,7 +183,7 @@ public static class PublicBusinessMediaMenuExtractor
 
             foreach (var property in new[] { "hasMenuSection", "hasMenuItem", "itemListElement" })
             {
-                if (element.TryGetProperty(property, out var child)) ReadMenu(child, section);
+                if (element.TryGetProperty(property, out var child)) ReadMenu(child, section, graphById, visited);
                 if (offerings.Count >= MaxOfferingsPerSource) break;
             }
         }
@@ -165,6 +208,24 @@ public static class PublicBusinessMediaMenuExtractor
                 sourceUrl,
                 observedAt,
                 "high"));
+            foundStructuredContribution = true;
+
+            if (item.TryGetProperty("image", out var itemImages))
+            {
+                foreach (var candidate in ImageUrls(itemImages))
+                {
+                    if (media.Count >= MaxMediaPerSource) break;
+                    if (!TryCanonicalPublicUrl(sourceUri, candidate.Url, out var canonical)) continue;
+                    media.TryAdd(canonical, new PublicBusinessMedia(
+                        "menu-item-image",
+                        canonical,
+                        provider,
+                        sourceUrl,
+                        observedAt,
+                        "high",
+                        AltText: name.Trim()));
+                }
+            }
         }
 
         void CaptureBoltSemanticMenu()
@@ -203,6 +264,7 @@ public static class PublicBusinessMediaMenuExtractor
                         sourceUrl,
                         observedAt,
                         "high"));
+                    foundSemanticContribution = true;
 
                     if (media.Count < MaxMediaPerSource)
                     {
@@ -217,6 +279,7 @@ public static class PublicBusinessMediaMenuExtractor
                                 observedAt,
                                 "high",
                                 AltText: name));
+                            foundSemanticContribution = true;
                         }
                     }
                 }
@@ -232,9 +295,41 @@ public static class PublicBusinessMediaMenuExtractor
         void CaptureMenuUrl(string? value)
         {
             if (menuUrl is not null) return;
-            if (TryCanonicalPublicUrl(sourceUri, value, out var canonical)) menuUrl = canonical;
+            if (TryCanonicalPublicUrl(sourceUri, value, out var canonical))
+            {
+                menuUrl = canonical;
+                foundStructuredContribution = true;
+            }
         }
     }
+
+    private static Dictionary<string, JsonElement> BuildGraphIndex(JsonElement root)
+    {
+        var graph = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        foreach (var candidate in EnumerateObjects(root))
+        {
+            if (TryGetString(candidate, "@id", out var id) && id is not null)
+                graph.TryAdd(id, candidate);
+        }
+        return graph;
+    }
+
+    private static JsonElement ResolveReference(JsonElement element, IReadOnlyDictionary<string, JsonElement> graphById)
+    {
+        if (element.ValueKind == JsonValueKind.Object &&
+            TryGetString(element, "@id", out var id) &&
+            id is not null &&
+            graphById.TryGetValue(id, out var resolved))
+            return resolved;
+        return element;
+    }
+
+    private static bool IsSupportedRendererProvider(string provider) =>
+        provider.Equals("bolt-food", StringComparison.OrdinalIgnoreCase) ||
+        provider.Equals("wolt", StringComparison.OrdinalIgnoreCase);
+
+    private static bool HasRendererMarker(string html) =>
+        RendererMarkers.Any(marker => html.Contains(marker, StringComparison.OrdinalIgnoreCase));
 
     private static IEnumerable<JsonElement> StructuredRoots(string html)
     {

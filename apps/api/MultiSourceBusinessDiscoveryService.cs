@@ -61,6 +61,7 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
     GoogleBusinessSourceResolver googleResolver,
     IBusinessLocationProvider locationProvider)
 {
+    private const string RendererRequiredWarningCode = "business_source_menu_renderer_required";
     private static readonly HttpClient GoogleSourceClient = CreateGoogleSourceClient();
 
     public MultiSourceBusinessDiscoveryService(
@@ -102,6 +103,7 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
                     source.Value,
                     "success",
                     snapshot.Facts,
+                    WarningCode: CoverageWarning(snapshot),
                     Media: snapshot.Media,
                     Offerings: snapshot.Offerings));
             }
@@ -142,6 +144,7 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
                             websiteSnapshot.SourceUrl,
                             "success",
                             websiteSnapshot.Facts,
+                            WarningCode: CoverageWarning(websiteSnapshot),
                             Media: websiteSnapshot.Media,
                             Offerings: websiteSnapshot.Offerings));
                     }
@@ -163,6 +166,11 @@ public sealed partial class MultiSourceBusinessDiscoveryService(
 
         return BusinessDiscoveryReconciler.Reconcile(observations);
     }
+
+    internal static string? CoverageWarning(PublicBusinessSnapshot snapshot) =>
+        string.Equals(snapshot.MediaMenuCoverage, PublicBusinessMediaMenuCoverage.RendererRequired, StringComparison.Ordinal)
+            ? RendererRequiredWarningCode
+            : null;
 
     private static bool AlreadySupplied(string websiteUrl, IReadOnlyList<CanonicalBusinessUrl> sources)
     {
