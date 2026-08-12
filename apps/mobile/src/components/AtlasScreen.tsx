@@ -18,6 +18,8 @@ export type AtlasScreenProps = {
   refreshControl?: ScrollViewProps['refreshControl'];
   showsVerticalScrollIndicator?: boolean;
   keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
+  keyboardDismissMode?: ScrollViewProps['keyboardDismissMode'];
+  automaticallyAdjustKeyboardInsets?: ScrollViewProps['automaticallyAdjustKeyboardInsets'];
 };
 
 export function AtlasScreen({
@@ -28,6 +30,8 @@ export function AtlasScreen({
   refreshControl,
   showsVerticalScrollIndicator,
   keyboardShouldPersistTaps,
+  keyboardDismissMode,
+  automaticallyAdjustKeyboardInsets,
 }: AtlasScreenProps): ReactElement {
   const insets = useSafeAreaInsets();
   const { width, fontScale } = useWindowDimensions();
@@ -54,6 +58,8 @@ export function AtlasScreen({
       refreshControl={refreshControl}
       showsVerticalScrollIndicator={showsVerticalScrollIndicator}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+      keyboardDismissMode={keyboardDismissMode}
+      automaticallyAdjustKeyboardInsets={automaticallyAdjustKeyboardInsets}
     >
       {children}
     </ScrollView>
