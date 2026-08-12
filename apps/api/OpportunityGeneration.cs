@@ -180,13 +180,6 @@ public static class OpportunityGenerator
             .ThenBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
             .ThenBy(x => x.EvidenceId, StringComparer.Ordinal)
             .ToArray();
-
-        if (!evidence.Any(x => !string.Equals(x.Layer, "policy", StringComparison.OrdinalIgnoreCase)))
-        {
-            evidence = [];
-            return false;
-        }
-
         return true;
     }
 
