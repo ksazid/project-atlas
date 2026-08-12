@@ -22,7 +22,7 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.Equal(RestaurantCafeKnowledgeManifestV2.Version, opportunity.KnowledgePackVersion);
         Assert.Equal(setup.Assignment.KnowledgePackVersionId, opportunity.KnowledgePackVersionId);
         Assert.Equal(setup.Goal.Id, opportunity.GoalId);
-        Assert.DoesNotStartWith("0 evidence items", opportunity.EvidenceSummary, StringComparison.Ordinal);
+        Assert.False(opportunity.EvidenceSummary.StartsWith("0 evidence items", StringComparison.Ordinal));
         Assert.Single(await db.Set<Opportunity>().ToListAsync());
 
         using var snapshot = JsonDocument.Parse(opportunity.EvidenceJson);
