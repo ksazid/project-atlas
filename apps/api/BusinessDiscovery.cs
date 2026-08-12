@@ -250,13 +250,16 @@ public sealed record PublicBusinessSnapshot(
 public static class PublicBusinessExtractor
 {
     public const int MaxFactValueCharacters = BusinessDiscoveryProvenance.MaxValueCharacters;
+    private const int MaxSocialChannels = 8;
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
+    private static readonly string[] SocialHosts = ["facebook.com", "instagram.com", "linkedin.com", "tiktok.com", "x.com", "twitter.com", "youtube.com"];
     private static readonly Regex JsonLdRegex = new(@"<script[^>]+type=[""']application/ld\+json[""'][^>]*>(.*?)</script>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex OgTitleRegex = new(@"<meta[^>]+property=[""']og:title[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex TitleRegex = new(@"<title[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex OgDescriptionRegex = new(@"<meta[^>]+property=[""']og:description[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex MetaDescriptionRegex = new(@"<meta[^>]+name=[""']description[""'][^>]+content=(?<quote>[""'])(?<value>.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex StreetAddressRegex = new(@"[""']streetAddress[""']\s*:\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly Regex ContactHrefRegex = new(@"href\s*=\s*(?<quote>[""'])(?<value>(?:mailto|tel):.*?)\k<quote>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
 
     public static PublicBusinessSnapshot Extract(string provider, Uri sourceUri, string html, DateTimeOffset observedAt)
     {
@@ -270,14 +273,18 @@ public static class PublicBusinessExtractor
         var structuredDescription = StructuredString("description");
         var structuredUrl = StructuredString("url");
         var structuredPhone = StructuredString("telephone");
+        var structuredEmail = StructuredString("email");
         var typeText = structured is JsonElement structuredValue ? ReadTypes(structuredValue) : string.Empty;
         var name = Decode(structuredName ?? FirstMatch(OgTitleRegex, html) ?? FirstMatch(TitleRegex, html));
         var description = Decode(structuredDescription ?? FirstMatch(OgDescriptionRegex, html) ?? FirstMatch(MetaDescriptionRegex, html));
+        var phone = Decode(structuredPhone) ?? ReadUniqueContactHref(html, "tel");
+        var email = Decode(structuredEmail) ?? ReadUniqueContactHref(html, "mailto");
 
         Add("name", CleanTitle(name, provider), structuredName is null ? "medium" : "high");
         Add("description", description, structuredDescription is null ? "medium" : "high");
         Add("website", Decode(structuredUrl), "high");
-        Add("phone", Decode(structuredPhone), "high");
+        Add("phone", phone, structuredPhone is null ? "medium" : "high");
+        Add("email", email, structuredEmail is null ? "medium" : "high");
 
         if (structured is JsonElement business)
         {
@@ -285,6 +292,7 @@ public static class PublicBusinessExtractor
             Add("primaryLocation", address.Location, "high");
             Add("country", address.Country, "high");
             Add("openingHours", ReadOpeningHours(business), "high");
+            Add("socialChannels", ReadSocialChannels(business), "high");
         }
         else
         {
@@ -470,6 +478,96 @@ public static class PublicBusinessExtractor
             .Where(x => !string.IsNullOrWhiteSpace(x));
         var combined = string.Join("; ", values);
         return combined.Length == 0 ? null : combined;
+    }
+
+    private static string? ReadSocialChannels(JsonElement business)
+    {
+        if (!business.TryGetProperty("sameAs", out var sameAs)) return null;
+
+        IEnumerable<string> Candidates()
+        {
+            if (sameAs.ValueKind == JsonValueKind.String)
+            {
+                var value = sameAs.GetString();
+                if (!string.IsNullOrWhiteSpace(value)) yield return value;
+            }
+            else if (sameAs.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in sameAs.EnumerateArray())
+                    if (item.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(item.GetString()))
+                        yield return item.GetString()!;
+            }
+        }
+
+        var channels = Candidates()
+            .Select(CanonicalSocialUrl)
+            .Where(x => x is not null)
+            .Select(x => x!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(MaxSocialChannels)
+            .ToList();
+        if (channels.Count == 0) return null;
+
+        var joined = string.Join(" | ", channels);
+        return joined.Length <= MaxFactValueCharacters ? joined : null;
+    }
+
+    private static string? CanonicalSocialUrl(string? value)
+    {
+        var decoded = Decode(value);
+        if (decoded is null || !Uri.TryCreate(decoded, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps) return null;
+        var host = uri.IdnHost.TrimEnd('.').ToLowerInvariant();
+        if (!SocialHosts.Any(allowed => host.Equals(allowed, StringComparison.Ordinal) || host.EndsWith($".{allowed}", StringComparison.Ordinal))) return null;
+        if (!PublicBusinessUrlPolicy.TryValidate(decoded, out _, out _)) return null;
+
+        var builder = new UriBuilder(uri)
+        {
+            Host = host,
+            Fragment = string.Empty
+        };
+        return builder.Uri.AbsoluteUri;
+    }
+
+    private static string? ReadUniqueContactHref(string html, string scheme)
+    {
+        var prefix = $"{scheme}:";
+        var values = ContactHrefRegex.Matches(html)
+            .Select(match => WebUtility.HtmlDecode(match.Groups["value"].Value).Trim())
+            .Where(value => value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .Select(value => value[prefix.Length..])
+            .Select(value => scheme.Equals("mailto", StringComparison.OrdinalIgnoreCase) ? NormalizeEmailContact(value) : NormalizePhoneContact(value))
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(2)
+            .ToList();
+        return values.Count == 1 ? values[0] : null;
+    }
+
+    private static string? NormalizeEmailContact(string value)
+    {
+        var candidate = value.Split('?', 2)[0].Trim();
+        if (candidate.Length == 0 || candidate.Length > MaxFactValueCharacters ||
+            candidate.Any(char.IsWhiteSpace) || candidate.Contains(',') || candidate.Contains(';')) return null;
+        var at = candidate.IndexOf('@');
+        if (at <= 0 || at != candidate.LastIndexOf('@') || at == candidate.Length - 1) return null;
+        return candidate.ToLowerInvariant();
+    }
+
+    private static string? NormalizePhoneContact(string value)
+    {
+        var candidate = value.Split('?', 2)[0].Trim();
+        if (candidate.Length == 0) return null;
+        var builder = new StringBuilder(candidate.Length);
+        foreach (var ch in candidate)
+        {
+            if (char.IsDigit(ch)) builder.Append(ch);
+            else if (ch == '+' && builder.Length == 0) builder.Append(ch);
+            else if (!char.IsWhiteSpace(ch) && ch is not '-' and not '(' and not ')' and not '.') return null;
+        }
+        var normalized = builder.ToString();
+        var digits = normalized.Count(char.IsDigit);
+        return digits is >= 5 and <= 20 ? normalized : null;
     }
 
     private static string? FirstMatch(Regex regex, string value)
