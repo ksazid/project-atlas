@@ -3,7 +3,7 @@
   "sliceId": "VS-30",
   "title": "VS-30 — Today’s Focus Evidence Compatibility Repair",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-07", "FR-16"],
@@ -62,7 +62,15 @@
       "at": "2026-08-12T04:22:00+02:00",
       "rationale": "Product Owner said 'Go ahead' after the repair was explicitly scoped to reproduce and fix the Today’s Focus zero-evidence defect before VS-29."
     },
-    {"type": "certification", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+    {
+      "type": "certification",
+      "status": "approved",
+      "version": "VS-30@1.0",
+      "commitSha": "3f99cd22d9cee4ccae927e486f168a200c32ab46",
+      "by": "PES/Loop",
+      "at": "2026-08-12T05:13:00+02:00",
+      "rationale": "Exact implementation SHA passed CI, Security baseline and Product Intake. Product Owner then said 'Go' to proceed with certification/acceptance only. Certification does not authorize merge, release, production enablement or deployment."
+    },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
@@ -70,13 +78,25 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 0,
-    "testing": 0,
-    "certification": 0,
+    "implementation": 100,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
-  "certification": {"status": "not-started", "commitSha": null, "evidence": []},
+  "certification": {
+    "status": "passed",
+    "commitSha": "3f99cd22d9cee4ccae927e486f168a200c32ab46",
+    "evidence": [
+      "CI run 31558960369: exact implementation SHA green; preflight, .NET restore/build, EF database update, API tests, dashboard build and artifact upload succeeded",
+      "CI run 31558960369: 149 mobile tests passed with 0 failures",
+      "CI run 31558960369: 314 API tests passed with 0 failures and 0 skipped",
+      "Security baseline run 31558960264: green on exact implementation SHA",
+      "Product Intake run 31558960415: green on exact implementation SHA",
+      "TDD reproduced canonical operatingchannels selecting the wrong generic fallback and profile plus goal producing zero factual evidence before the bounded repair",
+      "Product Owner accepted certification on 2026-08-12 by instructing 'Go' after exact-head verification; merge remains a separate human approval"
+    ]
+  },
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
