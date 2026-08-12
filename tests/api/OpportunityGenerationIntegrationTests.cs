@@ -25,6 +25,15 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.False(opportunity.EvidenceSummary.StartsWith("0 evidence items", StringComparison.Ordinal));
         Assert.Single(await db.Set<Opportunity>().ToListAsync());
 
+        var diagnostic = Assert.Single(await db.IntelligenceRuns.ToListAsync());
+        Assert.Equal(OpportunityFocusGenerationStates.Ready, diagnostic.Outcome);
+        Assert.Null(diagnostic.Code);
+        Assert.True(diagnostic.CandidateCount > 0);
+        Assert.Equal(opportunity.Id, diagnostic.OpportunityId);
+        Assert.Equal(setup.Business.Id, diagnostic.BusinessId);
+        Assert.Equal(setup.Account.Id, diagnostic.ActorUserAccountId);
+        Assert.Equal(Now, diagnostic.OccurredAt);
+
         using var snapshot = JsonDocument.Parse(opportunity.EvidenceJson);
         Assert.Equal("ordering-path-clarity-review", snapshot.RootElement.GetProperty("patternKey").GetString());
         Assert.False(string.IsNullOrWhiteSpace(snapshot.RootElement.GetProperty("bundleFingerprint").GetString()));
@@ -47,6 +56,11 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.Equal("opportunity_no_eligible_candidate", result.Code);
         Assert.Null(result.Opportunity);
         Assert.Empty(await db.Set<Opportunity>().ToListAsync());
+        var diagnostic = Assert.Single(await db.IntelligenceRuns.ToListAsync());
+        Assert.Equal(OpportunityFocusGenerationStates.NoFocus, diagnostic.Outcome);
+        Assert.Equal("opportunity_no_eligible_candidate", diagnostic.Code);
+        Assert.True(diagnostic.CandidateCount > 0);
+        Assert.Null(diagnostic.OpportunityId);
     }
 
     [Fact]
@@ -61,6 +75,10 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.Equal(OpportunityFocusGenerationStates.NoFocus, result.State);
         Assert.Null(result.Opportunity);
         Assert.Empty(await db.Set<Opportunity>().ToListAsync());
+        var diagnostic = Assert.Single(await db.IntelligenceRuns.ToListAsync());
+        Assert.Equal(OpportunityFocusGenerationStates.NoFocus, diagnostic.Outcome);
+        Assert.Equal("opportunity_no_eligible_candidate", diagnostic.Code);
+        Assert.Equal(0, diagnostic.CandidateCount);
     }
 
     [Fact]
@@ -77,6 +95,10 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.Equal(OpportunityFocusGenerationStates.Ready, result.State);
         Assert.Equal(existing.Id, result.Opportunity?.Id);
         Assert.Single(await db.Set<Opportunity>().ToListAsync());
+        var diagnostic = Assert.Single(await db.IntelligenceRuns.ToListAsync());
+        Assert.Equal(OpportunityFocusGenerationStates.Ready, diagnostic.Outcome);
+        Assert.Equal(0, diagnostic.CandidateCount);
+        Assert.Equal(existing.Id, diagnostic.OpportunityId);
     }
 
     [Fact]
@@ -92,6 +114,11 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.Equal(OpportunityFocusGenerationStates.InsufficientContext, result.State);
         Assert.Null(result.Opportunity);
         Assert.Empty(await db.Set<Opportunity>().ToListAsync());
+        var diagnostic = Assert.Single(await db.IntelligenceRuns.ToListAsync());
+        Assert.Equal(OpportunityFocusGenerationStates.InsufficientContext, diagnostic.Outcome);
+        Assert.Equal(OpportunityReadinessCodes.ProfileMissing, diagnostic.Code);
+        Assert.Equal(0, diagnostic.CandidateCount);
+        Assert.Null(diagnostic.OpportunityId);
     }
 
     [Fact]
@@ -108,6 +135,11 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.Equal("business_access_unavailable", result.Code);
         Assert.Null(result.Opportunity);
         Assert.Empty(await db.Set<Opportunity>().ToListAsync());
+        var diagnostic = Assert.Single(await db.IntelligenceRuns.Where(x => x.BusinessId == target.Business.Id).ToListAsync());
+        Assert.Equal(OpportunityFocusGenerationStates.Degraded, diagnostic.Outcome);
+        Assert.Equal("business_access_unavailable", diagnostic.Code);
+        Assert.Equal(0, diagnostic.CandidateCount);
+        Assert.Equal(other.Account.Id, diagnostic.ActorUserAccountId);
     }
 
     [Fact]
@@ -124,6 +156,11 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.Equal("core_manifest_unavailable", result.Code);
         Assert.Null(result.Opportunity);
         Assert.Empty(await db.Set<Opportunity>().ToListAsync());
+        var diagnostic = Assert.Single(await db.IntelligenceRuns.ToListAsync());
+        Assert.Equal(OpportunityFocusGenerationStates.Degraded, diagnostic.Outcome);
+        Assert.Equal("core_manifest_unavailable", diagnostic.Code);
+        Assert.Equal(0, diagnostic.CandidateCount);
+        Assert.Null(diagnostic.OpportunityId);
     }
 
     [Fact]
@@ -141,6 +178,10 @@ public sealed class OpportunityGenerationIntegrationTests
         Assert.NotEqual(expired.Id, result.Opportunity?.Id);
         Assert.Equal(OpportunityStatuses.Expired, expired.Status);
         Assert.Equal(2, await db.Set<Opportunity>().CountAsync());
+        var diagnostic = Assert.Single(await db.IntelligenceRuns.ToListAsync());
+        Assert.Equal(OpportunityFocusGenerationStates.Ready, diagnostic.Outcome);
+        Assert.True(diagnostic.CandidateCount > 0);
+        Assert.Equal(result.Opportunity?.Id, diagnostic.OpportunityId);
     }
 
     private static readonly DateTimeOffset Now = new(2026, 8, 11, 2, 0, 0, TimeSpan.Zero);

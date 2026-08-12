@@ -13,6 +13,7 @@ public static class FieldSources
 {
     public const string Owner = "owner";
     public const string Public = "public";
+    public const string OperatorAssisted = "operator-assisted";
 }
 
 public sealed record CreateBusinessRequest(string Name, string Category, string Country, string Timezone, string Currency, string PrimaryLocation, string OperatingStatus)
@@ -122,6 +123,8 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     public DbSet<ExecutionKit> ExecutionKits => Set<ExecutionKit>(); public DbSet<ExecutionAsset> ExecutionAssets => Set<ExecutionAsset>();
     public DbSet<ActionDecisionRecord> ActionDecisionRecords => Set<ActionDecisionRecord>();
     public DbSet<FeedbackRecord> FeedbackRecords => Set<FeedbackRecord>();
+    public DbSet<IntelligenceRunRecord> IntelligenceRuns => Set<IntelligenceRunRecord>();
+    public DbSet<PilotOperationRecord> PilotOperationRecords => Set<PilotOperationRecord>();
     public DbSet<Outcome> Outcomes => Set<Outcome>(); public DbSet<BusinessMemoryItem> BusinessMemoryItems => Set<BusinessMemoryItem>();
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>(); public DbSet<NotificationRecord> NotificationRecords => Set<NotificationRecord>();
     public DbSet<BusinessDiscoverySnapshot> BusinessDiscoverySnapshots => Set<BusinessDiscoverySnapshot>();
@@ -207,6 +210,24 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<FeedbackRecord>().HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<FeedbackRecord>().HasOne<Opportunity>().WithMany().HasForeignKey(x => x.OpportunityId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<FeedbackRecord>().HasOne<UserAccount>().WithMany().HasForeignKey(x => x.SubmittedByAccountId).OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<IntelligenceRunRecord>().Property(x => x.Outcome).HasMaxLength(40);
+        modelBuilder.Entity<IntelligenceRunRecord>().Property(x => x.Code).HasMaxLength(120);
+        modelBuilder.Entity<IntelligenceRunRecord>().HasIndex(x => new { x.BusinessId, x.OccurredAt });
+        modelBuilder.Entity<IntelligenceRunRecord>().HasIndex(x => x.ActorUserAccountId);
+        modelBuilder.Entity<IntelligenceRunRecord>().HasIndex(x => x.OpportunityId);
+        modelBuilder.Entity<IntelligenceRunRecord>().HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<IntelligenceRunRecord>().HasOne<UserAccount>().WithMany().HasForeignKey(x => x.ActorUserAccountId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<IntelligenceRunRecord>().HasOne<Opportunity>().WithMany().HasForeignKey(x => x.OpportunityId).OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<PilotOperationRecord>().Property(x => x.Action).HasMaxLength(40);
+        modelBuilder.Entity<PilotOperationRecord>().Property(x => x.TargetType).HasMaxLength(40);
+        modelBuilder.Entity<PilotOperationRecord>().Property(x => x.Reason).HasMaxLength(2000);
+        modelBuilder.Entity<PilotOperationRecord>().Property(x => x.MetadataJson).HasColumnType("jsonb");
+        modelBuilder.Entity<PilotOperationRecord>().HasIndex(x => new { x.BusinessId, x.OccurredAt });
+        modelBuilder.Entity<PilotOperationRecord>().HasIndex(x => x.OperatorUserAccountId);
+        modelBuilder.Entity<PilotOperationRecord>().HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<PilotOperationRecord>().HasOne<UserAccount>().WithMany().HasForeignKey(x => x.OperatorUserAccountId).OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Outcome>().Property(x => x.ConcurrencyVersion).IsRowVersion();
         modelBuilder.Entity<Outcome>().Property(x => x.ResultSummary).HasMaxLength(1000);
