@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-31",
-  "title": "VS-31 — Native Navigation Alignment",
+  "sliceId": "VS-32",
+  "title": "VS-32 — Feedback, Safety Reporting & Support",
   "status": "active",
-  "lifecycle": "certified",
+  "lifecycle": "implementing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-03", "FR-12", "FR-16"],
+  "requirements": ["FR-17", "FR-16"],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -18,13 +18,13 @@
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-27",
-    "VS-28@060d0fcb94dbf0d9f8cb55bf59dc0833f246e807",
-    "VS-29@689c984040ec72e0cb7cfa314b3efe71d50ee74e"
+    "VS-31@9cd153aae1f0e0962548ecf2cfb5f112350a5a73"
   ],
   "blockers": [],
   "allowedPaths": [
+    "apps/api/**",
     "apps/mobile/**",
+    "tests/api/**",
     "tests/mobile/**",
     "delivery/**",
     "docs/**"
@@ -32,97 +32,88 @@
   "protectedPaths": [
     ".github/workflows/release.yml",
     "infrastructure/**",
-    "apps/api/**",
-    "tests/api/**",
     "**/Payments/**",
     "**/Uploads/**"
   ],
   "impact": {
-    "areas": ["frontend", "customer-flow"],
+    "areas": ["frontend", "api", "persistence", "customer-flow", "legal-privacy"],
     "notes": [
-      "Resolves the four-vs-five primary-navigation mismatch explicitly deferred by DEC-02, DEC-03 and DEC-09.",
-      "Persistent NativeTabs are Today, History, Goals and Profile in the approved ATLAS-DESIGN-001 order.",
-      "Business Hub remains the Profile root; Context and Settings remain available as pushed Profile-detail Stack routes rather than persistent tabs.",
-      "History is a true tab root while retaining the public/deep-link path /history because Expo Router route groups are URL-transparent.",
-      "Context and Settings retain existing API/model behavior, Development-only reset, notifications and Business Memory behavior.",
-      "AtlasScreen reserves tab-bar spacing only when the active route is actually inside the (tabs) route group and defers top-safe-area ownership to the native Stack header on Context/Settings detail routes.",
-      "No API, database, migration, authentication, recommendation, release or deployment change was introduced."
+      "Completes the remaining FR-17 owner feedback/support gap without overloading Action Decision or Outcome semantics.",
+      "Adds append-only Business-scoped feedback for Opportunity usefulness, incorrect context, unsafe guidance, general feedback and support requests.",
+      "Opportunity references are accepted only when they belong to the authenticated owner's Business; cross-Business references fail with safe not-found behavior.",
+      "Unsafe-guidance reports record a review signal only and do not automatically mutate, withdraw, suppress or expire an Opportunity.",
+      "Incorrect-context reports do not overwrite Business Context; the existing owner Context editor remains the correction mechanism.",
+      "Owner notes are optional, text-only, trimmed and capped at 1200 characters; the mobile flow explicitly warns against including customer names, contact details or other end-customer personal data.",
+      "No attachments, external helpdesk/CRM, email/chat transport, queue, Redis dependency, automated moderation or analytics dashboard is introduced.",
+      "VS-31 native navigation remains unchanged: Today, History, Goals and Profile are the only persistent tabs; Feedback & Support is a pushed root Stack detail route.",
+      "FR-18 Pilot Operations is explicitly deferred to a separate governed slice and may consume immutable feedback records later.",
+      "No production release, deployment, EAS build/submit/OTA, production enablement or production database mutation is authorized."
     ]
   },
   "approvals": [
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-31@1.0",
+      "version": "VS-32@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-12T08:01:00+02:00",
-      "rationale": "Product Owner granted standing approval to proceed with upcoming slices, including required design changes, fixes and merge. VS-31 is the dedicated bounded navigation-alignment slice already deferred by DEC-09."
+      "at": "2026-08-12T10:38:00+02:00",
+      "rationale": "Product Owner granted standing approval for all upcoming governed slices, including required bounded design changes, implementation, fixes, certification and merge. VS-32 closes the approved PRD FR-17 gap only."
     },
     {
       "type": "policy",
       "status": "not-required",
-      "version": "VS-31@1.0",
+      "version": "VS-32@1.0",
       "commitSha": null,
       "by": "PES/Loop",
-      "at": "2026-08-12T08:01:00+02:00",
-      "rationale": "This slice changes mobile information architecture only and introduces no provider, retention, sensitive-data, authorization, external-action, release or production policy boundary."
+      "at": "2026-08-12T10:38:00+02:00",
+      "rationale": "VS-32 introduces no external provider, attachments, automated moderation, external action, end-customer data collection requirement, release or production boundary. Bounded optional owner notes remain inside the existing data-minimisation model with explicit privacy guidance."
     },
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-31@1.0",
+      "version": "VS-32@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-12T08:01:00+02:00",
-      "rationale": "Product Owner explicitly authorized implementation, bounded design changes, fixes and merge for upcoming governed slices."
+      "at": "2026-08-12T10:38:00+02:00",
+      "rationale": "Product Owner explicitly authorized implementation, fixes and bounded design changes for upcoming governed slices, with the appropriate repository and Superpowers skills."
     },
     {
       "type": "certification",
-      "status": "approved",
-      "version": "VS-31@1.0",
-      "commitSha": "2926727cbc1b25c5eb29853240e208636cc20253",
-      "by": "PES/Loop",
-      "at": "2026-08-12T11:00:00+02:00",
-      "rationale": "The frozen runtime SHA passed the exact-head mobile/native-runtime, database replay, API regression, Security baseline and Product Intake gates after the planned RED-to-GREEN cycle and changed-file review. Certification binds only this exact runtime SHA; release and production enablement remain unauthorized."
+      "status": "pending",
+      "version": "VS-32@1.0",
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
     },
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
-  "decisionIds": ["DEC-10"],
+  "decisionIds": [],
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 100,
-    "testing": 100,
-    "certification": 100,
+    "implementation": 0,
+    "testing": 0,
+    "certification": 0,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "passed",
-    "commitSha": "2926727cbc1b25c5eb29853240e208636cc20253",
-    "evidence": [
-      "Activation baseline 298731e73220a54c51674ab7d5b39769522a4a70: CI 31568707702, Security 31568707731 and Product Intake 31568707678 passed before runtime edits",
-      "TDD RED 8717e24b558a4c644abf4152fa7f3f885c9f8828: five intended VS-31 navigation failures reproduced while 152 existing mobile tests passed",
-      "CI 31580555641: exact runtime SHA green; governance/preflight, Expo SDK 54 platform validation, TypeScript, Expo lint, authentic Expo Web runtime checks, PostgreSQL 17 migration replay, API tests and dashboard build/artifact upload succeeded",
-      "CI 31580555641: 158 mobile tests passed with 0 failures, including all five VS-31 navigation-alignment contracts and existing runtime journeys",
-      "CI 31580555641: 325 API tests passed with 0 failures and 0 skipped",
-      "Security baseline 31580555710: green on exact runtime SHA",
-      "Product Intake 31580555630: green on exact runtime SHA",
-      "Changed-file review confirmed the runtime boundary contains only mobile navigation/screen-shell files and mobile acceptance tests; no API, migration, infrastructure, release or deployment files changed"
-    ]
+    "status": "not-started",
+    "commitSha": null,
+    "evidence": []
   },
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification": "docs/slices/VS-31.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/54",
+    "specification": "docs/slices/VS-32.md",
+    "implementationPr": null,
     "evidence": [
-      "docs/slices/VS-31.md",
-      "docs/superpowers/specs/2026-08-12-vs-31-native-navigation-alignment-design.md",
-      "docs/superpowers/plans/2026-08-12-vs-31-native-navigation-alignment.md"
+      "docs/superpowers/specs/2026-08-12-vs-32-feedback-support-design.md",
+      "docs/superpowers/plans/2026-08-12-vs-32-feedback-support.md"
     ]
   },
   "maxAttempts": 3
