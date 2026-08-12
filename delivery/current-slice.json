@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-33",
-  "title": "VS-33 — Today Experience Simplification",
+  "sliceId": "VS-34",
+  "title": "VS-34 — Today Clarity & Navigation Consistency",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "medium",
@@ -22,13 +22,16 @@
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-30@c01eb6f395ffdd4520b94d3253ea099af0c42447",
     "VS-31@9cd153aae1f0e0962548ecf2cfb5f112350a5a73",
-    "VS-32@66e2b7979d68b390d74b395f650b0b6d215e71a8"
+    "VS-32@66e2b7979d68b390d74b395f650b0b6d215e71a8",
+    "VS-33@cbf9c21ba440a6691e1344efcd598e5a0193745e"
   ],
   "blockers": [],
   "allowedPaths": [
     "apps/mobile/src/features/today-focus/**",
+    "apps/mobile/app/settings.tsx",
+    "apps/mobile/app/context.tsx",
+    "apps/mobile/app/feedback.tsx",
     "tests/mobile/**",
     "delivery/**",
     "docs/**"
@@ -38,7 +41,6 @@
     "infrastructure/**",
     "apps/api/**",
     "tests/api/**",
-    "apps/mobile/app/**",
     "apps/mobile/src/components/AtlasScreen.tsx",
     "**/Payments/**",
     "**/Uploads/**"
@@ -49,52 +51,54 @@
       "customer-flow"
     ],
     "notes": [
-      "Simplifies Today into a calm daily decision surface with one primary Best move and one primary Apply action.",
-      "Native pull-to-refresh remains available and successful loads expose a concise freshness cue while safe existing content is preserved during manual refresh where practical.",
-      "Why Now, Evidence, interpretation, assumptions, limitations, expiry and Knowledge Pack metadata move out of the Today surface and remain available through Opportunity Detail.",
-      "Later reuses the existing Skip decision semantics; no new Action Decision state or backend change is introduced.",
-      "Empty and degraded states become shorter and recovery-oriented without weakening the no-filler recommendation policy.",
-      "The implementation remains cross-industry and must not fabricate BI metrics or leak restaurant-specific assumptions into Atlas Core.",
-      "Today / History / Goals / Profile persistent navigation remains unchanged.",
-      "No API, database, migration, connector, infrastructure, release or production deployment change is authorized."
+      "Refines Today from a simplified recommendation card into a single obvious daily task surface with one concise reason and compact evidence strength.",
+      "Recommendation/task typography becomes strong sans-serif while the Today page title retains the established editorial serif treatment.",
+      "Impact, Effort and Confidence use one compact row containing only existing server-provided values; no fabricated percentages or metrics are introduced.",
+      "I’ll do this reuses Apply semantics, Why this? opens Opportunity Detail, Later reuses Skip semantics, and Not relevant reuses the existing not-relevant decision.",
+      "The duplicate reasoning card is removed; Opportunity Detail remains authoritative for deeper evidence, assumptions, limitations, expiry and Knowledge Pack metadata.",
+      "Native pull-to-refresh, stale-refresh labeling, no-filler recommendation policy and cross-industry behavior remain unchanged.",
+      "Settings, Context and Feedback replace the custom Profile text headerLeft with the native/light Atlas back treatment while retaining a safe Profile fallback for deep links.",
+      "Today / History / Goals / Profile route topology remains unchanged.",
+      "Pilot Operations remains paused and is reserved to resume later as VS-35.",
+      "No API, database, migration, connector, menu/media, infrastructure, release or production deployment change is authorized."
     ]
   },
   "approvals": [
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-33@1.0",
+      "version": "VS-34@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-12T13:40:00+02:00",
-      "rationale": "Product Owner approved completing the Today page first, including the proposed concise Best move experience, pull-to-refresh, one- to two-tap actions and restrained semantic card colours."
+      "at": "2026-08-12T15:16:00+02:00",
+      "rationale": "Product Owner approved the written VS-34 Today Clarity & Navigation Consistency design after Expo harness review, prioritizing Today clarity before menu/media recovery."
     },
     {
       "type": "policy",
       "status": "not-required",
-      "version": "VS-33@1.0",
+      "version": "VS-34@1.0",
       "commitSha": null,
       "by": "PES/Loop",
-      "at": "2026-08-12T13:40:00+02:00",
-      "rationale": "VS-33 is a bounded mobile presentation/interaction change using existing server states and Action Decision semantics; it introduces no provider, new data collection, retention, external action, authorization, release or production boundary."
+      "at": "2026-08-12T15:16:00+02:00",
+      "rationale": "VS-34 is a bounded mobile presentation/navigation correction using existing Opportunity and decision semantics; it introduces no new provider, data collection, retention, authorization, external action, release or production boundary."
     },
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-33@1.0",
+      "version": "VS-34@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-12T13:40:00+02:00",
-      "rationale": "Product Owner explicitly approved the written VS-33 design and authorized implementation of the Today page before subsequent suggested intelligence features."
+      "at": "2026-08-12T15:16:00+02:00",
+      "rationale": "Product Owner explicitly authorized proceeding with VS-34 using Superpowers + TDD through implementation and deterministic gates, with no deployment."
     },
     {
       "type": "certification",
       "status": "approved",
-      "version": "VS-33@1.0",
-      "commitSha": "6c0c97b8bdd25fc93a206087936159ac52285289",
+      "version": "VS-34@1.0",
+      "commitSha": "128bb7b79e44a238d3ab506c8e25f3722a49f985",
       "by": "PES/Loop",
-      "at": "2026-08-12T14:25:00+02:00",
-      "rationale": "The frozen runtime SHA passed the complete exact-head mobile/native-runtime, TypeScript, Expo lint, PostgreSQL 17 migration replay, API regression, Release build, dashboard, Security baseline and Product Intake gates after a verified RED-to-GREEN cycle and changed-file review. Certification binds only this exact runtime SHA; release and production enablement remain unauthorized."
+      "at": "2026-08-12T16:40:00+02:00",
+      "rationale": "The frozen runtime SHA passed the complete mobile/native-runtime, TypeScript, Expo lint, PostgreSQL 17 migration replay, API regression, Release build, dashboard, Security baseline and Product Intake gates after verified Today and Profile-navigation RED-to-GREEN cycles and changed-file review. Runtime certification binds only 128bb7b79e44a238d3ab506c8e25f3722a49f985; the later 8b4da80066801951c69397a6ea1966322c78ea77 governance-only testing head supplied the final exact-head verification. Release and deployment remain unauthorized."
     },
     {
       "type": "release",
@@ -127,16 +131,18 @@
   },
   "certification": {
     "status": "passed",
-    "commitSha": "6c0c97b8bdd25fc93a206087936159ac52285289",
+    "commitSha": "128bb7b79e44a238d3ab506c8e25f3722a49f985",
     "evidence": [
-      "Activation baseline adff3b035631c41159ecadaee8072dbc8efd58cb: CI 31593783677, Security baseline 31593783690 and Product Intake 31593783676 passed before VS-33 runtime edits",
-      "TDD RED 7b9188caeb23982174f24ef2f36a7952c3b74da6: 4 intended VS-33 failures reproduced while all 168 pre-existing mobile tests and the authentic Expo Web Today runtime remained green",
-      "CI 31595903693: exact runtime SHA 6c0c97b8bdd25fc93a206087936159ac52285289 passed governance/preflight, Expo SDK 54 platform validation, TypeScript, Expo lint, authentic Expo Web runtime, clean PostgreSQL 17 migration replay, API tests, Release build and dashboard artifact upload",
-      "CI 31595903693: 173 mobile tests passed with 0 failures and 0 skipped, including VS-33 Best-move, refresh preservation and authentic Expo Web Today-to-Opportunity-Detail coverage",
-      "CI 31595903693: 346 API tests passed with 0 failures and 0 skipped",
-      "Security baseline 31595903770: success on exact runtime SHA",
-      "Product Intake 31595903890: success on exact runtime SHA",
-      "Changed-file review confirmed runtime changes are limited to apps/mobile/src/features/today-focus/TodayFocusScreen.tsx and Today-focused tests; no API, migration, infrastructure, release workflow, navigation shell or AtlasScreen change was introduced"
+      "Activation baseline 6a2339b102fa29379a263f9914de942390a42ecd: CI 31601591564, Security baseline 31601591554 and Product Intake 31601591588 passed before VS-34 runtime edits",
+      "Today TDD RED a29d6f85d0ec0489a40bd588abc4dcd787e87da2: 3 intended VS-34 clarity failures reproduced while 174 existing tests passed and the authentic Today runtime remained green",
+      "Today GREEN efb366403a465c9921d131a3416f437c2ef39269: Today structural contract and authentic Expo Web Today-to-Opportunity-Detail runtime passed with Security baseline 31604504039 and Product Intake 31604504064 green",
+      "Navigation TDD RED ca0133a5798f95e1026cbb90215608356a5d82b6: exactly 3 intended Settings, Context and Feedback Profile-navigation failures reproduced while 177 of 180 tests passed and Today remained green",
+      "Frozen runtime SHA 128bb7b79e44a238d3ab506c8e25f3722a49f985 contains the final VS-34 runtime change; subsequent VS-34 commits before certification are governance/documentation only",
+      "Exact verification head 8b4da80066801951c69397a6ea1966322c78ea77: CI 31607101677, Security baseline 31607101748 and Product Intake 31607101728 all passed while validating the frozen runtime",
+      "CI 31607101677: 180 mobile tests passed with 0 failures and 0 skipped, including authentic Expo Web VS-21 discovery, VS-15 Context, VS-17 progressive questions, VS-34 Today-to-Opportunity-Detail and VS-34 native/light Profile back-navigation coverage",
+      "CI 31607101677: TypeScript, Expo lint, Expo SDK 54 platform validation, clean PostgreSQL 17 migration replay, API Release build and dashboard artifact all passed",
+      "CI 31607101677: 346 API tests passed with 0 failures and 0 skipped",
+      "Changed-file review of PR #58 confirmed runtime changes are limited to TodayFocusScreen, Settings/Context/Feedback pushed-route shells and mobile tests; no API, migration, infrastructure, release workflow, menu/media or Pilot Operations runtime change was introduced"
     ]
   },
   "release": {
@@ -154,12 +160,12 @@
     "metrics": []
   },
   "links": {
-    "specification": "docs/slices/VS-33.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/56",
+    "specification": "docs/slices/VS-34.md",
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/58",
     "evidence": [
-      "docs/slices/VS-33.md",
-      "docs/superpowers/specs/2026-08-12-vs-33-today-experience-simplification-design.md",
-      "docs/superpowers/plans/2026-08-12-vs-33-today-experience-simplification.md"
+      "docs/slices/VS-34.md",
+      "docs/superpowers/specs/2026-08-12-vs-34-today-clarity-navigation-design.md",
+      "docs/superpowers/plans/2026-08-12-vs-34-today-clarity-navigation.md"
     ]
   },
   "maxAttempts": 3

@@ -8,23 +8,21 @@ import { AtlasScreen } from '@/components/AtlasScreen';
 import { todayFocusRecoveryAction } from './today-focus-recovery';
 
 type ScreenState = 'loading' | 'ready' | 'empty' | 'error';
-type MetricTone = 'impact' | 'effort' | 'confidence';
 
 const GREEN = '#00754A';
 const GREEN_BRIGHT = '#008A57';
 const DARK = '#0A2F25';
-const INK = '#17221C';
 const MUTED = '#5B6761';
 const SOFT_MINT = '#F1F8F4';
 const SOFT_BLUE = '#F1F6FB';
 const SOFT_AMBER = '#FFF8E8';
-const SOFT_LAVENDER = '#F6F2FA';
 
 export function TodayFocusScreen() {
   const [focus, setFocus] = useState<TodayFocus | null>(null);
   const [state, setState] = useState<ScreenState>('loading');
   const [refreshing, setRefreshing] = useState(false);
   const [deciding, setDeciding] = useState(false);
+  const [showMoreActions, setShowMoreActions] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [refreshFailed, setRefreshFailed] = useState(false);
 
@@ -67,6 +65,7 @@ export function TodayFocusScreen() {
   const decide = async (decision: OpportunityDecision) => {
     if (focus?.state !== 'ready') return;
     setDeciding(true);
+    setShowMoreActions(false);
     try {
       const session = await loadSession();
       if (!session?.businessId) return;
@@ -158,48 +157,34 @@ export function TodayFocusScreen() {
       </View>
 
       <Text accessibilityRole="header" style={styles.pageTitle}>Today</Text>
-      <Text style={styles.pageLead}>Here’s what matters today.</Text>
+      <Text style={styles.pageLead}>1 thing worth doing today</Text>
       <FreshnessLabel label={freshnessLabel} />
 
       <View style={styles.bestMoveCard}>
         <View style={styles.bestMoveHeader}>
           <View style={styles.bestMoveIcon}><Text style={styles.bestMoveIconText}>↗</Text></View>
-          <Text style={styles.bestMoveLabel}>Best move</Text>
+          <Text style={styles.bestMoveLabel}>BEST MOVE</Text>
         </View>
 
         <Text style={styles.bestMoveTitle}>{opportunity.title}</Text>
         <Text style={styles.bestMoveReason}>{opportunity.whyItMatters}</Text>
-
-        <View style={styles.metricsRow}>
-          <Metric tone="impact" label="Impact" value={opportunity.expectedImpact} />
-          <Metric tone="effort" label="Effort" value={opportunity.effort} />
-          <Metric tone="confidence" label="Confidence" value={opportunity.confidence} />
-        </View>
+        <Text style={styles.evidenceSummary}>{opportunity.expectedImpact} impact · {opportunity.effort} effort · {opportunity.confidence} confidence</Text>
 
         <View style={styles.actionRow}>
           <Pressable accessibilityRole="button" accessibilityLabel="Apply best move" disabled={deciding} onPress={() => void decide('apply')} style={({ pressed }) => [styles.applyButton, pressed && styles.pressed, deciding && styles.disabled]}>
-            {deciding ? <ActivityIndicator color="#FFF" /> : <Text style={styles.applyText}>Apply</Text>}
+            {deciding ? <ActivityIndicator color="#FFF" /> : <Text style={styles.applyText}>I’ll do this</Text>}
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Why this move" disabled={deciding} onPress={() => router.push(`/opportunities/${opportunity.id}`)} style={({ pressed }) => [styles.whyButton, pressed && styles.pressed, deciding && styles.disabled]}><Text style={styles.whyText}>Why?</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Why this move" disabled={deciding} onPress={() => router.push(`/opportunities/${opportunity.id}`)} style={({ pressed }) => [styles.whyButton, pressed && styles.pressed, deciding && styles.disabled]}><Text style={styles.whyText}>Why this?</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="More actions" accessibilityState={{ expanded: showMoreActions }} disabled={deciding} onPress={() => setShowMoreActions(value => !value)} style={({ pressed }) => [styles.moreButton, pressed && styles.pressed, deciding && styles.disabled]}><Text style={styles.moreText}>•••</Text></Pressable>
         </View>
 
-        <View style={styles.quietActionRow}>
+        {showMoreActions ? <View style={styles.quietActionRow}>
           <Pressable accessibilityRole="button" accessibilityLabel="Save this move for later" disabled={deciding} onPress={() => void decide('skip')} style={({ pressed }) => [styles.smallAction, pressed && styles.pressed, deciding && styles.disabled]}><Text style={styles.smallActionText}>Later</Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Mark this move not relevant" disabled={deciding} onPress={() => void decide('not-relevant')} style={({ pressed }) => [styles.smallAction, pressed && styles.pressed, deciding && styles.disabled]}><Text style={styles.smallActionText}>Not relevant</Text></Pressable>
-        </View>
-      </View>
-
-      <View style={[styles.supportCard, styles.supportBlue]}>
-        <View style={styles.supportRow}><View><Text style={styles.supportEyebrow}>Want the reasoning?</Text><Text style={styles.supportText}>See why now, evidence and assumptions without cluttering Today.</Text></View></View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Open full opportunity details" onPress={() => router.push(`/opportunities/${opportunity.id}`)} style={({ pressed }) => [styles.supportLink, pressed && styles.pressed]}><Text style={styles.supportLinkText}>Open details →</Text></Pressable>
+        </View> : null}
       </View>
     </AtlasScreen>
   );
-}
-
-function Metric({ label, value, tone }: { label: string; value: string; tone: MetricTone }) {
-  const toneStyle = tone === 'impact' ? styles.metricImpact : tone === 'effort' ? styles.metricEffort : styles.metricConfidence;
-  return <View style={[styles.metric, toneStyle]}><Text style={styles.metricLabel}>{label}</Text><Text numberOfLines={3} style={styles.metricValue}>{value}</Text></View>;
 }
 
 function FreshnessLabel({ label }: { label: string | null }) {
@@ -223,31 +208,20 @@ const styles = StyleSheet.create({
   bestMoveHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   bestMoveIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#DCEFE4', alignItems: 'center', justifyContent: 'center' },
   bestMoveIconText: { color: GREEN, fontSize: 17, fontWeight: '900' },
-  bestMoveLabel: { fontSize: 12, letterSpacing: .3, fontWeight: '900', color: GREEN },
-  bestMoveTitle: { marginTop: 15, fontFamily: 'Georgia', fontSize: 26, lineHeight: 32, fontWeight: '800', color: DARK },
+  bestMoveLabel: { fontSize: 11, letterSpacing: .9, fontWeight: '900', color: GREEN },
+  bestMoveTitle: { marginTop: 15, fontSize: 25, lineHeight: 31, fontWeight: '900', letterSpacing: -0.2, color: DARK },
   bestMoveReason: { marginTop: 10, fontSize: 14, lineHeight: 21, color: '#46544D' },
-  metricsRow: { flexDirection: 'row', gap: 8, marginTop: 18 },
-  metric: { flex: 1, minHeight: 82, borderRadius: 14, padding: 11, justifyContent: 'space-between', borderWidth: 1 },
-  metricImpact: { backgroundColor: '#EAF6EE', borderColor: '#D6EBDD' },
-  metricEffort: { backgroundColor: SOFT_AMBER, borderColor: '#F2E5BE' },
-  metricConfidence: { backgroundColor: SOFT_LAVENDER, borderColor: '#E8DFF0' },
-  metricLabel: { fontSize: 9.5, lineHeight: 14, fontWeight: '800', color: '#69756F' },
-  metricValue: { marginTop: 7, fontSize: 12.5, lineHeight: 17, fontWeight: '900', color: INK },
-  actionRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
-  applyButton: { flex: 1.4, minHeight: 54, borderRadius: 14, backgroundColor: GREEN_BRIGHT, alignItems: 'center', justifyContent: 'center', shadowColor: '#00633F', shadowOpacity: 0.13, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
-  applyText: { color: '#FFF', fontSize: 15, fontWeight: '900' },
-  whyButton: { flex: 1, minHeight: 54, borderRadius: 14, borderWidth: 1, borderColor: '#CFDFEA', backgroundColor: SOFT_BLUE, alignItems: 'center', justifyContent: 'center' },
-  whyText: { color: '#315D74', fontSize: 14, fontWeight: '900' },
+  evidenceSummary: { marginTop: 16, fontSize: 12.5, lineHeight: 19, fontWeight: '800', color: '#53605A' },
+  actionRow: { flexDirection: 'row', gap: 8, marginTop: 18, alignItems: 'stretch' },
+  applyButton: { flex: 1.45, minHeight: 54, borderRadius: 14, backgroundColor: GREEN_BRIGHT, alignItems: 'center', justifyContent: 'center', shadowColor: '#00633F', shadowOpacity: 0.13, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2, paddingHorizontal: 10 },
+  applyText: { color: '#FFF', fontSize: 14, fontWeight: '900', textAlign: 'center' },
+  whyButton: { flex: 1, minHeight: 54, borderRadius: 14, borderWidth: 1, borderColor: '#CFDFEA', backgroundColor: SOFT_BLUE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+  whyText: { color: '#315D74', fontSize: 13, fontWeight: '900', textAlign: 'center' },
+  moreButton: { minWidth: 50, minHeight: 54, borderRadius: 14, borderWidth: 1, borderColor: '#DDE5E1', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
+  moreText: { marginTop: -5, fontSize: 17, lineHeight: 22, fontWeight: '900', color: '#53605A' },
   quietActionRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
   smallAction: { flex: 1, minHeight: 46, borderRadius: 13, borderWidth: 1, borderColor: '#DDE5E1', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
   smallActionText: { fontSize: 12, fontWeight: '800', color: '#53605A' },
-  supportCard: { marginTop: 14, borderRadius: 16, borderWidth: 1, padding: 15 },
-  supportBlue: { backgroundColor: SOFT_BLUE, borderColor: '#DCE8F1' },
-  supportRow: { flexDirection: 'row', alignItems: 'center' },
-  supportEyebrow: { fontSize: 11, fontWeight: '900', color: '#315D74', marginBottom: 4 },
-  supportText: { maxWidth: 310, fontSize: 12.5, lineHeight: 19, color: '#536770' },
-  supportLink: { alignSelf: 'flex-start', minHeight: 44, marginTop: 7, justifyContent: 'center', paddingRight: 12 },
-  supportLinkText: { fontSize: 12.5, fontWeight: '900', color: GREEN },
   pressed: { opacity: .92, transform: [{ scale: .99 }] },
   disabled: { opacity: .55 },
   stateContainer: { backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'flex-start' },
