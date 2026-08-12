@@ -45,7 +45,7 @@ public static class OpportunityGenerator
 {
     private static readonly HashSet<string> OrderingChannelKeys = new(StringComparer.OrdinalIgnoreCase)
     {
-        "primarychannels", "orderingChannel", "orderingChannels", "primaryOrderingChannel", "serviceChannel", "serviceChannels"
+        "operatingchannels", "primarychannels", "orderingChannel", "orderingChannels", "primaryOrderingChannel", "serviceChannel", "serviceChannels"
     };
 
     private static readonly HashSet<string> HoursKeys = new(StringComparer.OrdinalIgnoreCase)
@@ -180,6 +180,13 @@ public static class OpportunityGenerator
             .ThenBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
             .ThenBy(x => x.EvidenceId, StringComparer.Ordinal)
             .ToArray();
+
+        if (!evidence.Any(x => !string.Equals(x.Layer, "policy", StringComparison.OrdinalIgnoreCase)))
+        {
+            evidence = [];
+            return false;
+        }
+
         return true;
     }
 
