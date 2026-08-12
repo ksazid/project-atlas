@@ -67,6 +67,10 @@ test('confirmed operating context contains only values the About card can positi
     reservable: true,
     servicePeriods: ['Breakfast', 'Lunch', 'Dinner'],
     pricePosition: 'Moderate',
+    openingHours: [
+      'Monday: 11:00 AM – 10:00 PM',
+      'Tuesday: 11:00 AM – 10:00 PM',
+    ],
   });
 
   assert.equal(buildConfirmedOperatingContext({ ...enrichment, reservable: false }).reservable, null);

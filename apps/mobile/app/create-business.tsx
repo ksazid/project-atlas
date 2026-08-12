@@ -49,6 +49,8 @@ const emptyDraft: DiscoveryDraft = {
   description: '',
   website: '',
   phone: '',
+  email: '',
+  socialChannels: '',
   businessHours: '',
   language: 'English',
 };
@@ -494,7 +496,10 @@ export default function CreateBusinessScreen() {
 
         <View style={s.detailsCard}>
           <Text style={s.sectionTitle}>Business details</Text>
+          {form.website.trim() ? <Detail icon="⊕" text={form.website.trim()} /> : null}
           {form.phone.trim() ? <Detail icon="☎" text={form.phone.trim()} /> : null}
+          {form.email?.trim() ? <Detail icon="@" text={form.email.trim()} /> : null}
+          {form.socialChannels?.trim() ? <Detail icon="↗" text={form.socialChannels.trim()} /> : null}
           {form.businessHours.trim() ? <Detail icon="◷" text={form.businessHours.trim()} /> : null}
           {form.description.trim() ? <Detail icon="≡" text={form.description.trim()} /> : null}
           <Detail icon="⊕" text="Observed from public business page" />
@@ -530,6 +535,8 @@ export default function CreateBusinessScreen() {
       <Field label="Description (optional)" value={form.description} onChange={value => update('description', value)} multiline />
       <Field label="Website (optional)" value={form.website} onChange={value => update('website', value)} />
       <Field label="Phone (optional)" value={form.phone} onChange={value => update('phone', value)} />
+      <Field label="Business email (optional)" value={form.email ?? ''} onChange={value => update('email', value)} />
+      <Field label="Social channels (optional)" value={form.socialChannels ?? ''} onChange={value => update('socialChannels', value)} />
       <Field label="Opening hours (optional)" value={form.businessHours} onChange={value => update('businessHours', value)} />
       <Field label="Language" value={form.language} onChange={value => update('language', value)} />
       {error ? <View style={s.errorBox}><Text accessibilityLiveRegion="polite" style={s.error}>{error}</Text></View> : null}

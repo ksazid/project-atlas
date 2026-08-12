@@ -46,6 +46,7 @@ export function buildConfirmedOperatingContext(
     reservable: enrichment.reservable === true ? true : null,
     servicePeriods: values(enrichment.servicePeriods),
     pricePosition: enrichment.pricePosition?.trim() || null,
+    openingHours: values(enrichment.openingHours),
   };
 }
 

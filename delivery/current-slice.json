@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-30",
-  "title": "VS-30 — Today’s Focus Evidence Compatibility Repair",
+  "sliceId": "VS-29",
+  "title": "VS-29 — Business Intelligence Enrichment & Smart Onboarding",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-07", "FR-16"],
+  "requirements": ["FR-02", "FR-03", "FR-05", "FR-16"],
   "owners": {
     "product": "ksazid",
     "engineering": "ksazid",
@@ -16,65 +16,102 @@
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
-    "VS-04",
+    "ATLAS-DESIGN-001@1.2",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
+    "VS-25",
     "VS-26",
-    "VS-28@060d0fcb94dbf0d9f8cb55bf59dc0833f246e807"
+    "VS-27",
+    "VS-28@060d0fcb94dbf0d9f8cb55bf59dc0833f246e807",
+    "VS-30@c01eb6f395ffdd4520b94d3253ea099af0c42447"
   ],
   "blockers": [],
-  "allowedPaths": ["apps/api/**", "tests/api/**", "delivery/**", "docs/**"],
-  "protectedPaths": [".github/workflows/release.yml", "infrastructure/**", "**/Payments/**", "**/Uploads/**"],
+  "allowedPaths": [
+    "apps/api/**",
+    "apps/mobile/**",
+    "tests/api/**",
+    "tests/mobile/**",
+    "delivery/**",
+    "docs/**"
+  ],
+  "protectedPaths": [
+    ".github/workflows/release.yml",
+    "infrastructure/**",
+    "**/Payments/**",
+    "**/Uploads/**"
+  ],
   "impact": {
-    "areas": ["api", "customer-flow"],
+    "areas": ["frontend", "api", "customer-flow", "legal-privacy"],
     "notes": [
-      "Corrects an integration mismatch between owner-confirmed operating context and the existing Today’s Focus evidence resolver.",
-      "Requires at least one non-policy factual evidence item before a generated candidate can qualify, restoring the approved no-filler FR-07 behavior.",
-      "Preserves stored Business Context, Knowledge Pack versions, category-specific ranking, confidence policy, provenance and owner control.",
-      "Retains the certified VS-15 integrated MVP dependency boundary required by later active slices.",
-      "No migration, new provider, AI generation, navigation/UI redesign, deployment, release, production enablement or production database mutation is authorized."
+      "VS-29 closed verified gaps over VS-25/26/27 instead of rebuilding already-certified media/menu intelligence, Google Place enrichment, Business Hub, or Expo demo reset capabilities.",
+      "Public discovery now extracts bounded public email/social evidence and conservative unambiguous mailto/tel fallbacks while preserving provenance and existing source-safety controls.",
+      "Multi-source discovery may perform at most one automatic official-site enrichment hop and accepts it only when exact normalized Business identity plus a second strong signal match; accepted evidence remains a separate secondary observation.",
+      "Explicitly confirmed email, social channels and opening hours materialise into the existing Business Profile/provenance model; transient Google hours become owner-reported canonical values rather than copied provider payloads.",
+      "Owner-confirmed non-empty operatingchannels semantically satisfies equivalent primarychannels onboarding prompts, preventing duplicate questioning without suppressing unrelated context.",
+      "The existing Business review/edit flow exposes email and social fields and conditional enriched presence rows without adding a new route or redesigning navigation.",
+      "No deterministic missing supported Bolt public semantic shape was reproduced during the compatibility audit; certified VS-25 parser behavior was preserved rather than changed speculatively.",
+      "DEC-07 remains controlling for media/offerings and DEC-08 remains controlling for transient Google Places content; no copied media binaries or durable copied Google rich payloads were introduced.",
+      "DEC-09 remains controlling for this slice: the certified five-tab route names/order/destination meaning were preserved.",
+      "VS-30 Today’s Focus evidence compatibility and factual-evidence guard remain intact.",
+      "No persistence migration, deployment, release, EAS build/submit/OTA, production enablement or production database mutation was performed."
     ]
   },
   "approvals": [
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-30@1.0",
+      "version": "VS-29@1.1",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-12T04:22:00+02:00",
-      "rationale": "Product Owner explicitly instructed proceeding with the bounded Today’s Focus intelligence defect investigation and repair before VS-29 runtime work."
+      "at": "2026-08-12T06:30:00+02:00",
+      "rationale": "Product Owner approved proceeding through implementation, fixes, design adjustments where needed, certification and merge, while explicitly avoiding duplicate work already completed by prior slices. VS-29 was narrowed to the verified remaining gaps only."
     },
     {
       "type": "policy",
       "status": "not-required",
-      "version": "VS-30@1.0",
+      "version": "VS-29@1.1",
       "commitSha": null,
       "by": "PES/Loop",
-      "at": "2026-08-12T04:22:00+02:00",
-      "rationale": "This corrective slice restores already-approved FR-07 evidence eligibility and introduces no provider, retention, sensitive-data, external-action, release or production policy boundary."
+      "at": "2026-08-12T06:30:00+02:00",
+      "rationale": "VS-29 stayed inside approved DEC-04/05/07/08 public-source, progressive-question, media-retention and transient-Google boundaries. Current official Google Places and EEA terms were rechecked; no new durable Google content use was introduced."
     },
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-30@1.0",
+      "version": "VS-29@1.1",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-12T04:22:00+02:00",
-      "rationale": "Product Owner said 'Go ahead' after the repair was explicitly scoped to reproduce and fix the Today’s Focus zero-evidence defect before VS-29."
+      "at": "2026-08-12T06:30:00+02:00",
+      "rationale": "Product Owner explicitly authorized implementation and fixes for the narrowed VS-29 remaining-gap scope, including bounded design changes when required, with Superpowers and relevant repository skills."
     },
     {
       "type": "certification",
       "status": "approved",
-      "version": "VS-30@1.0",
-      "commitSha": "3f99cd22d9cee4ccae927e486f168a200c32ab46",
+      "version": "VS-29@1.1",
+      "commitSha": "24bd5657d8dec7ffad10899a85cc7866b928ff69",
       "by": "PES/Loop",
-      "at": "2026-08-12T05:13:00+02:00",
-      "rationale": "Exact implementation SHA passed CI, Security baseline and Product Intake. Product Owner then said 'Go' to proceed with certification/acceptance only. Certification does not authorize merge, release, production enablement or deployment."
+      "at": "2026-08-12T07:48:00+02:00",
+      "rationale": "The frozen implementation SHA passed exact-head CI, Security baseline and Product Intake after TDD and review. The Product Owner had explicitly authorized completion, fixes, bounded design changes, certification/integration intent and merge for the upcoming governed slices. Certification binds only this exact implementation SHA; release and production enablement remain unauthorized."
     },
-    {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-    {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
+    {
+      "type": "release",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    },
+    {
+      "type": "production-enable",
+      "status": "pending",
+      "version": null,
+      "commitSha": null,
+      "by": null,
+      "at": null,
+      "rationale": null
+    }
   ],
-  "decisionIds": [],
+  "decisionIds": ["DEC-04", "DEC-05", "DEC-07", "DEC-08", "DEC-09"],
   "progress": {
     "discovery": 100,
     "decisions": 100,
@@ -86,24 +123,42 @@
   },
   "certification": {
     "status": "passed",
-    "commitSha": "3f99cd22d9cee4ccae927e486f168a200c32ab46",
+    "commitSha": "24bd5657d8dec7ffad10899a85cc7866b928ff69",
     "evidence": [
-      "CI run 31558960369: exact implementation SHA green; preflight, .NET restore/build, EF database update, API tests, dashboard build and artifact upload succeeded",
-      "CI run 31558960369: 149 mobile tests passed with 0 failures",
-      "CI run 31558960369: 314 API tests passed with 0 failures and 0 skipped",
-      "Security baseline run 31558960264: green on exact implementation SHA",
-      "Product Intake run 31558960415: green on exact implementation SHA",
-      "TDD reproduced canonical operatingchannels selecting the wrong generic fallback and profile plus goal producing zero factual evidence before the bounded repair",
-      "Product Owner accepted certification on 2026-08-12 by instructing 'Go' after exact-head verification; merge remains a separate human approval"
+      "CI run 31567415714: exact implementation SHA green; governance/preflight, Expo SDK 54 mobile validation, TypeScript, lint, PostgreSQL 17 migration replay, API tests, dashboard build and artifact upload succeeded",
+      "CI run 31567415714: 153 mobile tests passed with 0 failures, including VS-29 presence model/UI regressions and existing native-shell/runtime contracts",
+      "CI run 31567415714: 325 API tests passed with 0 failures and 0 skipped",
+      "Security baseline run 31567415663: green on exact implementation SHA",
+      "Product Intake run 31567415822: green on exact implementation SHA",
+      "TDD RED 54297cc33bb402b20545bf1c7a592e9aee8ee6fa reproduced three contact/social/channel-satisfaction gaps while 317 API tests passed",
+      "TDD server RED on 03179b83cfdcceea3867fa8b0efabf59a31f4c81 reproduced four persistence/official-site gaps while 321 API tests passed",
+      "TDD UI RED b77989ad957affaa5ba5d511ee7eacb06200aed1 produced only the two new VS-29 presence-UI failures while 151 existing mobile tests passed",
+      "Systematic debugging restored the previously approved provider-neutral discovery confirmation copy after exact-head preflight caught the accidental wording drift",
+      "Changed-file review confirmed no migration, deployment, release, reset rewrite or navigation restructuring in the final runtime boundary"
     ]
   },
-  "release": {"status": "not-authorized", "releaseId": null},
-  "rollback": {"status": "not-applicable", "rollbackId": null},
-  "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
+  "release": {
+    "status": "not-authorized",
+    "releaseId": null
+  },
+  "rollback": {
+    "status": "not-applicable",
+    "rollbackId": null
+  },
+  "postRelease": {
+    "status": "not-started",
+    "reviewAt": null,
+    "expectedOutcome": null,
+    "metrics": []
+  },
   "links": {
-    "specification": "docs/slices/VS-30.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/52",
-    "evidence": ["docs/slices/VS-30.md"]
+    "specification": "docs/slices/VS-29.md",
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/53",
+    "evidence": [
+      "docs/slices/VS-29.md",
+      "docs/superpowers/specs/2026-08-12-vs-29-business-intelligence-enrichment-smart-onboarding-design.md",
+      "docs/superpowers/plans/2026-08-12-vs-29-business-intelligence-enrichment-smart-onboarding.md"
+    ]
   },
   "maxAttempts": 3
 }
