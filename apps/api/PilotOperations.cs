@@ -122,7 +122,7 @@ public static class PilotOperationsPolicy
     }
 }
 
-public static class PilotOperationsService
+public static partial class PilotOperationsService
 {
     public static async Task<UserAccount?> ResolveOperatorAsync(
         AtlasDbContext db,
