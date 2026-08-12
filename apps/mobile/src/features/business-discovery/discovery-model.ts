@@ -30,8 +30,8 @@ export type DiscoveryDraft = {
   description: string;
   website: string;
   phone: string;
-  email: string;
-  socialChannels: string;
+  email?: string;
+  socialChannels?: string;
   businessHours: string;
   language: string;
 };
@@ -45,7 +45,9 @@ export type ConfirmedOperatingContext = {
   openingHours: string[];
 };
 
-export type CreateBusinessFromDiscoveryRequest = DiscoveryDraft & {
+export type CreateBusinessFromDiscoveryRequest = Omit<DiscoveryDraft, 'email' | 'socialChannels'> & {
+  email: string;
+  socialChannels: string;
   ownerConfirmed: true;
   confirmedOperatingContext?: ConfirmedOperatingContext;
 };
@@ -108,8 +110,8 @@ export function buildCreateBusinessFromDiscoveryRequest(
     description: draft.description.trim(),
     website: draft.website.trim(),
     phone: draft.phone.trim(),
-    email: draft.email.trim(),
-    socialChannels: draft.socialChannels.trim(),
+    email: draft.email?.trim() ?? '',
+    socialChannels: draft.socialChannels?.trim() ?? '',
     businessHours: draft.businessHours.trim(),
     language: draft.language.trim(),
     ownerConfirmed: true,
