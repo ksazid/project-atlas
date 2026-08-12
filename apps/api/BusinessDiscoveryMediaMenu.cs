@@ -32,10 +32,21 @@ public sealed record PublicBusinessOffering(
     bool OwnerConfirmed = false,
     int SourceOrder = 0);
 
+public static class PublicBusinessMediaMenuCoverage
+{
+    public const string Structured = "structured";
+    public const string SemanticHtml = "semantic-html";
+    public const string EmbeddedPublicState = "embedded-public-state";
+    public const string MediaOnly = "media-only";
+    public const string RendererRequired = "renderer-required";
+    public const string None = "none";
+}
+
 public sealed record PublicBusinessMediaMenuExtraction(
     IReadOnlyList<PublicBusinessMedia> Media,
     IReadOnlyList<PublicBusinessOffering> Offerings,
-    string? MenuUrl);
+    string? MenuUrl,
+    string Coverage);
 
 public static class PublicBusinessMediaMenuExtractor
 {
@@ -55,6 +66,12 @@ public static class PublicBusinessMediaMenuExtractor
     private static readonly Regex HtmlTagRegex = new(@"<[^>]+>", RegexOptions.Singleline | RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex WhitespaceRegex = new(@"\s+", RegexOptions.CultureInvariant, RegexTimeout);
     private static readonly Regex PriceNumberRegex = new(@"(?<amount>\d+(?:[.,]\d{1,2})?)", RegexOptions.CultureInvariant, RegexTimeout);
+    private static readonly string[] RendererMarkers =
+    [
+        "javascript is not enabled",
+        "please enable javascript",
+        "requires javascript"
+    ];
 
     public static PublicBusinessMediaMenuExtraction Extract(string provider, Uri sourceUri, string html, DateTimeOffset observedAt)
     {
@@ -63,6 +80,8 @@ public static class PublicBusinessMediaMenuExtractor
         var offerings = new Dictionary<string, PublicBusinessOffering>(StringComparer.OrdinalIgnoreCase);
         string? menuUrl = null;
         var foundStructuredImage = false;
+        var foundStructuredContribution = false;
+        var foundSemanticContribution = false;
 
         foreach (var root in StructuredRoots(html))
         {
@@ -75,6 +94,7 @@ public static class PublicBusinessMediaMenuExtractor
                         if (media.Count >= MaxMediaPerSource) break;
                         if (!TryCanonicalPublicUrl(sourceUri, candidate.Url, out var canonical)) continue;
                         foundStructuredImage = true;
+                        foundStructuredContribution = true;
                         media.TryAdd(canonical, new PublicBusinessMedia(
                             "business-image", canonical, provider, sourceUrl, observedAt, "high",
                             AltText: candidate.AltText));
@@ -102,7 +122,21 @@ public static class PublicBusinessMediaMenuExtractor
             }
         }
 
-        return new PublicBusinessMediaMenuExtraction(media.Values.Take(MaxMediaPerSource).ToList(), offerings.Values.ToList(), menuUrl);
+        var coverage = foundStructuredContribution
+            ? PublicBusinessMediaMenuCoverage.Structured
+            : foundSemanticContribution
+                ? PublicBusinessMediaMenuCoverage.SemanticHtml
+                : media.Count > 0
+                    ? PublicBusinessMediaMenuCoverage.MediaOnly
+                    : IsSupportedRendererProvider(provider) && HasRendererMarker(html)
+                        ? PublicBusinessMediaMenuCoverage.RendererRequired
+                        : PublicBusinessMediaMenuCoverage.None;
+
+        return new PublicBusinessMediaMenuExtraction(
+            media.Values.Take(MaxMediaPerSource).ToList(),
+            offerings.Values.ToList(),
+            menuUrl,
+            coverage);
 
         void ReadMenu(JsonElement element, string? inheritedSection)
         {
@@ -165,6 +199,7 @@ public static class PublicBusinessMediaMenuExtractor
                 sourceUrl,
                 observedAt,
                 "high"));
+            foundStructuredContribution = true;
         }
 
         void CaptureBoltSemanticMenu()
@@ -203,6 +238,7 @@ public static class PublicBusinessMediaMenuExtractor
                         sourceUrl,
                         observedAt,
                         "high"));
+                    foundSemanticContribution = true;
 
                     if (media.Count < MaxMediaPerSource)
                     {
@@ -217,6 +253,7 @@ public static class PublicBusinessMediaMenuExtractor
                                 observedAt,
                                 "high",
                                 AltText: name));
+                            foundSemanticContribution = true;
                         }
                     }
                 }
@@ -232,9 +269,20 @@ public static class PublicBusinessMediaMenuExtractor
         void CaptureMenuUrl(string? value)
         {
             if (menuUrl is not null) return;
-            if (TryCanonicalPublicUrl(sourceUri, value, out var canonical)) menuUrl = canonical;
+            if (TryCanonicalPublicUrl(sourceUri, value, out var canonical))
+            {
+                menuUrl = canonical;
+                foundStructuredContribution = true;
+            }
         }
     }
+
+    private static bool IsSupportedRendererProvider(string provider) =>
+        provider.Equals("bolt-food", StringComparison.OrdinalIgnoreCase) ||
+        provider.Equals("wolt", StringComparison.OrdinalIgnoreCase);
+
+    private static bool HasRendererMarker(string html) =>
+        RendererMarkers.Any(marker => html.Contains(marker, StringComparison.OrdinalIgnoreCase));
 
     private static IEnumerable<JsonElement> StructuredRoots(string html)
     {

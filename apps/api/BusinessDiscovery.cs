@@ -245,6 +245,7 @@ public sealed record PublicBusinessSnapshot(
 {
     public IReadOnlyList<PublicBusinessMedia> Media { get; init; } = [];
     public IReadOnlyList<PublicBusinessOffering> Offerings { get; init; } = [];
+    public string MediaMenuCoverage { get; init; } = PublicBusinessMediaMenuCoverage.None;
 }
 
 public static class PublicBusinessExtractor
@@ -312,7 +313,8 @@ public static class PublicBusinessExtractor
         return new PublicBusinessSnapshot(provider, sourceUrl, observedAt, facts.Values.ToList())
         {
             Media = enrichment.Media,
-            Offerings = enrichment.Offerings
+            Offerings = enrichment.Offerings,
+            MediaMenuCoverage = enrichment.Coverage
         };
 
         void Add(string key, string? value, string confidence)
