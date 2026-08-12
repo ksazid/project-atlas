@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { getNotifications, markAllNotificationsRead, markNotificationRead, saveNotificationPreferences, type NotificationCenter, type NotificationItem } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import { tokens } from '@/theme/tokens';
 
 type ScreenState = 'loading' | 'ready' | 'empty' | 'error';
@@ -73,7 +74,7 @@ export function NotificationCenterScreen() {
   }, [center, saving]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}>
+    <AtlasScreen contentStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}>
       <View style={styles.headerRow}>
         <View style={styles.headerText}>
           <Text style={styles.eyebrow}>NOTIFICATIONS</Text>
@@ -104,7 +105,7 @@ export function NotificationCenterScreen() {
         <Text style={styles.body}>{item.body}</Text>
         <Text style={styles.supporting}>{item.readAt ? 'Read' : 'Unread'}{item.deepLink ? ' · Open details' : ''}</Text>
       </Pressable>) : null}
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
@@ -113,7 +114,7 @@ function PreferenceRow({ label, value, disabled, onChange }: { label: string; va
 }
 
 const styles = StyleSheet.create({
-  container: { padding: tokens.spacing.lg, gap: tokens.spacing.md, paddingBottom: 40 },
+  container: { gap: tokens.spacing.md },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: tokens.spacing.sm },
   headerText: { flex: 1, gap: 4 },
   eyebrow: { fontSize: 13, fontWeight: '700', letterSpacing: 1.2 },
