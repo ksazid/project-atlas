@@ -14,11 +14,11 @@ function readySegment() {
 test('VS-33 presents one concise Best move with one- or two-tap owner actions', () => {
   const ready = readySegment();
 
-  assert.match(ready, />Best move</);
+  assert.match(ready, />BEST MOVE</);
   assert.match(ready, /accessibilityLabel="Apply best move"/);
-  assert.match(ready, />Apply</);
+  assert.match(ready, />I’ll do this</);
   assert.match(ready, /accessibilityLabel="Why this move"/);
-  assert.match(ready, />Why\?</);
+  assert.match(ready, />Why this\?</);
   assert.match(ready, />Later</);
   assert.match(ready, />Not relevant</);
   assert.match(ready, /decide\('skip'\)/, 'Later must keep the existing Skip decision semantics');
