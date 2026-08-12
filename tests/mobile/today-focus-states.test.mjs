@@ -15,14 +15,14 @@ test('TodayFocus client contract represents every VS-23 server state', () => {
 
 test('Today screen handles no-focus as a truthful non-error state', () => {
   assert.match(screen, /focus\?\.state === 'no-focus'/);
-  assert.match(screen, /No evidence-qualified focus yet\./);
+  assert.match(screen, /Nothing strong enough to recommend yet\./);
   assert.match(screen, /Atlas will not create filler recommendations/i);
   assert.match(screen, /Review business context/);
 });
 
 test('Today screen handles degraded separately from client network error', () => {
   assert.match(screen, /focus\?\.state === 'degraded'/);
-  assert.match(screen, /Atlas could not safely prepare today’s focus\./);
+  assert.match(screen, /Today couldn’t refresh safely\./);
   assert.match(screen, /Try again/);
   assert.match(screen, /state === 'error'/);
 });
@@ -31,7 +31,7 @@ test('non-ready server states never render opportunity decision controls', () =>
   const noFocusIndex = screen.indexOf("focus?.state === 'no-focus'");
   const degradedIndex = screen.indexOf("focus?.state === 'degraded'");
   const readyGuardIndex = screen.indexOf("focus?.state !== 'ready'", degradedIndex);
-  const applyIndex = screen.indexOf('Apply this move');
+  const applyIndex = screen.indexOf('Apply best move');
 
   assert.ok(noFocusIndex >= 0);
   assert.ok(degradedIndex >= 0);
