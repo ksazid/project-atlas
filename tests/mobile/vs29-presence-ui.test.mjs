@@ -16,5 +16,5 @@ test('VS-29 business review exposes editable public presence fields without a se
 test('VS-29 confirmation summary renders enriched presence only when values exist', () => {
   assert.match(source, /form\.email\?\.trim\(\)/);
   assert.match(source, /form\.socialChannels\?\.trim\(\)/);
-  assert.match(source, /Observed publicly/);
+  assert.match(source, /Observed from public business page/);
 });
