@@ -266,8 +266,8 @@ async function clickByText(cdp, text) {
   assert.equal(clicked, true, `Could not find button containing ${text}`);
 }
 
-test('VS-33 Today states and Best-move-to-detail path render in authentic Expo Web runtime', { skip: !runRuntime, timeout: 180000 }, async t => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'atlas-vs33-runtime-'));
+test('VS-34 Today states and Best-move-to-detail path render in authentic Expo Web runtime', { skip: !runRuntime, timeout: 180000 }, async t => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'atlas-vs34-runtime-'));
   const exportRoot = path.join(tempRoot, 'web');
   const chromeProfile = path.join(tempRoot, 'chrome');
 
@@ -310,22 +310,22 @@ test('VS-33 Today states and Best-move-to-detail path render in authentic Expo W
   await cdp.navigate(`${appOrigin}/`);
   await cdp.waitFor('document.body.innerText.includes("Nothing strong enough to recommend yet.")', 'no-focus state');
   let text = await cdp.evaluate('document.body.innerText');
-  assert.doesNotMatch(text, /Apply best move|Bolt Food|Wolt|Google Places/i);
+  assert.doesNotMatch(text, /I’ll do this|Bolt Food|Wolt|Google Places/i);
 
   await cdp.navigate(`${appOrigin}/`);
   await cdp.waitFor('document.body.innerText.includes("Today couldn’t refresh safely.")', 'degraded state');
   text = await cdp.evaluate('document.body.innerText');
   assert.match(text, /Try again/);
-  assert.doesNotMatch(text, /Apply best move|Bolt Food|Wolt|Google Places/i);
+  assert.doesNotMatch(text, /I’ll do this|Bolt Food|Wolt|Google Places/i);
 
   await clickByText(cdp, 'Try again');
-  await cdp.waitFor('document.body.innerText.includes("Review takeaway ordering path") && document.body.innerText.includes("Best move") && document.body.innerText.includes("Updated just now")', 'ready state');
+  await cdp.waitFor('document.body.innerText.includes("Review takeaway ordering path") && document.body.innerText.includes("BEST MOVE") && document.body.innerText.includes("Updated just now")', 'ready state');
   text = await cdp.evaluate('document.body.innerText');
-  assert.match(text, /Apply/);
-  assert.match(text, /Why\?/);
+  assert.match(text, /I’ll do this/);
+  assert.match(text, /Why this\?/);
   assert.doesNotMatch(text, /RECOMMENDED MOVE|One action\. Clear reason\. Measurable outcome\./i);
 
-  await clickByText(cdp, 'Why?');
+  await clickByText(cdp, 'Why this?');
   await cdp.waitFor('document.body.innerText.includes("OPPORTUNITY DETAIL") && document.body.innerText.includes("Primary channels") && document.body.innerText.includes("Open Execution Kit")', 'Opportunity Detail route', 15000);
 
   text = await cdp.evaluate('document.body.innerText');
