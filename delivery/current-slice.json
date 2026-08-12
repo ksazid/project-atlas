@@ -36,7 +36,7 @@
     "**/Uploads/**"
   ],
   "impact": {
-    "areas": ["frontend", "api", "persistence", "customer-flow", "legal-privacy"],
+    "areas": ["frontend", "api", "database", "customer-flow", "legal-privacy"],
     "notes": [
       "Completes the remaining FR-17 owner feedback/support gap without overloading Action Decision or Outcome semantics.",
       "Adds append-only Business-scoped feedback for Opportunity usefulness, incorrect context, unsafe guidance, general feedback and support requests.",
@@ -110,7 +110,7 @@
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
     "specification": "docs/slices/VS-32.md",
-    "implementationPr": null,
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/55",
     "evidence": [
       "docs/superpowers/specs/2026-08-12-vs-32-feedback-support-design.md",
       "docs/superpowers/plans/2026-08-12-vs-32-feedback-support.md"
