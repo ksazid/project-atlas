@@ -30,6 +30,8 @@ export type DiscoveryDraft = {
   description: string;
   website: string;
   phone: string;
+  email: string;
+  socialChannels: string;
   businessHours: string;
   language: string;
 };
@@ -40,6 +42,7 @@ export type ConfirmedOperatingContext = {
   reservable: boolean | null;
   servicePeriods: string[];
   pricePosition: string | null;
+  openingHours: string[];
 };
 
 export type CreateBusinessFromDiscoveryRequest = DiscoveryDraft & {
@@ -69,6 +72,8 @@ export function createDiscoveryDraft(discovery: BusinessDiscovery): DiscoveryDra
     description: value(discovery, 'description'),
     website: value(discovery, 'website'),
     phone: value(discovery, 'phone'),
+    email: value(discovery, 'email'),
+    socialChannels: value(discovery, 'socialChannels'),
     businessHours: value(discovery, 'openingHours'),
     language: value(discovery, 'language') || 'English',
   };
@@ -103,6 +108,8 @@ export function buildCreateBusinessFromDiscoveryRequest(
     description: draft.description.trim(),
     website: draft.website.trim(),
     phone: draft.phone.trim(),
+    email: draft.email.trim(),
+    socialChannels: draft.socialChannels.trim(),
     businessHours: draft.businessHours.trim(),
     language: draft.language.trim(),
     ownerConfirmed: true,
