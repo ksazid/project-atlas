@@ -3,7 +3,7 @@
   "sliceId": "VS-34",
   "title": "VS-34 — Today Clarity & Navigation Consistency",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "testing",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
@@ -123,8 +123,8 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 0,
-    "testing": 0,
+    "implementation": 100,
+    "testing": 80,
     "certification": 0,
     "release": 0,
     "validation": 0
