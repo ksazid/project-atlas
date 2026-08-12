@@ -52,6 +52,10 @@ export default function SettingsScreen() {
         <Text style={styles.cardTitle}>Notifications</Text>
         <Text style={styles.body}>Review Atlas updates, unread items and notification preferences.</Text>
       </AtlasPressable>
+      <AtlasPressable accessibilityRole="button" onPress={() => router.push('/feedback')} style={styles.card}>
+        <Text style={styles.cardTitle}>Feedback & support</Text>
+        <Text style={styles.body}>Rate Atlas guidance, report incorrect or unsafe information, share feedback, or request support.</Text>
+      </AtlasPressable>
       <BusinessMemoryPanel />
       {testResetEnabled ? (
         <View style={styles.testCard}>

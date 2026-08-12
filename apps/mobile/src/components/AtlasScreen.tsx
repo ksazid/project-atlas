@@ -38,7 +38,7 @@ export function AtlasScreen({
   const segments = useSegments();
   const { width, fontScale } = useWindowDimensions();
   const isPersistentTabRoute = segments.includes('(tabs)');
-  const isProfileDetailWithNativeHeader = segments.length === 1 && (segments[0] === 'context' || segments[0] === 'settings');
+  const isProfileDetailWithNativeHeader = segments.length === 1 && (segments[0] === 'context' || segments[0] === 'settings' || segments[0] === 'feedback');
   const metrics = getAtlasScreenMetrics({
     width,
     topInset: isProfileDetailWithNativeHeader ? 0 : insets.top,

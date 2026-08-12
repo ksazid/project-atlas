@@ -121,6 +121,7 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     public DbSet<Opportunity> Opportunities => Set<Opportunity>();
     public DbSet<ExecutionKit> ExecutionKits => Set<ExecutionKit>(); public DbSet<ExecutionAsset> ExecutionAssets => Set<ExecutionAsset>();
     public DbSet<ActionDecisionRecord> ActionDecisionRecords => Set<ActionDecisionRecord>();
+    public DbSet<FeedbackRecord> FeedbackRecords => Set<FeedbackRecord>();
     public DbSet<Outcome> Outcomes => Set<Outcome>(); public DbSet<BusinessMemoryItem> BusinessMemoryItems => Set<BusinessMemoryItem>();
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>(); public DbSet<NotificationRecord> NotificationRecords => Set<NotificationRecord>();
     public DbSet<BusinessDiscoverySnapshot> BusinessDiscoverySnapshots => Set<BusinessDiscoverySnapshot>();
@@ -196,6 +197,16 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
 
         modelBuilder.Entity<ActionDecisionRecord>().HasIndex(x => new { x.BusinessId, x.OpportunityId, x.DecidedAt });
         modelBuilder.Entity<ActionDecisionRecord>().HasIndex(x => new { x.OpportunityId, x.DecidedAt });
+
+        modelBuilder.Entity<FeedbackRecord>().Property(x => x.Kind).HasMaxLength(40);
+        modelBuilder.Entity<FeedbackRecord>().Property(x => x.ContextKey).HasMaxLength(120);
+        modelBuilder.Entity<FeedbackRecord>().Property(x => x.Usefulness).HasMaxLength(20);
+        modelBuilder.Entity<FeedbackRecord>().Property(x => x.Message).HasMaxLength(1200);
+        modelBuilder.Entity<FeedbackRecord>().HasIndex(x => new { x.BusinessId, x.CreatedAt });
+        modelBuilder.Entity<FeedbackRecord>().HasIndex(x => x.OpportunityId);
+        modelBuilder.Entity<FeedbackRecord>().HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<FeedbackRecord>().HasOne<Opportunity>().WithMany().HasForeignKey(x => x.OpportunityId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<FeedbackRecord>().HasOne<UserAccount>().WithMany().HasForeignKey(x => x.SubmittedByAccountId).OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Outcome>().Property(x => x.ConcurrencyVersion).IsRowVersion();
         modelBuilder.Entity<Outcome>().Property(x => x.ResultSummary).HasMaxLength(1000);

@@ -79,6 +79,10 @@ export type WeeklyReview = { periodStart: string; periodEnd: string; counts: Wee
 export type NotificationPreference = { todayFocusEnabled: boolean; outcomeFollowUpEnabled: boolean; weeklyReviewEnabled: boolean; version: number };
 export type NotificationItem = { id: string; category: 'today-focus' | 'outcome-follow-up' | 'weekly-review'; title: string; body: string; deepLink?: string | null; createdAt: string; readAt?: string | null; version: number };
 export type NotificationCenter = { items: NotificationItem[]; unreadCount: number; preferences: NotificationPreference };
+export type FeedbackKind = 'opportunity-rating' | 'incorrect-context' | 'unsafe-guidance' | 'general-feedback' | 'support-request';
+export type FeedbackUsefulness = 'useful' | 'not-useful';
+export type FeedbackInput = { kind: FeedbackKind; opportunityId?: string; contextKey?: string; usefulness?: FeedbackUsefulness; message?: string };
+export type FeedbackReceipt = { id: string; kind: FeedbackKind; createdAt: string };
 
 async function request<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${env.apiUrl}${path}`, { ...init, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, ...init?.headers } });
@@ -110,6 +114,7 @@ export function updateExecutionAsset(accessToken: string, businessId: string, ki
 export function trackExecutionAssetCopy(accessToken: string, businessId: string, kitId: string, asset: ExecutionAsset): Promise<ExecutionKit> { return request(`/api/v1/businesses/${businessId}/execution-kits/${kitId}/assets/${asset.id}/copied`, accessToken, { method: 'POST', body: JSON.stringify({ version: asset.version }) }); }
 export function getOutcome(accessToken: string, businessId: string, opportunityId: string): Promise<Outcome> { return request(`/api/v1/businesses/${businessId}/opportunities/${opportunityId}/outcome`, accessToken); }
 export function saveOutcome(accessToken: string, businessId: string, opportunityId: string, input: OutcomeInput): Promise<Outcome> { return request(`/api/v1/businesses/${businessId}/opportunities/${opportunityId}/outcome`, accessToken, { method: 'PUT', body: JSON.stringify(input) }); }
+export function submitFeedback(accessToken: string, businessId: string, input: FeedbackInput): Promise<FeedbackReceipt> { return request(`/api/v1/businesses/${businessId}/feedback`, accessToken, { method: 'POST', body: JSON.stringify(input) }); }
 export function getBusinessMemory(accessToken: string, businessId: string): Promise<BusinessMemoryItem[]> { return request(`/api/v1/businesses/${businessId}/memory`, accessToken); }
 export async function deleteBusinessMemory(accessToken: string, businessId: string, memoryId: string): Promise<void> { await request<void>(`/api/v1/businesses/${businessId}/memory/${memoryId}`, accessToken, { method: 'DELETE' }); }
 export function getHistory(accessToken: string, businessId: string, filters: HistoryFilters = {}): Promise<HistoryResponse> { const params = new URLSearchParams(); if (filters.status) params.set('status', filters.status); if (filters.category) params.set('category', filters.category); if (filters.goalId) params.set('goalId', filters.goalId); if (filters.from) params.set('from', filters.from); if (filters.to) params.set('to', filters.to); if (filters.limit) params.set('limit', String(filters.limit)); const suffix = params.toString() ? `?${params.toString()}` : ''; return request(`/api/v1/businesses/${businessId}/history${suffix}`, accessToken); }
