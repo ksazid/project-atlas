@@ -287,7 +287,8 @@ public sealed record ConfirmedOperatingContext(
     IReadOnlyList<string> OperatingChannels,
     bool? Reservable,
     IReadOnlyList<string> ServicePeriods,
-    string? PricePosition)
+    string? PricePosition,
+    IReadOnlyList<string>? OpeningHours = null)
 {
     private static readonly IReadOnlyList<string> AllowedChannels =
         ["Dine in", "Takeaway", "Delivery", "Marketplace/platform", "Own website/app"];
@@ -302,7 +303,28 @@ public sealed record ConfirmedOperatingContext(
         if (!AllAllowed(OperatingChannels, AllowedChannels)) return false;
         if (!AllAllowed(ServicePeriods, AllowedServicePeriods)) return false;
         if (PricePosition is not null && Canonical(PricePosition, AllowedPricePositions) is null) return false;
+
+        var suppliedHours = (OpeningHours ?? [])
+            .Select(value => value?.Trim())
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value!)
+            .ToList();
+        if (suppliedHours.Count > 7) return false;
+        if (suppliedHours.Count > 0 && CanonicalOpeningHours() is null) return false;
         return true;
+    }
+
+    public string? CanonicalOpeningHours()
+    {
+        var values = (OpeningHours ?? [])
+            .Select(value => value?.Trim())
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (values.Count == 0 || values.Count > 7) return null;
+        var joined = string.Join("\n", values);
+        return joined.Length <= BusinessDiscoveryProvenance.MaxValueCharacters ? joined : null;
     }
 
     public IReadOnlyList<BusinessContextEntry> ToOwnerContext(Guid businessId, DateTimeOffset at)
@@ -368,7 +390,9 @@ public sealed record CreateBusinessFromDiscoveryRequest(
     string? BusinessHours,
     string Language,
     bool OwnerConfirmed,
-    ConfirmedOperatingContext? ConfirmedOperatingContext = null)
+    ConfirmedOperatingContext? ConfirmedOperatingContext = null,
+    string? Email = null,
+    string? SocialChannels = null)
 {
     public Dictionary<string, string[]> Validate()
     {
@@ -410,6 +434,8 @@ public sealed record CreateBusinessFromDiscoveryRequest(
         CheckLength(nameof(Description), Description);
         CheckLength(nameof(Website), Website);
         CheckLength(nameof(Phone), Phone);
+        CheckLength(nameof(Email), Email);
+        CheckLength(nameof(SocialChannels), SocialChannels);
         CheckLength(nameof(BusinessHours), BusinessHours);
         CheckLength(nameof(Language), Language);
         return errors;
@@ -477,6 +503,7 @@ public static class BusinessDiscoveryBusinessCreator
             });
             db.BusinessKnowledgeAssignments.Add(BusinessKnowledgeAssignment.Assign(business.Id, genericPack, genericVersion, account.Id));
 
+            var confirmedHours = request.ConfirmedOperatingContext?.CanonicalOpeningHours();
             var profile = new BusinessProfile
             {
                 BusinessId = business.Id,
@@ -484,7 +511,9 @@ public static class BusinessDiscoveryBusinessCreator
                 Address = business.PrimaryLocation,
                 Website = Clean(request.Website),
                 Phone = Clean(request.Phone),
-                BusinessHours = Clean(request.BusinessHours),
+                Email = Clean(request.Email),
+                SocialChannels = Clean(request.SocialChannels),
+                BusinessHours = !string.IsNullOrWhiteSpace(confirmedHours) ? confirmedHours : Clean(request.BusinessHours),
                 Language = request.Language.Trim(),
                 Source = FieldSources.Owner,
                 OwnerConfirmed = true,
@@ -504,6 +533,8 @@ public static class BusinessDiscoveryBusinessCreator
             if (!string.IsNullOrWhiteSpace(profile.Description)) AddField("description", profile.Description!);
             if (!string.IsNullOrWhiteSpace(profile.Website)) AddField("website", profile.Website!);
             if (!string.IsNullOrWhiteSpace(profile.Phone)) AddField("phone", profile.Phone!);
+            if (!string.IsNullOrWhiteSpace(profile.Email)) AddField("email", profile.Email!);
+            if (!string.IsNullOrWhiteSpace(profile.SocialChannels)) AddField("socialChannels", profile.SocialChannels!);
             if (!string.IsNullOrWhiteSpace(profile.BusinessHours)) AddField("openingHours", profile.BusinessHours!);
             AddField("language", profile.Language);
 
