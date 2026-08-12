@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { getWeeklyReview, type WeeklyReview } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import { tokens } from '@/theme/tokens';
 
 type ScreenState = 'loading' | 'ready' | 'empty' | 'error';
@@ -33,7 +34,7 @@ export function WeeklyReviewScreen() {
   }, [load]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}>
+    <AtlasScreen contentStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}>
       <View style={styles.headerRow}>
         <View style={styles.headerText}>
           <Text style={styles.eyebrow}>WEEKLY REVIEW</Text>
@@ -69,12 +70,12 @@ export function WeeklyReviewScreen() {
 
         <Text style={styles.supporting}>{review.evidenceNote}</Text>
       </> : null}
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: tokens.spacing.lg, gap: tokens.spacing.md, paddingBottom: 40 },
+  container: { gap: tokens.spacing.md },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: tokens.spacing.sm },
   headerText: { flex: 1, gap: 4 },
   eyebrow: { fontSize: 13, fontWeight: '700', letterSpacing: 1.2 },
