@@ -13,6 +13,7 @@ const reviewPath = 'apps/mobile/src/features/pilot-operations/PilotBusinessRevie
 const operatorLayoutPath = 'apps/mobile/app/operator/_layout.tsx';
 const operatorIndexPath = 'apps/mobile/app/operator/index.tsx';
 const operatorBusinessPath = 'apps/mobile/app/operator/businesses/[businessId].tsx';
+const ownerProfileApiPath = 'apps/mobile/src/features/profile/profile-api.ts';
 
 test('VS-35 operator client and model expose bounded internal contracts', () => {
   assert.ok(fs.existsSync(path.join(root, apiPath)), 'pilot operations API client must exist');
@@ -67,11 +68,12 @@ test('VS-35 operator review is review-first and withdrawal requires explicit rea
 });
 
 test('VS-35 owner profile can truthfully reconfirm existing operator-assisted provenance', () => {
-  const client = read('apps/mobile/src/api/atlas-client.ts');
+  assert.ok(fs.existsSync(path.join(root, ownerProfileApiPath)), 'owner profile API boundary must represent operator-assisted provenance');
+  const profileApi = read(ownerProfileApiPath);
   const profileModel = read('apps/mobile/src/features/profile/profile-model.ts');
   const editBusiness = read('apps/mobile/app/edit-business.tsx');
 
-  assert.match(client, /'owner'\s*\|\s*'public'\s*\|\s*'operator-assisted'/);
+  assert.match(profileApi, /'owner'\s*\|\s*'public'\s*\|\s*'operator-assisted'/);
   assert.match(profileModel, /source\s*===\s*'owner'\s*\|\|\s*profile\.ownerConfirmed/);
   assert.match(editBusiness, /Operator-assisted information/);
   assert.match(editBusiness, /form\.source\s*!==\s*'owner'/);
