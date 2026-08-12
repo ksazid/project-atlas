@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { createBusiness } from '@/api/atlas-client';
 import {
@@ -70,28 +70,7 @@ export default function CreateBusinessScreen() {
   const [placeEnrichmentError, setPlaceEnrichmentError] = useState<string | null>(null);
   const [placeEnrichmentConfirmed, setPlaceEnrichmentConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const pulse = useRef(new Animated.Value(0)).current;
   const placeEnrichmentRequestId = useRef(0);
-
-  useEffect(() => {
-    void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
-    return () => subscription.remove();
-  }, []);
-
-  useEffect(() => {
-    const animation = Animated.loop(Animated.sequence([
-      Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
-      Animated.timing(pulse, { toValue: 0, duration: 900, useNativeDriver: true }),
-    ]));
-    if (busy && !reduceMotion) animation.start();
-    else {
-      animation.stop();
-      pulse.setValue(0);
-    }
-    return () => animation.stop();
-  }, [busy, pulse, reduceMotion]);
 
   const update = (key: keyof DiscoveryDraft, value: string) => setForm(current => ({ ...current, [key]: value }));
   const sourceErrors = validateSourceUrls(sourceUrls);
@@ -421,7 +400,7 @@ export default function CreateBusinessScreen() {
         ) : null}
       </View>
       <View style={s.orbitWrap}>
-        <Animated.View style={[s.orbitOuter, { opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [.40, .85] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [.98, 1.025] }) }] }]} />
+        <View style={s.orbitOuter} />
         <View style={s.orbitMid} /><View style={s.orbitInner} />
         <View style={s.bot}><View style={s.botCap} /><Text style={s.botFace}>●  ●{`\n`}⌣</Text></View>
         <Bubble icon="⌕" pos={s.b1} /><Bubble icon="♟" pos={s.b2} /><Bubble icon="▥" pos={s.b3} /><Bubble icon="▤" pos={s.b4} />
