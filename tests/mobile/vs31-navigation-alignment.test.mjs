@@ -40,20 +40,36 @@ test('Profile retains Business Hub and links to Context and Settings details', (
   assert.match(profile, /MenuIntelligenceCard/);
 });
 
-test('Context and Settings are pushed Profile details with accessible back fallback', () => {
-  const context = file(rootContext);
-  const settings = file(rootSettings);
+test('Context and Settings use pushed Stack route shells with accessible Profile fallback', () => {
+  const contextRoute = file(rootContext);
+  const settingsRoute = file(rootSettings);
 
-  for (const source of [context, settings]) {
+  for (const source of [contextRoute, settingsRoute]) {
+    assert.match(source, /<Stack\.Screen/);
+    assert.match(source, /headerShown:\s*true/);
     assert.match(source, /accessibilityLabel="Back to Profile"/);
     assert.match(source, /router\.canGoBack\(\)/);
     assert.match(source, /router\.replace\('\/(?:\(tabs\)\/)?profile'\)/);
     assert.doesNotMatch(source, /<AtlasScreen\s+hasTabBar\b/);
   }
 
-  assert.match(context, /getContext/);
-  assert.match(context, /saveContext/);
-  assert.match(settings, /Notifications/);
-  assert.match(settings, /BusinessMemoryPanel/);
-  assert.match(settings, /resetExpoDemoBusiness/);
+  assert.match(contextRoute, /ContextScreen/);
+  assert.match(settingsRoute, /SettingsScreen/);
+
+  const contextScreen = file('../../apps/mobile/src/features/context/ContextScreen.tsx');
+  const settingsScreen = file('../../apps/mobile/src/features/settings/SettingsScreen.tsx');
+  assert.match(contextScreen, /getContext/);
+  assert.match(contextScreen, /saveContext/);
+  assert.match(settingsScreen, /Notifications/);
+  assert.match(settingsScreen, /BusinessMemoryPanel/);
+  assert.match(settingsScreen, /resetExpoDemoBusiness/);
+});
+
+test('AtlasScreen reserves tab spacing only for routes that are actually inside the native tab group', () => {
+  const atlasScreen = file('../../apps/mobile/src/components/AtlasScreen.tsx');
+  assert.match(atlasScreen, /useSegments/);
+  assert.match(atlasScreen, /segments\.includes\('\(tabs\)'\)/);
+  assert.match(atlasScreen, /hasTabBar:\s*hasTabBar\s*&&\s*isPersistentTabRoute/);
+  assert.match(atlasScreen, /segments\[0\]\s*===\s*'context'/);
+  assert.match(atlasScreen, /segments\[0\]\s*===\s*'settings'/);
 });

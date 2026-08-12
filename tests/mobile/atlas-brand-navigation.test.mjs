@@ -13,8 +13,8 @@ test('Atlas brand mark is local and contains no Starbucks prototype dependency',
   assert.match(brandMarkSource, /Compass|orbit|directional|BrandMark/i);
 });
 
-test('five existing PES tab routes remain unchanged and use local Atlas icons', () => {
-  for (const route of ['index', 'profile', 'goals', 'context', 'settings']) {
+test('DEC-10 native destinations use local Atlas icons', () => {
+  for (const route of ['index', 'history', 'goals', 'profile']) {
     assert.match(layoutSource, new RegExp(`name="${route}"`));
   }
   for (const glyph of ['⌂', '◎', '↗', '◌', '⚙']) {
@@ -24,7 +24,7 @@ test('five existing PES tab routes remain unchanged and use local Atlas icons', 
 });
 
 test('AtlasIcon exposes one local icon family without emoji or remote assets', () => {
-  for (const name of ['home', 'business', 'goals', 'context', 'settings']) {
+  for (const name of ['home', 'history', 'business', 'goals', 'context', 'settings']) {
     assert.match(iconSource, new RegExp(`'${name}'`));
   }
   assert.doesNotMatch(iconSource, /https?:\/\/|Image\s*[,}]/);

@@ -62,15 +62,14 @@ export function HistoryScreen() {
   }, [load]);
 
   return (
-    <AtlasScreen contentStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}>
+    <AtlasScreen hasTabBar contentStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} />}>
       <View style={styles.headerRow}>
         <View style={styles.headerText}>
           <Text style={styles.eyebrow}>BUSINESS HISTORY</Text>
           <Text accessibilityRole="header" style={styles.title}>What Atlas has shown and learned</Text>
         </View>
         <View style={styles.headerActions}>
-          <Pressable accessibilityRole="button" onPress={() => router.push('/weekly-review')} style={styles.backButton}><Text style={styles.buttonText}>Weekly review</Text></Pressable>
-          <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.backButton}><Text style={styles.buttonText}>Back</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Open weekly review" onPress={() => router.push('/weekly-review')} style={styles.backButton}><Text style={styles.buttonText}>Weekly review</Text></Pressable>
         </View>
       </View>
       <Text style={styles.body}>Chronological Opportunity, Action, Execution Kit and Outcome records. Learning summaries describe recorded evidence and owner feedback; they do not claim causation.</Text>

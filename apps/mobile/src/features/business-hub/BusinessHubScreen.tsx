@@ -67,7 +67,7 @@ export function BusinessHubScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <BrandMark size={48} />
-          <Text style={styles.eyebrow}>BUSINESS</Text>
+          <Text style={styles.eyebrow}>PROFILE</Text>
           <Text accessibilityRole="header" style={styles.heading}>This is the business Atlas understands today.</Text>
           <Text style={styles.subheading}>Review the real operating picture behind your recommendations, then edit only when something has changed.</Text>
         </View>
@@ -77,12 +77,17 @@ export function BusinessHubScreen() {
         <BusinessMediaPreview media={hub.media} title="Business photos" />
         <MenuIntelligenceCard menu={hub.menu} title="Menu intelligence" onViewFull={() => router.push('/business-menu')} />
         <View accessibilityLabel={REVIEW_CONTEXT_ACTION}>
-          <BusinessContextStatus context={hub.context} onReview={() => router.push('/(tabs)/context')} />
+          <BusinessContextStatus context={hub.context} onReview={() => router.push('/context')} />
         </View>
 
-        <AtlasPressable accessibilityRole="button" accessibilityLabel="Edit business details" onPress={() => router.push('/edit-business')} style={styles.editButton}>
-          <Text style={styles.editButtonText}>Edit business details</Text>
-        </AtlasPressable>
+        <View style={styles.profileActions}>
+          <AtlasPressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')} style={styles.secondaryButton}>
+            <Text style={styles.secondaryButtonText}>Settings</Text>
+          </AtlasPressable>
+          <AtlasPressable accessibilityRole="button" accessibilityLabel="Edit business details" onPress={() => router.push('/edit-business')} style={styles.editButton}>
+            <Text style={styles.editButtonText}>Edit business details</Text>
+          </AtlasPressable>
+        </View>
         {hub.latestObservedAt ? <Text style={styles.freshness}>Business intelligence last observed {formatDate(hub.latestObservedAt)}.</Text> : null}
       </View>
     </AtlasScreen>
@@ -103,6 +108,9 @@ const styles = StyleSheet.create({
   eyebrow: { color: tokens.color.green, fontSize: 11, fontWeight: '900', letterSpacing: 1.2, marginTop: 7 },
   heading: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 31, fontWeight: '800', letterSpacing: -.45, lineHeight: 37 },
   subheading: { color: tokens.color.muted, fontSize: 14.5, lineHeight: 22 },
+  profileActions: { gap: 10 },
+  secondaryButton: { alignItems: 'center', borderColor: tokens.color.green, borderRadius: tokens.radius.pill, borderWidth: 1.5, justifyContent: 'center', minHeight: 48, paddingHorizontal: 22 },
+  secondaryButtonText: { color: tokens.color.greenDeep, fontSize: 14, fontWeight: '800' },
   editButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 52, paddingHorizontal: 22 }, editButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
   freshness: { color: tokens.color.muted, fontSize: 11.5, lineHeight: 17, textAlign: 'center' },
   stateScreen: { alignItems: 'center', backgroundColor: tokens.color.surface, gap: 14, justifyContent: 'center' }, stateTitle: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 27, fontWeight: '800', lineHeight: 33, textAlign: 'center' }, stateCopy: { color: tokens.color.muted, fontSize: 14, lineHeight: 21, maxWidth: 380, textAlign: 'center' }, stateButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 48, paddingHorizontal: 20 }, stateButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
