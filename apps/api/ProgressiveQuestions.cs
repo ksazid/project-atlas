@@ -80,6 +80,22 @@ public sealed class ProgressiveQuestionValidationException(Dictionary<string, st
     public Dictionary<string, string[]> Errors { get; } = errors;
 }
 
+public static class ProgressiveQuestionSatisfactionPolicy
+{
+    public static bool IsSatisfied(
+        ProgressiveQuestionDefinition question,
+        IReadOnlyCollection<BusinessContextEntry> context)
+    {
+        if (!question.TargetContextKey.Equals("primarychannels", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return context.Any(entry =>
+            entry.OwnerConfirmed &&
+            !string.IsNullOrWhiteSpace(entry.Value) &&
+            entry.Key.Equals("operatingchannels", StringComparison.OrdinalIgnoreCase));
+    }
+}
+
 public static class ProgressiveQuestionCatalogueV1
 {
     public const string CatalogueKey = "progressive-onboarding";
@@ -185,6 +201,7 @@ public static class ProgressiveQuestionCatalogueV1
                 question.Categories.Contains(canonicalCategory) ||
                 question.Categories.Contains(BusinessCategoryTaxonomy.Generic.Key))
             .Where(question => !authoritativeContextKeys.Contains(question.TargetContextKey))
+            .Where(question => !ProgressiveQuestionSatisfactionPolicy.IsSatisfied(question, context))
             .Where(question => !completedQuestionKeys.Contains(question.QuestionKey))
             .OrderByDescending(question => question.Priority)
             .ThenByDescending(question => question.Categories.Contains(canonicalCategory) && !question.Categories.Contains(BusinessCategoryTaxonomy.Generic.Key))
