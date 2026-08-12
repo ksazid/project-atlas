@@ -23,6 +23,7 @@ const files = [
 
 const sources = files.map(path => [path, readFileSync(new URL(path, import.meta.url), 'utf8')]);
 const todaySource = readFileSync(new URL('../../apps/mobile/src/features/today-focus/TodayFocusScreen.tsx', import.meta.url), 'utf8');
+const atlasScreenSource = readFileSync(new URL('../../apps/mobile/src/components/AtlasScreen.tsx', import.meta.url), 'utf8');
 
 test('every current first-party screen uses AtlasScreen', () => {
   for (const [path, source] of sources) {
@@ -39,4 +40,11 @@ test('migrated screens do not retain known one-device page offsets', () => {
 test('Today non-ready states do not vertically center the entire tall-device viewport', () => {
   assert.match(todaySource, /stateContainer:\s*\{[^}]*justifyContent:\s*'flex-start'/s);
   assert.doesNotMatch(todaySource, /stateContainer:\s*\{[^}]*justifyContent:\s*'center'/s);
+});
+
+test('scrolling screens keep the top safe area outside scrollable content', () => {
+  assert.match(atlasScreenSource, /fixedSafeAreaStyle[\s\S]*paddingTop:\s*metrics\.paddingTop/);
+  assert.match(atlasScreenSource, /scrollContentSafeAreaStyle[\s\S]*paddingBottom:\s*metrics\.paddingBottom/);
+  assert.match(atlasScreenSource, /<View style=\{\[\{ flex: 1 \}, fixedSafeAreaStyle\]\}>[\s\S]*<ScrollView/);
+  assert.doesNotMatch(atlasScreenSource, /scrollContentSafeAreaStyle[\s\S]*paddingTop:/);
 });
