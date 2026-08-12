@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { decideOpportunity, getTodayFocus, type OpportunityDecision, type TodayFocus } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import { todayFocusRecoveryAction } from './today-focus-recovery';
 
 type ScreenState = 'loading' | 'ready' | 'empty' | 'error';
@@ -80,15 +81,15 @@ export function TodayFocusScreen() {
 
   if (focus?.state === 'insufficient-context') {
     const recoveryAction = todayFocusRecoveryAction(focus.code);
-    return <ScrollView contentContainerStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>◌</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>No suitable focus yet.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>Why Atlas is waiting</Text><Text style={styles.noteText}>Atlas will not create filler recommendations when the available context is insufficient.</Text></View><Pressable accessibilityRole="button" accessibilityLabel={recoveryAction.label} onPress={() => router.push(recoveryAction.route)} style={styles.primaryButton}><Text style={styles.primaryText}>{recoveryAction.label}</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.secondaryWide}><Text style={styles.secondaryText}>View business history</Text></Pressable></ScrollView>;
+    return <AtlasScreen hasTabBar contentStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>◌</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>No suitable focus yet.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>Why Atlas is waiting</Text><Text style={styles.noteText}>Atlas will not create filler recommendations when the available context is insufficient.</Text></View><Pressable accessibilityRole="button" accessibilityLabel={recoveryAction.label} onPress={() => router.push(recoveryAction.route)} style={styles.primaryButton}><Text style={styles.primaryText}>{recoveryAction.label}</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.secondaryWide}><Text style={styles.secondaryText}>View business history</Text></Pressable></AtlasScreen>;
   }
 
   if (focus?.state === 'no-focus') {
-    return <ScrollView contentContainerStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>◎</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>No evidence-qualified focus yet.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>Quality before quantity</Text><Text style={styles.noteText}>Atlas will not create filler recommendations just to fill this screen. A new focus appears only when the available evidence supports a useful action.</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Review business context" onPress={() => router.push('/profile')} style={styles.primaryButton}><Text style={styles.primaryText}>Review business context</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.secondaryWide}><Text style={styles.secondaryText}>View history</Text></Pressable></ScrollView>;
+    return <AtlasScreen hasTabBar contentStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>◎</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>No evidence-qualified focus yet.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>Quality before quantity</Text><Text style={styles.noteText}>Atlas will not create filler recommendations just to fill this screen. A new focus appears only when the available evidence supports a useful action.</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Review business context" onPress={() => router.push('/profile')} style={styles.primaryButton}><Text style={styles.primaryText}>Review business context</Text></Pressable><Pressable accessibilityRole="button" onPress={() => router.push('/history')} style={styles.secondaryWide}><Text style={styles.secondaryText}>View history</Text></Pressable></AtlasScreen>;
   }
 
   if (focus?.state === 'degraded') {
-    return <ScrollView contentContainerStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>!</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>Atlas could not safely prepare today’s focus.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>No recommendation was created</Text><Text style={styles.noteText}>Atlas stopped safely rather than presenting guidance from incomplete or unavailable intelligence inputs.</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={retry} style={styles.primaryButton}><Text style={styles.primaryText}>Try again</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Review business context" onPress={() => router.push('/profile')} style={styles.secondaryWide}><Text style={styles.secondaryText}>Review business context</Text></Pressable></ScrollView>;
+    return <AtlasScreen hasTabBar contentStyle={styles.stateContainer}><View style={styles.stateIcon}><Text style={styles.stateIconText}>!</Text></View><Text style={styles.stateEyebrow}>TODAY’S FOCUS</Text><Text accessibilityRole="header" style={styles.stateTitle}>Atlas could not safely prepare today’s focus.</Text><Text accessibilityLiveRegion="polite" style={styles.stateBody}>{focus.message}</Text><View style={styles.noteCard}><Text style={styles.noteTitle}>No recommendation was created</Text><Text style={styles.noteText}>Atlas stopped safely rather than presenting guidance from incomplete or unavailable intelligence inputs.</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={retry} style={styles.primaryButton}><Text style={styles.primaryText}>Try again</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Review business context" onPress={() => router.push('/profile')} style={styles.secondaryWide}><Text style={styles.secondaryText}>Review business context</Text></Pressable></AtlasScreen>;
   }
 
   if (focus?.state !== 'ready') {
@@ -97,8 +98,9 @@ export function TodayFocusScreen() {
 
   const opportunity = focus.opportunity;
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
+    <AtlasScreen
+      hasTabBar
+      contentStyle={styles.container}
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl tintColor={GREEN} refreshing={refreshing} onRefresh={() => void load(true)} />}
     >
@@ -147,7 +149,7 @@ export function TodayFocusScreen() {
         <Pressable accessibilityRole="button" disabled={deciding} onPress={() => void decide('skip')} style={({ pressed }) => [styles.smallAction, pressed && styles.pressed]}><Text style={styles.smallActionText}>Skip for now</Text></Pressable>
         <Pressable accessibilityRole="button" disabled={deciding} onPress={() => void decide('not-relevant')} style={({ pressed }) => [styles.smallAction, pressed && styles.pressed]}><Text style={styles.smallActionText}>Not relevant</Text></Pressable>
       </View>
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
@@ -156,11 +158,11 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 function StateShell({ children }: { children: React.ReactNode }) {
-  return <View style={styles.stateContainer}>{children}</View>;
+  return <AtlasScreen hasTabBar mode="static" contentStyle={styles.stateContainer}>{children}</AtlasScreen>;
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 58, paddingBottom: 38, backgroundColor: '#FFF' },
+  container: { backgroundColor: '#FFF' },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
   historyButton: { minHeight: 44, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1, borderColor: '#DEE5E1', backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
   historyText: { fontSize: 12, fontWeight: '800', color: GREEN },
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
   smallActionText: { fontSize: 12, fontWeight: '800', color: '#53605A' },
   pressed: { opacity: .92, transform: [{ scale: .99 }] },
   disabled: { opacity: .55 },
-  stateContainer: { flex: 1, minHeight: '100%', backgroundColor: '#FFF', paddingHorizontal: 28, paddingVertical: 80, alignItems: 'center', justifyContent: 'center' },
+  stateContainer: { backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
   loadingOrb: { width: 86, height: 86, borderRadius: 43, backgroundColor: '#EEF8F2', alignItems: 'center', justifyContent: 'center', marginBottom: 26 },
   stateIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#EEF8F2', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   stateIconText: { color: GREEN, fontFamily: 'Georgia', fontSize: 32, fontWeight: '800' },
