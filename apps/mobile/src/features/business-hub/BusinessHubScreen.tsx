@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { BusinessHub } from '@/api/atlas-client';
 import { clearBusinessSelection, loadSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
+import { AtlasPressable } from '@/components/AtlasPressable';
 import { AtlasScreen } from '@/components/AtlasScreen';
 import { BusinessContextStatus } from '@/features/business-hub/BusinessContextStatus';
 import { BusinessHero } from '@/features/business-hub/BusinessHero';
@@ -79,9 +80,9 @@ export function BusinessHubScreen() {
           <BusinessContextStatus context={hub.context} onReview={() => router.push('/(tabs)/context')} />
         </View>
 
-        <Pressable accessibilityRole="button" accessibilityLabel="Edit business details" onPress={() => router.push('/edit-business')} style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}>
+        <AtlasPressable accessibilityRole="button" accessibilityLabel="Edit business details" onPress={() => router.push('/edit-business')} style={styles.editButton}>
           <Text style={styles.editButtonText}>Edit business details</Text>
-        </Pressable>
+        </AtlasPressable>
         {hub.latestObservedAt ? <Text style={styles.freshness}>Business intelligence last observed {formatDate(hub.latestObservedAt)}.</Text> : null}
       </View>
     </AtlasScreen>
@@ -90,8 +91,8 @@ export function BusinessHubScreen() {
 
 function HubState({ state, onRetry, onContinue }: { state: ScreenState; onRetry: () => void; onContinue: () => void }) {
   if (state === 'loading') return <AtlasScreen hasTabBar mode="static" contentStyle={styles.stateScreen}><BrandMark size={56} /><ActivityIndicator color={tokens.color.green} /><Text style={styles.stateCopy}>Loading your business…</Text></AtlasScreen>;
-  if (state === 'missing') return <AtlasScreen hasTabBar mode="static" contentStyle={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Set up your business</Text><Text style={styles.stateCopy}>Atlas does not have a business for this account yet. Start setup to add one.</Text><Pressable accessibilityRole="button" accessibilityLabel="Set up your business" onPress={onContinue} style={({ pressed }) => [styles.stateButton, pressed && styles.pressed]}><Text style={styles.stateButtonText}>Set up your business</Text></Pressable></AtlasScreen>;
-  return <AtlasScreen hasTabBar mode="static" contentStyle={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Business Hub is temporarily unavailable</Text><Text style={styles.stateCopy}>Your saved business information is unchanged. Try loading it again.</Text><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={onRetry} style={({ pressed }) => [styles.stateButton, pressed && styles.pressed]}><Text style={styles.stateButtonText}>Try again</Text></Pressable></AtlasScreen>;
+  if (state === 'missing') return <AtlasScreen hasTabBar mode="static" contentStyle={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Set up your business</Text><Text style={styles.stateCopy}>Atlas does not have a business for this account yet. Start setup to add one.</Text><AtlasPressable accessibilityRole="button" accessibilityLabel="Set up your business" onPress={onContinue} style={styles.stateButton}><Text style={styles.stateButtonText}>Set up your business</Text></AtlasPressable></AtlasScreen>;
+  return <AtlasScreen hasTabBar mode="static" contentStyle={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Business Hub is temporarily unavailable</Text><Text style={styles.stateCopy}>Your saved business information is unchanged. Try loading it again.</Text><AtlasPressable accessibilityRole="button" accessibilityLabel="Try again" onPress={onRetry} style={styles.stateButton}><Text style={styles.stateButtonText}>Try again</Text></AtlasPressable></AtlasScreen>;
 }
 
 function formatDate(value: string): string { const date = new Date(value); return Number.isNaN(date.getTime()) ? 'recently' : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); }
@@ -103,6 +104,6 @@ const styles = StyleSheet.create({
   heading: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 31, fontWeight: '800', letterSpacing: -.45, lineHeight: 37 },
   subheading: { color: tokens.color.muted, fontSize: 14.5, lineHeight: 22 },
   editButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 52, paddingHorizontal: 22 }, editButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
-  freshness: { color: tokens.color.muted, fontSize: 11.5, lineHeight: 17, textAlign: 'center' }, pressed: { opacity: .86, transform: [{ scale: .99 }] },
+  freshness: { color: tokens.color.muted, fontSize: 11.5, lineHeight: 17, textAlign: 'center' },
   stateScreen: { alignItems: 'center', backgroundColor: tokens.color.surface, gap: 14, justifyContent: 'center' }, stateTitle: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 27, fontWeight: '800', lineHeight: 33, textAlign: 'center' }, stateCopy: { color: tokens.color.muted, fontSize: 14, lineHeight: 21, maxWidth: 380, textAlign: 'center' }, stateButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 48, paddingHorizontal: 20 }, stateButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
 });
