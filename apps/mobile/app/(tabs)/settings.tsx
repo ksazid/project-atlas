@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { clearBusinessSelection, loadSession } from '@/auth/session';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import { BusinessMemoryPanel } from '@/features/business-memory/BusinessMemoryPanel';
 import { resetExpoDemoBusiness } from '@/features/business-hub/business-hub-api';
 import { tokens } from '@/theme/tokens';
@@ -44,7 +45,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <AtlasScreen hasTabBar contentStyle={styles.container}>
       <Text accessibilityRole="header" style={styles.title}>Settings</Text>
       <Pressable accessibilityRole="button" onPress={() => router.push('/notifications')} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
         <Text style={styles.cardTitle}>Notifications</Text>
@@ -67,12 +68,12 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
       ) : null}
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: tokens.spacing.lg, gap: tokens.spacing.lg, paddingBottom: 40 },
+  container: { gap: tokens.spacing.lg },
   title: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 31, fontWeight: '800' },
   card: { borderColor: '#dce5df', borderWidth: 1, borderRadius: tokens.radius.md, padding: tokens.spacing.md, gap: tokens.spacing.xs },
   cardTitle: { color: tokens.color.greenDeep, fontSize: 18, fontWeight: '700' },
