@@ -3,7 +3,7 @@
   "sliceId": "VS-33",
   "title": "VS-33 — Today Experience Simplification",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
@@ -89,12 +89,12 @@
     },
     {
       "type": "certification",
-      "status": "pending",
-      "version": null,
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
+      "status": "approved",
+      "version": "VS-33@1.0",
+      "commitSha": "6c0c97b8bdd25fc93a206087936159ac52285289",
+      "by": "PES/Loop",
+      "at": "2026-08-12T14:25:00+02:00",
+      "rationale": "The frozen runtime SHA passed the complete exact-head mobile/native-runtime, TypeScript, Expo lint, PostgreSQL 17 migration replay, API regression, Release build, dashboard, Security baseline and Product Intake gates after a verified RED-to-GREEN cycle and changed-file review. Certification binds only this exact runtime SHA; release and production enablement remain unauthorized."
     },
     {
       "type": "release",
@@ -119,16 +119,25 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 0,
-    "testing": 0,
-    "certification": 0,
+    "implementation": 100,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
-    "evidence": []
+    "status": "passed",
+    "commitSha": "6c0c97b8bdd25fc93a206087936159ac52285289",
+    "evidence": [
+      "Activation baseline adff3b035631c41159ecadaee8072dbc8efd58cb: CI 31593783677, Security baseline 31593783690 and Product Intake 31593783676 passed before VS-33 runtime edits",
+      "TDD RED 7b9188caeb23982174f24ef2f36a7952c3b74da6: 4 intended VS-33 failures reproduced while all 168 pre-existing mobile tests and the authentic Expo Web Today runtime remained green",
+      "CI 31595903693: exact runtime SHA 6c0c97b8bdd25fc93a206087936159ac52285289 passed governance/preflight, Expo SDK 54 platform validation, TypeScript, Expo lint, authentic Expo Web runtime, clean PostgreSQL 17 migration replay, API tests, Release build and dashboard artifact upload",
+      "CI 31595903693: 173 mobile tests passed with 0 failures and 0 skipped, including VS-33 Best-move, refresh preservation and authentic Expo Web Today-to-Opportunity-Detail coverage",
+      "CI 31595903693: 346 API tests passed with 0 failures and 0 skipped",
+      "Security baseline 31595903770: success on exact runtime SHA",
+      "Product Intake 31595903890: success on exact runtime SHA",
+      "Changed-file review confirmed runtime changes are limited to apps/mobile/src/features/today-focus/TodayFocusScreen.tsx and Today-focused tests; no API, migration, infrastructure, release workflow, navigation shell or AtlasScreen change was introduced"
+    ]
   },
   "release": {
     "status": "not-authorized",
