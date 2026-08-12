@@ -42,26 +42,36 @@ export function AtlasScreen({
     fontScale,
     hasTabBar,
   });
-  const safeAreaStyle: ViewStyle = {
+  const fixedSafeAreaStyle: ViewStyle = {
+    paddingTop: metrics.paddingTop,
+  };
+  const scrollContentSafeAreaStyle: ViewStyle = {
+    paddingBottom: metrics.paddingBottom,
+    paddingHorizontal: metrics.paddingHorizontal,
+  };
+  const staticSafeAreaStyle: ViewStyle = {
     paddingTop: metrics.paddingTop,
     paddingBottom: metrics.paddingBottom,
     paddingHorizontal: metrics.paddingHorizontal,
   };
 
   if (mode === 'static') {
-    return <View style={[{ flex: 1 }, contentStyle, safeAreaStyle]}>{children}</View>;
+    return <View style={[{ flex: 1 }, contentStyle, staticSafeAreaStyle]}>{children}</View>;
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={[{ flexGrow: 1 }, contentStyle, safeAreaStyle]}
-      refreshControl={refreshControl}
-      showsVerticalScrollIndicator={showsVerticalScrollIndicator}
-      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-      keyboardDismissMode={keyboardDismissMode}
-      automaticallyAdjustKeyboardInsets={automaticallyAdjustKeyboardInsets}
-    >
-      {children}
-    </ScrollView>
+    <View style={[{ flex: 1 }, fixedSafeAreaStyle]}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[{ flexGrow: 1 }, contentStyle, scrollContentSafeAreaStyle]}
+        refreshControl={refreshControl}
+        showsVerticalScrollIndicator={showsVerticalScrollIndicator}
+        keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+        keyboardDismissMode={keyboardDismissMode}
+        automaticallyAdjustKeyboardInsets={automaticallyAdjustKeyboardInsets}
+      >
+        {children}
+      </ScrollView>
+    </View>
   );
 }
