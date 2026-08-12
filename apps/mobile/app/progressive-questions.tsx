@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   answerProgressiveQuestion,
@@ -10,6 +10,7 @@ import {
 import { loadSession, type Session } from '@/auth/session';
 import { getSessionDestination } from '@/auth/session-routing';
 import { BrandMark } from '@/components/BrandMark';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import {
   buildAnswerRequest,
   canContinue,
@@ -178,9 +179,9 @@ export default function ProgressiveQuestionsScreen() {
   const progressIndex = Math.min(completedCount, Math.max(0, progressTotal - 1));
 
   return (
-    <ScrollView
+    <AtlasScreen
       automaticallyAdjustKeyboardInsets
-      contentContainerStyle={styles.container}
+      contentStyle={styles.container}
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
@@ -232,7 +233,7 @@ export default function ProgressiveQuestionsScreen() {
 
         <Text style={styles.optionalCopy}>Optional — skipping keeps this detail unknown and will not block setup.</Text>
       </View>
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
@@ -315,17 +316,17 @@ function SelectionMark({ selected }: { selected: boolean }) {
 
 function StateFrame({ children }: { children: React.ReactNode }) {
   return (
-    <View style={styles.stateScreen}>
+    <AtlasScreen mode="static" contentStyle={styles.stateScreen}>
       <View style={styles.stateCard}>
         <BrandMark size={52} />
         {children}
       </View>
-    </View>
+    </AtlasScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { alignItems: 'center', backgroundColor: '#FFF', flexGrow: 1, paddingBottom: 44, paddingHorizontal: 28, paddingTop: 58 },
+  container: { alignItems: 'center', backgroundColor: '#FFF' },
   content: { gap: 20, maxWidth: 620, width: '100%' },
   progressRow: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
   eyebrow: { color: GREEN, fontSize: 10.5, fontWeight: '900', letterSpacing: 1.2 },
@@ -353,7 +354,7 @@ const styles = StyleSheet.create({
   errorMessage: { backgroundColor: '#FDECEC', borderRadius: 10, color: '#9A2B20', fontSize: 13, lineHeight: 19, padding: 13 },
   completeMark: { alignItems: 'center', backgroundColor: GREEN, borderRadius: 999, height: 58, justifyContent: 'center', width: 58 },
   completeMarkText: { color: '#FFF', fontSize: 28, fontWeight: '900' },
-  stateScreen: { alignItems: 'center', backgroundColor: '#FFF', flex: 1, justifyContent: 'center', padding: 28 },
+  stateScreen: { alignItems: 'center', backgroundColor: '#FFF', justifyContent: 'center' },
   stateCard: { backgroundColor: '#FFF', borderColor: '#E2E7E4', borderRadius: 12, borderWidth: 1, gap: 16, maxWidth: 480, padding: 24, width: '100%' },
   stateTitle: { color: '#173B2A', fontFamily: 'Georgia', fontSize: 28, fontWeight: '800', lineHeight: 34 },
   stateCopy: { color: '#53625B', fontSize: 14.5, lineHeight: 22 },

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { getOpportunityDetail, type OpportunityDetail } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import { ActionDecisionPanel } from '@/features/action-decisions/ActionDecisionPanel';
 import { OutcomeCapturePanel } from '@/features/outcomes/OutcomeCapturePanel';
 import { tokens } from '@/theme/tokens';
@@ -28,12 +29,12 @@ export function OpportunityDetailScreen({ opportunityId }: { opportunityId: stri
     return () => { active = false; };
   }, [opportunityId]);
 
-  if (state === 'loading') return <View style={styles.center}><Text accessibilityLiveRegion="polite">Loading Opportunity details…</Text></View>;
-  if (state === 'missing') return <View style={styles.center}><Text accessibilityRole="header" style={styles.title}>Opportunity unavailable</Text><Text style={styles.body}>Select a Business and open the Opportunity again.</Text></View>;
-  if (state === 'error' || !detail) return <View style={styles.center}><Text accessibilityRole="header" style={styles.title}>Opportunity unavailable</Text><Text style={styles.body}>This Opportunity could not be loaded safely.</Text><Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.button}><Text style={styles.buttonText}>Back</Text></Pressable></View>;
+  if (state === 'loading') return <AtlasScreen mode="static" contentStyle={styles.center}><Text accessibilityLiveRegion="polite">Loading Opportunity details…</Text></AtlasScreen>;
+  if (state === 'missing') return <AtlasScreen mode="static" contentStyle={styles.center}><Text accessibilityRole="header" style={styles.title}>Opportunity unavailable</Text><Text style={styles.body}>Select a Business and open the Opportunity again.</Text></AtlasScreen>;
+  if (state === 'error' || !detail) return <AtlasScreen mode="static" contentStyle={styles.center}><Text accessibilityRole="header" style={styles.title}>Opportunity unavailable</Text><Text style={styles.body}>This Opportunity could not be loaded safely.</Text><Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.button}><Text style={styles.buttonText}>Back</Text></Pressable></AtlasScreen>;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <AtlasScreen contentStyle={styles.container}>
       <Text style={styles.eyebrow}>OPPORTUNITY DETAIL</Text>
       <Text accessibilityRole="header" style={styles.title}>{detail.title}</Text>
       <Text style={styles.body}>{detail.goalAlignment}</Text>
@@ -68,13 +69,13 @@ export function OpportunityDetailScreen({ opportunityId }: { opportunityId: stri
         </Pressable>
       </View>
       <Text style={styles.supporting}>Expires {new Date(detail.expiresAt).toLocaleString()} · {detail.knowledgePackKey} v{detail.knowledgePackVersion}</Text>
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: tokens.spacing.lg, gap: tokens.spacing.md, paddingBottom: 40 },
-  center: { flex: 1, justifyContent: 'center', padding: tokens.spacing.lg, gap: tokens.spacing.md },
+  container: { gap: tokens.spacing.md },
+  center: { justifyContent: 'center', gap: tokens.spacing.md },
   eyebrow: { fontSize: 13, fontWeight: '700', letterSpacing: 1.2 },
   title: { fontSize: tokens.typography.title, fontWeight: '700' },
   body: { fontSize: tokens.typography.body, lineHeight: 24 },

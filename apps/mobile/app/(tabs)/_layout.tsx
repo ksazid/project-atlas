@@ -1,36 +1,71 @@
-import { Tabs } from 'expo-router';
+import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { AtlasIcon } from '@/components/AtlasIcon';
-
-const GREEN = '#00754A';
-const MUTED = '#7A857F';
+import { tokens } from '@/theme/tokens';
 
 export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: GREEN,
-        tabBarInactiveTintColor: MUTED,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '800', marginBottom: 4 },
-        tabBarStyle: {
-          height: 76,
-          paddingTop: 8,
-          paddingBottom: 8,
-          borderTopColor: '#E5EAE7',
-          backgroundColor: '#FFFFFF',
-          shadowColor: '#173B2A',
-          shadowOpacity: 0.07,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: -4 },
-          elevation: 8,
-        },
+    <NativeTabs
+      iconColor={{ default: tokens.color.muted, selected: tokens.color.green }}
+      labelStyle={{
+        default: { color: tokens.color.muted, fontSize: 10, fontWeight: '700' },
+        selected: { color: tokens.color.green, fontSize: 10, fontWeight: '800' },
       }}
+      tintColor={tokens.color.green}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color }) => <AtlasIcon name="home" color={color} /> }} />
-      <Tabs.Screen name="profile" options={{ title: 'Business', tabBarIcon: ({ color }) => <AtlasIcon name="business" color={color} /> }} />
-      <Tabs.Screen name="goals" options={{ title: 'Goals', tabBarIcon: ({ color }) => <AtlasIcon name="goals" color={color} /> }} />
-      <Tabs.Screen name="context" options={{ title: 'Context', tabBarIcon: ({ color }) => <AtlasIcon name="context" color={color} /> }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: ({ color }) => <AtlasIcon name="settings" color={color} /> }} />
-    </Tabs>
+      <NativeTabs.Trigger name="index">
+        <Icon
+          sf={{ default: 'house', selected: 'house.fill' }}
+          androidSrc={{
+            default: <AtlasIcon name="home" color={tokens.color.muted} />,
+            selected: <AtlasIcon name="home" color={tokens.color.green} />,
+          }}
+        />
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="profile">
+        <Icon
+          sf={{ default: 'briefcase', selected: 'briefcase.fill' }}
+          androidSrc={{
+            default: <AtlasIcon name="business" color={tokens.color.muted} />,
+            selected: <AtlasIcon name="business" color={tokens.color.green} />,
+          }}
+        />
+        <Label>Business</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="goals">
+        <Icon
+          sf={{ default: 'flag', selected: 'flag.fill' }}
+          androidSrc={{
+            default: <AtlasIcon name="goals" color={tokens.color.muted} />,
+            selected: <AtlasIcon name="goals" color={tokens.color.green} />,
+          }}
+        />
+        <Label>Goals</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="context">
+        <Icon
+          sf={{ default: 'doc.text', selected: 'doc.text.fill' }}
+          androidSrc={{
+            default: <AtlasIcon name="context" color={tokens.color.muted} />,
+            selected: <AtlasIcon name="context" color={tokens.color.green} />,
+          }}
+        />
+        <Label>Context</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="settings">
+        <Icon
+          sf={{ default: 'gearshape', selected: 'gearshape.fill' }}
+          androidSrc={{
+            default: <AtlasIcon name="settings" color={tokens.color.muted} />,
+            selected: <AtlasIcon name="settings" color={tokens.color.green} />,
+          }}
+        />
+        <Label>Settings</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

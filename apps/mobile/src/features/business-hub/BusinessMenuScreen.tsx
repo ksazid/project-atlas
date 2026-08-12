@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getBusinessMenu, type BusinessMenu } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import { formatMenuItemPrice, groupMenuItems } from '@/features/business-hub/business-hub-model';
 import { tokens } from '@/theme/tokens';
 
@@ -36,7 +37,7 @@ export function BusinessMenuScreen() {
   const groups = groupMenuItems(menu.items);
 
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <AtlasScreen contentStyle={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back to Business" onPress={() => router.back()} style={({ pressed }) => [styles.back, pressed && styles.pressed]}><Text style={styles.backText}>Back to Business</Text></Pressable>
         <View style={styles.header}><BrandMark size={48} /><Text style={styles.eyebrow}>MENU</Text><Text accessibilityRole="header" style={styles.title}>Menu intelligence</Text><Text style={styles.copy}>A read-only view of menu items Atlas has already observed for your business. Use it to check what Atlas understands, not to manage orders.</Text></View>
@@ -51,24 +52,24 @@ export function BusinessMenuScreen() {
           </View>
         ))}
       </View>
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
 function MenuState({ state, onRetry, onBack }: { state: State; onRetry: () => void; onBack: () => void }) {
-  if (state === 'loading') return <View style={styles.state}><BrandMark size={54} /><ActivityIndicator color={tokens.color.green} /><Text style={styles.stateCopy}>Loading menu intelligence…</Text></View>;
-  if (state === 'missing') return <View style={styles.state}><BrandMark size={54} /><Text style={styles.stateTitle}>No business selected</Text><Text style={styles.stateCopy}>Choose a business before opening its menu intelligence.</Text><Pressable accessibilityRole="button" onPress={onBack} style={styles.stateButton}><Text style={styles.stateButtonText}>Back</Text></Pressable></View>;
-  return <View style={styles.state}><BrandMark size={54} /><Text style={styles.stateTitle}>Menu intelligence is temporarily unavailable</Text><Text style={styles.stateCopy}>Your saved menu facts are unchanged.</Text><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={onRetry} style={styles.stateButton}><Text style={styles.stateButtonText}>Try again</Text></Pressable></View>;
+  if (state === 'loading') return <AtlasScreen mode="static" contentStyle={styles.state}><BrandMark size={54} /><ActivityIndicator color={tokens.color.green} /><Text style={styles.stateCopy}>Loading menu intelligence…</Text></AtlasScreen>;
+  if (state === 'missing') return <AtlasScreen mode="static" contentStyle={styles.state}><BrandMark size={54} /><Text style={styles.stateTitle}>No business selected</Text><Text style={styles.stateCopy}>Choose a business before opening its menu intelligence.</Text><Pressable accessibilityRole="button" onPress={onBack} style={styles.stateButton}><Text style={styles.stateButtonText}>Back</Text></Pressable></AtlasScreen>;
+  return <AtlasScreen mode="static" contentStyle={styles.state}><BrandMark size={54} /><Text style={styles.stateTitle}>Menu intelligence is temporarily unavailable</Text><Text style={styles.stateCopy}>Your saved menu facts are unchanged.</Text><Pressable accessibilityRole="button" accessibilityLabel="Try again" onPress={onRetry} style={styles.stateButton}><Text style={styles.stateButtonText}>Try again</Text></Pressable></AtlasScreen>;
 }
 
 function providerLabel(value: string): string { return value.split(/[-_\s]+/).filter(Boolean).map(part => `${part[0]?.toUpperCase() ?? ''}${part.slice(1)}`).join(' '); }
 function formatDate(value: string): string { const date = new Date(value); return Number.isNaN(date.getTime()) ? 'Observed recently' : `Observed ${date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}`; }
 
 const styles = StyleSheet.create({
-  container: { alignItems: 'center', backgroundColor: tokens.color.canvas, flexGrow: 1, paddingBottom: 40, paddingHorizontal: 28, paddingTop: 46 }, content: { gap: 22, maxWidth: 680, width: '100%' },
+  container: { alignItems: 'center', backgroundColor: tokens.color.canvas }, content: { gap: 22, maxWidth: 680, width: '100%' },
   back: { alignItems: 'center', alignSelf: 'flex-start', justifyContent: 'center', minHeight: tokens.touchTarget, paddingRight: 14 }, backText: { color: tokens.color.green, fontSize: 13, fontWeight: '800' }, pressed: { opacity: .76 },
   header: { gap: 7 }, eyebrow: { color: tokens.color.green, fontSize: 11, fontWeight: '900', letterSpacing: 1.2, marginTop: 6 }, title: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 31, fontWeight: '800', lineHeight: 37 }, copy: { color: tokens.color.muted, fontSize: 14, lineHeight: 21 },
   section: { gap: 10 }, sectionTitle: { color: tokens.color.greenDeep, fontSize: 18, fontWeight: '800' }, items: { gap: 10 }, item: { backgroundColor: tokens.color.surface, borderColor: tokens.color.border, borderRadius: tokens.radius.md, borderWidth: 1, gap: 7, padding: 16 }, itemTop: { alignItems: 'flex-start', flexDirection: 'row', gap: 12, justifyContent: 'space-between' }, itemName: { color: tokens.color.ink, flex: 1, fontSize: 15, fontWeight: '800', lineHeight: 21 }, price: { color: tokens.color.greenDeep, fontSize: 14, fontWeight: '900' }, description: { color: tokens.color.muted, fontSize: 13, lineHeight: 19 }, source: { color: tokens.color.muted, fontSize: 10.5, lineHeight: 16 },
   empty: { backgroundColor: tokens.color.surface, borderColor: tokens.color.border, borderRadius: tokens.radius.md, borderWidth: 1, gap: 8, padding: 20 }, emptyTitle: { color: tokens.color.ink, fontSize: 18, fontWeight: '800' }, emptyCopy: { color: tokens.color.muted, fontSize: 13.5, lineHeight: 20 },
-  state: { alignItems: 'center', backgroundColor: tokens.color.canvas, flex: 1, gap: 14, justifyContent: 'center', padding: 28 }, stateTitle: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 26, fontWeight: '800', lineHeight: 32, textAlign: 'center' }, stateCopy: { color: tokens.color.muted, fontSize: 14, lineHeight: 21, maxWidth: 360, textAlign: 'center' }, stateButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 48, paddingHorizontal: 20 }, stateButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
+  state: { alignItems: 'center', backgroundColor: tokens.color.canvas, gap: 14, justifyContent: 'center' }, stateTitle: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 26, fontWeight: '800', lineHeight: 32, textAlign: 'center' }, stateCopy: { color: tokens.color.muted, fontSize: 14, lineHeight: 21, maxWidth: 360, textAlign: 'center' }, stateButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 48, paddingHorizontal: 20 }, stateButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
 });

@@ -1,33 +1,32 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-27",
-  "title": "VS-27 — Business Hub & Atlas Brand Experience",
+  "sliceId": "VS-28",
+  "title": "VS-28 — Device-Adaptive Native Polish & Motion",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-03", "FR-05", "FR-16"],
+  "requirements": ["FR-16"],
   "owners": {"product": "ksazid", "engineering": "ksazid", "operations": "ksazid", "security": "ksazid"},
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-25@170ff58125b6efcf299191117d01f09dd0270896",
-    "VS-26@7c07d0f94cef157484d91ff7710460a6f0f4e49a"
+    "VS-27@48bbafb07494e41cfb351643459ce4c6552de378"
   ],
   "blockers": [],
-  "allowedPaths": ["apps/api/**", "apps/mobile/**", "tests/api/**", "tests/mobile/**", "delivery/**", "docs/**"],
+  "allowedPaths": ["apps/mobile/**", "tests/mobile/**", "delivery/**", "docs/**"],
   "protectedPaths": [".github/workflows/release.yml", "infrastructure/**", "**/Payments/**", "**/Uploads/**"],
   "impact": {
-    "areas": ["architecture", "frontend", "api", "customer-flow"],
+    "areas": ["frontend", "customer-flow"],
     "notes": [
-      "VS-27 adds read models and presentation over existing persisted Business/Profile/Media/Offering/Context records; it does not add provider ingestion or a new persistence model.",
-      "The existing five-tab PES mobile structure and route names remain unchanged.",
-      "The current editable Business Profile flow remains available behind an explicit secondary edit route.",
-      "Third-party image binaries are never copied or rehosted; only existing bounded HTTPS references are rendered.",
-      "The remote Starbucks prototype brand asset is removed and replaced with an Atlas-owned local Compass Orbit mark; no Starbucks artwork or trade dress is copied.",
-      "No Today Focus readiness logic or VS-26 goal-first onboarding behavior is changed.",
+      "VS-28 is presentation, accessibility and runtime-shell work only; it does not change domain, API, persistence, authentication/session, provider or recommendation behavior.",
+      "The certified five-tab route names, order and destination meaning remain unchanged under DEC-09; structural navigation alignment remains deferred.",
+      "Safe-area geometry derives from actual device insets, viewport width and font scale rather than device-name checks or fixed notch/home-indicator constants.",
+      "Top-level mobile navigation delegates to Expo Router NativeTabs; iOS uses system SF Symbols while Android retains Atlas icon fallbacks.",
+      "Liquid Glass is limited to approved floating/structural chrome with a complete solid Atlas fallback for unsupported conditions, Reduce Transparency and Android.",
+      "Motion is restrained, interruptible and reduced-motion aware; it must never delay content or block navigation.",
       "No production release, production enablement, EAS build/submit/OTA or deployment is authorized."
     ]
   },
@@ -35,66 +34,66 @@
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-27@1.0",
+      "version": "VS-28@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-11T20:38:00+02:00",
-      "rationale": "Product Owner approved the recommended read-first Business Hub direction, compact menu intelligence with a dedicated full-menu view, and Atlas-owned brand experience."
+      "at": "2026-08-12T01:01:00+02:00",
+      "rationale": "Product Owner approved the written VS-28 device-adaptive native polish design, including selective glass Approach A, safe-area correction, restrained native-feeling motion and accessibility fallbacks without navigation redesign."
     },
     {
       "type": "policy",
       "status": "not-required",
-      "version": "VS-27@1.0",
+      "version": "VS-28@1.0",
       "commitSha": null,
       "by": "PES/Loop",
-      "at": "2026-08-11T20:38:00+02:00",
-      "rationale": "VS-27 presents already-governed persisted records and introduces no new provider collection, retention class, sensitive-data category or production policy boundary."
+      "at": "2026-08-12T01:26:00+02:00",
+      "rationale": "VS-28 changes presentation/accessibility/runtime shell behavior only and introduces no new provider collection, retention class, sensitive-data category, external action or production policy boundary."
     },
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-27@1.0",
+      "version": "VS-28@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-11T20:38:00+02:00",
-      "rationale": "Product Owner approved the VS-27 design and Superpowers implementation plan and instructed execution to proceed once VS-26 cleared PES."
+      "at": "2026-08-12T01:26:00+02:00",
+      "rationale": "Product Owner selected inline Superpowers execution option 2 for the approved VS-28 implementation plan."
     },
     {
       "type": "certification",
       "status": "approved",
-      "version": "VS-27@1.0",
-      "commitSha": "a099ff50ebe53794c8a55325051059feda56115d",
+      "version": "VS-28@1.0",
+      "commitSha": "7b27107aeab106c7f8285e27c042051f6700a9d8",
       "by": "PES/Loop",
-      "at": "2026-08-11T21:55:00Z",
-      "rationale": "Exact implementation SHA passed CI, Security baseline and Product Intake. The Expo Go acceptance loop exercised the VS-27 Business tab/brand/navigation, surfaced the stale deleted-business selection defect, and the corrected stale-session/reset behavior then passed targeted and full deterministic gates. Test API deployment is live on the exact implementation SHA. Certification does not authorize release or production enablement."
+      "at": "2026-08-12T02:10:00Z",
+      "rationale": "Exact implementation SHA passed CI, Security baseline and Product Intake. Product Owner then accepted the corrected Expo Go physical-device experience using the native iOS tab shell after the earlier custom-tab candidate was rejected. Certification does not authorize merge, release, production enablement or deployment."
     },
     {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
     {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
   ],
-  "decisionIds": [],
+  "decisionIds": ["DEC-09"],
   "progress": {"discovery": 100, "decisions": 100, "implementation": 100, "testing": 100, "certification": 100, "release": 0, "validation": 0},
   "certification": {
     "status": "passed",
-    "commitSha": "a099ff50ebe53794c8a55325051059feda56115d",
+    "commitSha": "7b27107aeab106c7f8285e27c042051f6700a9d8",
     "evidence": [
-      "CI run 31539348655: exact implementation SHA green; mobile preflight, .NET restore/build, EF database update, API tests and dashboard build all succeeded",
-      "Security baseline run 31539348669: green",
-      "Product Intake run 31539348666: green",
-      "Expo Go acceptance loop exercised the VS-27 Business tab, Atlas Compass brandmark and five-tab navigation and surfaced the stale deleted-business selection defect",
-      "Corrected stale Business selection and Development-only Expo demo reset behavior passed targeted tests and the full exact-head deterministic gate set",
-      "Render test deployment dep-d9tpffugekts7395sa2g: live on exact implementation SHA a099ff50ebe53794c8a55325051059feda56115d"
+      "CI run 31555196422: exact implementation SHA green; repository preflight, .NET restore/build, EF database update, API tests and dashboard build all succeeded",
+      "Security baseline run 31555196419: green on exact implementation SHA",
+      "Product Intake run 31555196410: green on exact implementation SHA",
+      "Corrective TDD regression required Expo Router NativeTabs and rejected the superseded JavaScript Tabs/tabBarBackground shell before the production correction",
+      "atlas/expo-go-test-harness was fast-forwarded to exact implementation SHA 7b27107aeab106c7f8285e27c042051f6700a9d8",
+      "Product Owner accepted the corrected physical-device experience on 2026-08-12 after checking the native iOS tab treatment and VS-28 device-adaptive polish"
     ]
   },
   "release": {"status": "not-authorized", "releaseId": null},
   "rollback": {"status": "not-applicable", "rollbackId": null},
   "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
   "links": {
-    "specification": "docs/slices/VS-27.md",
-    "implementationPr": 49,
+    "specification": "docs/slices/VS-28.md",
+    "implementationPr": 51,
     "evidence": [
-      "docs/superpowers/specs/2026-08-11-vs-27-business-hub-atlas-brand-experience-design.md",
-      "docs/superpowers/plans/2026-08-11-vs-27-business-hub-atlas-brand-experience.md",
-      "docs/slices/VS-27.md"
+      "docs/superpowers/specs/2026-08-12-vs-28-device-adaptive-native-polish-motion-design.md",
+      "docs/superpowers/plans/2026-08-12-vs-28-device-adaptive-native-polish-motion.md",
+      "docs/slices/VS-28.md"
     ]
   },
   "maxAttempts": 3

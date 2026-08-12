@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { authorizeWithProvider } from '@/auth/provider';
 import { saveSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
+import { AtlasScreen } from '@/components/AtlasScreen';
 
 const GREEN='#00754A';
 const EXPO_GO_DEMO_TOKEN='atlas-expo-go-demo';
@@ -12,7 +13,7 @@ export default function SignInScreen(){
  const[busy,setBusy]=useState(false);const[error,setError]=useState<string|null>(null);const[loginHint,setLoginHint]=useState('');
  async function signIn(){setBusy(true);setError(null);try{const accessToken=await authorizeWithProvider(loginHint);await saveSession({accessToken});router.replace('/create-business')}catch(reason){const code=reason instanceof Error?reason.message:'sign_in_failed';setError(code==='sign_in_cancelled'?'Sign-in was cancelled.':code==='identity_provider_unavailable'?'Sign-in is temporarily unavailable.':'We could not sign you in securely.')}finally{setBusy(false)}}
  async function signInForExpoGoTest(){setBusy(true);setError(null);try{await saveSession({accessToken:EXPO_GO_DEMO_TOKEN});router.replace('/create-business')}catch{setError('Expo Go test mode could not start.')}finally{setBusy(false)}}
- return <View style={s.container}>
+ return <AtlasScreen contentStyle={s.container} keyboardShouldPersistTaps="handled">
    <View style={s.mintGlowA}/><View style={s.mintGlowB}/>
    <BrandMark size={72} style={s.logo}/>
    <Text accessibilityRole="header" style={s.title}>Welcome back 👋</Text>
@@ -32,11 +33,11 @@ export default function SignInScreen(){
    <View style={s.orRow}><View style={s.rule}/><Text style={s.orText}>or</Text><View style={s.rule}/></View>
    <View style={s.socialStack}><Social icon="G" label="Continue with Google" color="#4285F4"/><Social icon="●" label="Continue with Apple" color="#000"/><Social icon="▦" label="Continue with Microsoft" color="#00A4EF"/></View>
    <Text style={s.footer}>Don’t have an account? <Text style={s.footerStrong}>Create one</Text></Text>
- </View>
+ </AtlasScreen>
 }
 function Social({icon,label,color}:{icon:string;label:string;color:string}){return <View accessibilityRole="button" accessibilityState={{disabled:true}} style={s.social}><Text style={[s.socialIcon,{color}]}>{icon}</Text><Text style={s.socialText}>{label}</Text></View>}
 const s=StyleSheet.create({
- container:{flex:1,paddingHorizontal:28,paddingTop:87,paddingBottom:34,backgroundColor:'#FFF',overflow:'hidden'},
+ container:{backgroundColor:'#FFF',overflow:'hidden'},
  mintGlowA:{position:'absolute',width:260,height:180,borderRadius:140,right:-65,top:-55,backgroundColor:'#EEF8F2'},mintGlowB:{position:'absolute',width:180,height:110,borderRadius:100,right:-30,top:45,backgroundColor:'#F6FBF8'},
  logo:{width:72,height:72,resizeMode:'contain',marginBottom:27},
  title:{fontFamily:'Georgia',fontSize:32,lineHeight:38,fontWeight:'800',letterSpacing:-.4,color:'#0A2F25'},subtitle:{fontSize:14,color:'#2F3F39',marginTop:8,marginBottom:34},

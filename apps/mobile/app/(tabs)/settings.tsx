@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { clearBusinessSelection, loadSession } from '@/auth/session';
+import { AtlasPressable } from '@/components/AtlasPressable';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import { BusinessMemoryPanel } from '@/features/business-memory/BusinessMemoryPanel';
 import { resetExpoDemoBusiness } from '@/features/business-hub/business-hub-api';
 import { tokens } from '@/theme/tokens';
@@ -44,35 +46,35 @@ export default function SettingsScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <AtlasScreen hasTabBar contentStyle={styles.container}>
       <Text accessibilityRole="header" style={styles.title}>Settings</Text>
-      <Pressable accessibilityRole="button" onPress={() => router.push('/notifications')} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+      <AtlasPressable accessibilityRole="button" onPress={() => router.push('/notifications')} style={styles.card}>
         <Text style={styles.cardTitle}>Notifications</Text>
         <Text style={styles.body}>Review Atlas updates, unread items and notification preferences.</Text>
-      </Pressable>
+      </AtlasPressable>
       <BusinessMemoryPanel />
       {testResetEnabled ? (
         <View style={styles.testCard}>
           <Text style={styles.testEyebrow}>EXPO TEST ONLY</Text>
           <Text style={styles.cardTitle}>Start business testing again</Text>
           <Text style={styles.body}>Remove the current demo business and all of its test data without signing out.</Text>
-          <Pressable
+          <AtlasPressable
             accessibilityRole="button"
             accessibilityLabel="Reset test business"
             disabled={resetting}
             onPress={confirmReset}
-            style={({ pressed }) => [styles.resetButton, pressed && !resetting && styles.pressed, resetting && styles.disabled]}
+            style={[styles.resetButton, resetting && styles.disabled]}
           >
             <Text style={styles.resetButtonText}>{resetting ? 'Resetting…' : 'Reset test business'}</Text>
-          </Pressable>
+          </AtlasPressable>
         </View>
       ) : null}
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: tokens.spacing.lg, gap: tokens.spacing.lg, paddingBottom: 40 },
+  container: { gap: tokens.spacing.lg },
   title: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 31, fontWeight: '800' },
   card: { borderColor: '#dce5df', borderWidth: 1, borderRadius: tokens.radius.md, padding: tokens.spacing.md, gap: tokens.spacing.xs },
   cardTitle: { color: tokens.color.greenDeep, fontSize: 18, fontWeight: '700' },
@@ -81,6 +83,5 @@ const styles = StyleSheet.create({
   testEyebrow: { color: tokens.color.green, fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
   resetButton: { alignItems: 'center', borderColor: tokens.color.green, borderRadius: tokens.radius.pill, borderWidth: 1.5, justifyContent: 'center', minHeight: 48, marginTop: 4, paddingHorizontal: 18 },
   resetButtonText: { color: tokens.color.greenDeep, fontSize: 14, fontWeight: '800' },
-  pressed: { opacity: .86, transform: [{ scale: .99 }] },
   disabled: { opacity: .55 },
 });

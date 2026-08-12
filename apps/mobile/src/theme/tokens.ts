@@ -8,5 +8,11 @@ export const tokens = {
   spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 40 },
   radius: { sm: 8, md: 12, lg: 18, pill: 999 },
   typography: { caption: 11, body: 16, title: 28, hero: 34 },
-  touchTarget: 44
+  touchTarget: 44,
+  native: {
+    tabRowHeight: 58,
+    tabRowHeightLargeText: 64,
+    floatingDockRadius: 24,
+    pressScale: 0.985,
+  },
 } as const;

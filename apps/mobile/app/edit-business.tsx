@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getProfile, saveProfile, type BusinessProfile } from '@/api/atlas-client';
 import { loadSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import { canSaveProfile, createEmptyProfile, getProfileConfirmationState, getProfileSavePresentation, getProfileStatePresentation, profileSections, resolveProfileFailure, type ProfileField, type ProfileScreenState } from '@/features/profile/profile-model';
 import { tokens } from '@/theme/tokens';
 
@@ -71,9 +72,9 @@ export default function EditBusinessScreen() {
   const savePresentation = getProfileSavePresentation(saving, saveEnabled);
   const confirmationState = getProfileConfirmationState(form.ownerConfirmed);
   return (
-    <ScrollView
+    <AtlasScreen
       automaticallyAdjustKeyboardInsets
-      contentContainerStyle={styles.container}
+      contentStyle={styles.container}
       keyboardDismissMode="on-drag"
       keyboardShouldPersistTaps="handled"
       refreshControl={<RefreshControl refreshing={refreshing} tintColor={tokens.color.green} onRefresh={() => void load(true)} />}
@@ -138,18 +139,18 @@ export default function EditBusinessScreen() {
           {saving ? <ActivityIndicator color={tokens.color.surface} /> : null}<Text style={styles.buttonText}>{savePresentation.text}</Text>
         </Pressable>
       </View>
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
 function ProfileState({ state, retry, continueSession }: { state: ProfileScreenState; retry: () => Promise<void>; continueSession: () => void }) {
   const content = getProfileStatePresentation(state);
 
-  return <View style={styles.stateScreen}><View style={styles.stateCard}><BrandMark size={50} /><Text accessibilityRole="header" style={styles.stateTitle}>{content.title}</Text><Text style={styles.stateCopy}>{content.copy}</Text>{state === 'loading' ? <ActivityIndicator color={tokens.color.green} /> : null}{state === 'missing' && content.action ? <Pressable accessibilityLabel={content.action.accessibilityLabel} accessibilityRole="button" onPress={continueSession} style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}><Text style={styles.retryText}>{content.action.label}</Text></Pressable> : null}{state === 'error' ? <Pressable accessibilityLabel="Try loading profile again" accessibilityRole="button" onPress={() => void retry()} style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}><Text style={styles.retryText}>Try again</Text></Pressable> : null}</View></View>;
+  return <AtlasScreen mode="static" contentStyle={styles.stateScreen}><View style={styles.stateCard}><BrandMark size={50} /><Text accessibilityRole="header" style={styles.stateTitle}>{content.title}</Text><Text style={styles.stateCopy}>{content.copy}</Text>{state === 'loading' ? <ActivityIndicator color={tokens.color.green} /> : null}{state === 'missing' && content.action ? <Pressable accessibilityLabel={content.action.accessibilityLabel} accessibilityRole="button" onPress={continueSession} style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}><Text style={styles.retryText}>{content.action.label}</Text></Pressable> : null}{state === 'error' ? <Pressable accessibilityLabel="Try loading profile again" accessibilityRole="button" onPress={() => void retry()} style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}><Text style={styles.retryText}>Try again</Text></Pressable> : null}</View></AtlasScreen>;
 }
 
 const styles = StyleSheet.create({
-  container: { alignItems: 'center', backgroundColor: '#FFF', flexGrow: 1, paddingHorizontal: 28, paddingTop: 58, paddingBottom: 38 },
+  container: { alignItems: 'center', backgroundColor: '#FFF' },
   content: { gap: 22, maxWidth: 680, width: '100%' },
   header: { gap: 8 },
   eyebrow: { color: '#00754A', fontSize: 11, fontWeight: '900', letterSpacing: 1.15, marginTop: 10 },
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   buttonText: { color: '#FFF', fontSize: 15.5, fontWeight: '800' },
   pressed: { opacity: 0.92, transform: [{ scale: .99 }] },
   disabled: { opacity: 0.5 },
-  stateScreen: { alignItems: 'center', backgroundColor: '#FFF', flex: 1, justifyContent: 'center', padding: 28 },
+  stateScreen: { alignItems: 'center', backgroundColor: '#FFF', justifyContent: 'center' },
   stateCard: { alignItems: 'flex-start', backgroundColor: '#FFF', borderColor: '#E2E7E4', borderRadius: 12, borderWidth: 1, gap: 16, maxWidth: 440, padding: 24, width: '100%', shadowColor: '#173B2A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 8, elevation: 1 },
   stateTitle: { color: '#0A2F25', fontFamily: 'Georgia', fontSize: 28, fontWeight: '800', lineHeight: 34 },
   stateCopy: { color: '#5B6761', fontSize: 14.5, lineHeight: 22 },

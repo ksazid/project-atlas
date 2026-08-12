@@ -107,10 +107,15 @@ test('primary discovery URL can be cleared in one accessible action', () => {
   assert.match(source, />×<\/Text>/);
 });
 
-test('discovery screen respects reduced motion and exposes explicit action semantics', () => {
+test('discovery screen respects shared reduced-motion policy and exposes explicit action semantics', () => {
   const source = readFileSync('apps/mobile/app/create-business.tsx', 'utf8');
-  assert.match(source, /AccessibilityInfo/);
-  assert.match(source, /isReduceMotionEnabled/);
+  const accessibilityProvider = readFileSync('apps/mobile/src/components/AtlasAccessibilityProvider.tsx', 'utf8');
+  const pressable = readFileSync('apps/mobile/src/components/AtlasPressable.tsx', 'utf8');
+  assert.match(accessibilityProvider, /isReduceMotionEnabled/);
+  assert.match(accessibilityProvider, /reduceMotionChanged/);
+  assert.match(pressable, /useAtlasAccessibility/);
+  assert.match(pressable, /reduceMotion/);
+  assert.doesNotMatch(source, /Animated\.loop/);
   for (const label of ['Discover my business', 'Clear business page URL', 'Set up manually instead', 'Edit details', 'Review details', 'Create business', 'Confirm and continue', 'Change location', 'Search Google Maps']) {
     assert.match(source, new RegExp(`accessibilityLabel=["'{][^\\n]*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'), `Missing explicit accessibility label for ${label}`);
   }

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { createBusiness } from '@/api/atlas-client';
 import {
@@ -13,6 +13,7 @@ import {
 } from '@/api/business-discovery';
 import { loadSession, saveSession } from '@/auth/session';
 import { BrandMark } from '@/components/BrandMark';
+import { AtlasScreen } from '@/components/AtlasScreen';
 import {
   buildCreateBusinessFromDiscoveryRequest,
   canConfirmDiscovery,
@@ -70,28 +71,7 @@ export default function CreateBusinessScreen() {
   const [placeEnrichmentError, setPlaceEnrichmentError] = useState<string | null>(null);
   const [placeEnrichmentConfirmed, setPlaceEnrichmentConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const pulse = useRef(new Animated.Value(0)).current;
   const placeEnrichmentRequestId = useRef(0);
-
-  useEffect(() => {
-    void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
-    return () => subscription.remove();
-  }, []);
-
-  useEffect(() => {
-    const animation = Animated.loop(Animated.sequence([
-      Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
-      Animated.timing(pulse, { toValue: 0, duration: 900, useNativeDriver: true }),
-    ]));
-    if (busy && !reduceMotion) animation.start();
-    else {
-      animation.stop();
-      pulse.setValue(0);
-    }
-    return () => animation.stop();
-  }, [busy, pulse, reduceMotion]);
 
   const update = (key: keyof DiscoveryDraft, value: string) => setForm(current => ({ ...current, [key]: value }));
   const sourceErrors = validateSourceUrls(sourceUrls);
@@ -361,7 +341,7 @@ export default function CreateBusinessScreen() {
   }
 
   if (stage === 'discover') return (
-    <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+    <AtlasScreen contentStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       <Back />
       <Text style={s.eyebrow}>AI ANALYSIS</Text>
       <Text style={s.title}>Discovering your{`\n`}business ✨</Text>
@@ -421,7 +401,7 @@ export default function CreateBusinessScreen() {
         ) : null}
       </View>
       <View style={s.orbitWrap}>
-        <Animated.View style={[s.orbitOuter, { opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [.40, .85] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [.98, 1.025] }) }] }]} />
+        <View style={s.orbitOuter} />
         <View style={s.orbitMid} /><View style={s.orbitInner} />
         <View style={s.bot}><View style={s.botCap} /><Text style={s.botFace}>●  ●{`\n`}⌣</Text></View>
         <Bubble icon="⌕" pos={s.b1} /><Bubble icon="♟" pos={s.b2} /><Bubble icon="▥" pos={s.b3} /><Bubble icon="▤" pos={s.b4} />
@@ -437,7 +417,7 @@ export default function CreateBusinessScreen() {
       {error ? <View style={s.errorBox}><Text accessibilityLiveRegion="polite" style={s.error}>{error}</Text></View> : null}
       {!busy ? <Pressable accessibilityLabel="Discover my business" accessibilityRole="button" accessibilityState={{ disabled: !canDiscover }} disabled={!canDiscover} onPress={analyse} style={({ pressed }) => [s.discoverButton, !canDiscover && s.disabled, pressed && s.pressed]}><Text style={s.discoverButtonText}>Discover my business</Text></Pressable> : null}
       {!busy ? <Pressable accessibilityLabel="Set up manually instead" accessibilityRole="button" onPress={() => { setDiscovery(null); setForm(emptyDraft); setLocationResult(null); setLocationSearch(''); clearPlaceEnrichment(); setError(null); setStage('manual'); }} style={({ pressed }) => [s.edit, pressed && s.pressed]}><Text style={s.editText}>Set up manually instead</Text></Pressable> : null}
-    </ScrollView>
+    </AtlasScreen>
   );
 
   if (stage === 'confirm' && discovery) {
@@ -447,7 +427,7 @@ export default function CreateBusinessScreen() {
       .map(attribution => attribution.provider.trim())
       .filter(Boolean) ?? [];
     return (
-      <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <AtlasScreen contentStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Back />
         <View style={s.confetti}><Text style={s.confettiText}>◆   ◇        ◆       ◇</Text></View>
         <View style={s.success}><Text style={s.successText}>✓</Text></View>
@@ -532,13 +512,13 @@ export default function CreateBusinessScreen() {
           {busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.primaryText}>Confirm and continue</Text>}
         </Pressable>
         <Pressable accessibilityLabel="Edit details" accessibilityRole="button" onPress={() => setStage('details')} style={({ pressed }) => [s.edit, pressed && s.pressed]}><Text style={s.editText}>Edit details</Text></Pressable>
-      </ScrollView>
+      </AtlasScreen>
     );
   }
 
   const isManual = stage === 'manual';
   return (
-    <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+    <AtlasScreen contentStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       <Back />
       <Text style={s.eyebrow}>{isManual ? 'MANUAL SETUP' : 'EDIT DETAILS'}</Text>
       <Text style={s.title}>{isManual ? 'Tell Atlas about your business.' : 'Correct anything that needs it.'}</Text>
@@ -558,7 +538,7 @@ export default function CreateBusinessScreen() {
       ) : (
         <Pressable accessibilityLabel="Create business" accessibilityRole="button" accessibilityState={{ busy, disabled: busy || !canConfirmDiscovery(form) }} disabled={busy || !canConfirmDiscovery(form)} onPress={() => void submit()} style={({ pressed }) => [s.primary, (busy || !canConfirmDiscovery(form)) && s.disabled, pressed && s.pressed]}>{busy ? <ActivityIndicator color="#FFF" /> : <Text style={s.primaryText}>Create business</Text>}</Pressable>
       )}
-    </ScrollView>
+    </AtlasScreen>
   );
 }
 
@@ -597,7 +577,7 @@ function humanize(value: string) { return value.split('-').filter(Boolean).map(p
 function humanizeField(value: string) { return value === 'location' ? 'Business location' : value.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, char => char.toUpperCase()); }
 
 const s = StyleSheet.create({
-  container: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 57, paddingBottom: 30, gap: 15, backgroundColor: '#FFF' },
+  container: { gap: 15, backgroundColor: '#FFF' },
   back: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: -6 }, backText: { fontSize: 28, color: '#15231E' },
   eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: .7, color: GREEN }, title: { fontFamily: 'Georgia', fontSize: 33, lineHeight: 38, fontWeight: '800', letterSpacing: -.45, color: '#0A2F25' }, body: { fontSize: 13.5, lineHeight: 20.5, color: '#3E4D47', maxWidth: 330 },
   sourceList: { gap: 9 }, sourceRow: { gap: 5 }, sourceError: { fontSize: 11.2, lineHeight: 16, color: '#A1251B', paddingHorizontal: 2 }, addSource: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center', paddingHorizontal: 2 }, addSourceText: { color: GREEN, fontSize: 12.5, fontWeight: '800' },
