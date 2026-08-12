@@ -3,7 +3,7 @@
   "sliceId": "VS-29",
   "title": "VS-29 — Business Intelligence Enrichment & Smart Onboarding",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-02", "FR-03", "FR-05", "FR-16"],
@@ -42,18 +42,17 @@
   "impact": {
     "areas": ["frontend", "api", "customer-flow", "legal-privacy"],
     "notes": [
-      "VS-29 is a gap-closing hardening slice over VS-25/26/27; it must not rebuild already-certified media/menu intelligence, Google Place enrichment, Business Hub, or Expo demo reset capabilities.",
-      "VS-29 extends the existing provider-neutral public discovery pipeline; it does not introduce a second enrichment architecture.",
-      "Remaining runtime deltas are bounded to public email/social extraction, one strongly matched official-site enrichment hop, targeted public Bolt parser hardening where supported page shapes are missing, truthful email/social/confirmed-hours materialisation, semantic suppression of redundant onboarding questions, and the corresponding mobile review/model wiring.",
-      "Public contact, social, hours, media and offering observations must retain source URL, provenance, observed time and confidence and remain subject to owner confirmation where canonical Business values are materialised.",
-      "Existing owner-confirmed Business/Profile/Context values are authoritative and must never be silently overwritten by refresh or enrichment.",
-      "DEC-07 remains controlling for media and offerings: retain remote HTTPS media references and structured facts, never copied third-party image binaries.",
-      "DEC-08 remains controlling for Google Places: rich Google content stays transient in the current owner interaction; no copied Google payload, photo or attribution persistence is permitted and no expanded durable Google contact/presence field mask is required for this slice.",
-      "Current EEA Places terms were reviewed at implementation start; because permitted-use categories are restrictive, durable VS-29 contact/presence enrichment comes from approved public/official-site sources and explicit owner confirmation rather than new Google-derived persistence.",
-      "DEC-09 remains controlling for navigation: preserve the certified five-tab route names/order/destination meaning; adapt onboarding UI to the post-VS-28 native shell rather than reverting it.",
-      "VS-30 Today’s Focus evidence compatibility and factual-evidence persistence guard must remain intact.",
-      "No persistence migration is expected. A genuine new schema requirement is a PES stop condition.",
-      "No production release, production enablement, EAS build/submit/OTA, deployment or production database mutation is authorized."
+      "VS-29 closed verified gaps over VS-25/26/27 instead of rebuilding already-certified media/menu intelligence, Google Place enrichment, Business Hub, or Expo demo reset capabilities.",
+      "Public discovery now extracts bounded public email/social evidence and conservative unambiguous mailto/tel fallbacks while preserving provenance and existing source-safety controls.",
+      "Multi-source discovery may perform at most one automatic official-site enrichment hop and accepts it only when exact normalized Business identity plus a second strong signal match; accepted evidence remains a separate secondary observation.",
+      "Explicitly confirmed email, social channels and opening hours materialise into the existing Business Profile/provenance model; transient Google hours become owner-reported canonical values rather than copied provider payloads.",
+      "Owner-confirmed non-empty operatingchannels semantically satisfies equivalent primarychannels onboarding prompts, preventing duplicate questioning without suppressing unrelated context.",
+      "The existing Business review/edit flow exposes email and social fields and conditional enriched presence rows without adding a new route or redesigning navigation.",
+      "No deterministic missing supported Bolt public semantic shape was reproduced during the compatibility audit; certified VS-25 parser behavior was preserved rather than changed speculatively.",
+      "DEC-07 remains controlling for media/offerings and DEC-08 remains controlling for transient Google Places content; no copied media binaries or durable copied Google rich payloads were introduced.",
+      "DEC-09 remains controlling for this slice: the certified five-tab route names/order/destination meaning were preserved.",
+      "VS-30 Today’s Focus evidence compatibility and factual-evidence guard remain intact.",
+      "No persistence migration, deployment, release, EAS build/submit/OTA, production enablement or production database mutation was performed."
     ]
   },
   "approvals": [
@@ -64,7 +63,7 @@
       "commitSha": null,
       "by": "ksazid",
       "at": "2026-08-12T06:30:00+02:00",
-      "rationale": "Product Owner approved proceeding through implementation, fixes, design adjustments where needed, certification and merge, while explicitly avoiding duplicate work already completed by prior slices. VS-29 is therefore narrowed to the verified remaining gaps only."
+      "rationale": "Product Owner approved proceeding through implementation, fixes, design adjustments where needed, certification and merge, while explicitly avoiding duplicate work already completed by prior slices. VS-29 was narrowed to the verified remaining gaps only."
     },
     {
       "type": "policy",
@@ -73,7 +72,7 @@
       "commitSha": null,
       "by": "PES/Loop",
       "at": "2026-08-12T06:30:00+02:00",
-      "rationale": "VS-29 remains inside approved DEC-04/05/07/08 public-source, progressive-question, media-retention and transient-Google boundaries. Current official Google Places and EEA terms were rechecked; no new durable Google content use is introduced."
+      "rationale": "VS-29 stayed inside approved DEC-04/05/07/08 public-source, progressive-question, media-retention and transient-Google boundaries. Current official Google Places and EEA terms were rechecked; no new durable Google content use was introduced."
     },
     {
       "type": "implementation",
@@ -86,12 +85,12 @@
     },
     {
       "type": "certification",
-      "status": "pending",
+      "status": "approved",
       "version": "VS-29@1.1",
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
+      "commitSha": "24bd5657d8dec7ffad10899a85cc7866b928ff69",
+      "by": "PES/Loop",
+      "at": "2026-08-12T07:48:00+02:00",
+      "rationale": "The frozen implementation SHA passed exact-head CI, Security baseline and Product Intake after TDD and review. The Product Owner had explicitly authorized completion, fixes, bounded design changes, certification/integration intent and merge for the upcoming governed slices. Certification binds only this exact implementation SHA; release and production enablement remain unauthorized."
     },
     {
       "type": "release",
@@ -116,16 +115,27 @@
   "progress": {
     "discovery": 100,
     "decisions": 100,
-    "implementation": 0,
-    "testing": 0,
-    "certification": 0,
+    "implementation": 100,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
-    "evidence": []
+    "status": "passed",
+    "commitSha": "24bd5657d8dec7ffad10899a85cc7866b928ff69",
+    "evidence": [
+      "CI run 31567415714: exact implementation SHA green; governance/preflight, Expo SDK 54 mobile validation, TypeScript, lint, PostgreSQL 17 migration replay, API tests, dashboard build and artifact upload succeeded",
+      "CI run 31567415714: 153 mobile tests passed with 0 failures, including VS-29 presence model/UI regressions and existing native-shell/runtime contracts",
+      "CI run 31567415714: 325 API tests passed with 0 failures and 0 skipped",
+      "Security baseline run 31567415663: green on exact implementation SHA",
+      "Product Intake run 31567415822: green on exact implementation SHA",
+      "TDD RED 54297cc33bb402b20545bf1c7a592e9aee8ee6fa reproduced three contact/social/channel-satisfaction gaps while 317 API tests passed",
+      "TDD server RED on 03179b83cfdcceea3867fa8b0efabf59a31f4c81 reproduced four persistence/official-site gaps while 321 API tests passed",
+      "TDD UI RED b77989ad957affaa5ba5d511ee7eacb06200aed1 produced only the two new VS-29 presence-UI failures while 151 existing mobile tests passed",
+      "Systematic debugging restored the previously approved provider-neutral discovery confirmation copy after exact-head preflight caught the accidental wording drift",
+      "Changed-file review confirmed no migration, deployment, release, reset rewrite or navigation restructuring in the final runtime boundary"
+    ]
   },
   "release": {
     "status": "not-authorized",
@@ -146,8 +156,8 @@
     "implementationPr": "https://github.com/ksazid/project-atlas/pull/53",
     "evidence": [
       "docs/slices/VS-29.md",
-      "https://github.com/ksazid/project-atlas/blob/ebc42367707055d8b75de41fac95e618dfd355f7/docs/superpowers/specs/2026-08-12-vs-29-business-intelligence-enrichment-smart-onboarding-design.md",
-      "https://github.com/ksazid/project-atlas/blob/ebc42367707055d8b75de41fac95e618dfd355f7/docs/superpowers/plans/2026-08-12-vs-29-business-intelligence-enrichment-smart-onboarding.md"
+      "docs/superpowers/specs/2026-08-12-vs-29-business-intelligence-enrichment-smart-onboarding-design.md",
+      "docs/superpowers/plans/2026-08-12-vs-29-business-intelligence-enrichment-smart-onboarding.md"
     ]
   },
   "maxAttempts": 3
