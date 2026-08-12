@@ -21,6 +21,7 @@
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
+    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "VS-30@c01eb6f395ffdd4520b94d3253ea099af0c42447",
     "VS-31@9cd153aae1f0e0962548ecf2cfb5f112350a5a73",
     "VS-32@66e2b7979d68b390d74b395f650b0b6d215e71a8"
@@ -145,8 +146,9 @@
   },
   "links": {
     "specification": "docs/slices/VS-33.md",
-    "implementationPr": null,
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/56",
     "evidence": [
+      "docs/slices/VS-33.md",
       "docs/superpowers/specs/2026-08-12-vs-33-today-experience-simplification-design.md",
       "docs/superpowers/plans/2026-08-12-vs-33-today-experience-simplification.md"
     ]
