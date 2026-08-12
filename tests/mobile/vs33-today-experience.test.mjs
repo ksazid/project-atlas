@@ -46,6 +46,12 @@ test('VS-33 makes successful freshness and native pull-to-refresh explicit', () 
   assert.match(screen, /lastUpdatedAt/);
   assert.match(screen, /Updated just now/);
   assert.match(screen, /setLastUpdatedAt\(new Date\(\)\)/);
+  assert.ok((screen.match(/refreshControl=\{refreshControl\}/g) ?? []).length >= 4, 'Ready and safe non-ready Today states should support pull-to-refresh');
+});
+
+test('VS-33 preserves safe displayed content when a manual refresh fails', () => {
+  assert.match(screen, /if \(manual\) \{\s*setRefreshFailed\(true\);\s*\} else \{\s*setState\('error'\);\s*\}/s);
+  assert.match(screen, /Couldn’t refresh · showing previous result/);
 });
 
 test('VS-33 uses concise truthful recovery language without fabricated BI data', () => {
