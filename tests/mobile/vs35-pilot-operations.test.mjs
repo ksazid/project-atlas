@@ -65,3 +65,15 @@ test('VS-35 operator review is review-first and withdrawal requires explicit rea
   assert.match(review, /withdrawOpportunity/);
   assert.doesNotMatch(review, /raw prompt|model payload|provider payload/i);
 });
+
+test('VS-35 owner profile can truthfully reconfirm existing operator-assisted provenance', () => {
+  const client = read('apps/mobile/src/api/atlas-client.ts');
+  const profileModel = read('apps/mobile/src/features/profile/profile-model.ts');
+  const editBusiness = read('apps/mobile/app/edit-business.tsx');
+
+  assert.match(client, /'owner'\s*\|\s*'public'\s*\|\s*'operator-assisted'/);
+  assert.match(profileModel, /source\s*===\s*'owner'\s*\|\|\s*profile\.ownerConfirmed/);
+  assert.match(editBusiness, /Operator-assisted information/);
+  assert.match(editBusiness, /form\.source\s*!==\s*'owner'/);
+  assert.match(editBusiness, /review and confirm/i);
+});
