@@ -3,7 +3,7 @@
   "sliceId": "VS-34",
   "title": "VS-34 — Today Clarity & Navigation Consistency",
   "status": "active",
-  "lifecycle": "testing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": [
@@ -93,12 +93,12 @@
     },
     {
       "type": "certification",
-      "status": "pending",
+      "status": "approved",
       "version": "VS-34@1.0",
-      "commitSha": null,
-      "by": null,
-      "at": null,
-      "rationale": null
+      "commitSha": "8b4da80066801951c69397a6ea1966322c78ea77",
+      "by": "PES/Loop",
+      "at": "2026-08-12T16:40:00+02:00",
+      "rationale": "The frozen VS-34 candidate passed the complete exact-head mobile/native-runtime, TypeScript, Expo lint, PostgreSQL 17 migration replay, API regression, Release build, dashboard, Security baseline and Product Intake gates after verified Today and Profile-navigation RED-to-GREEN cycles and changed-file review. Certification binds only this exact candidate SHA; release and deployment remain unauthorized."
     },
     {
       "type": "release",
@@ -124,15 +124,25 @@
     "discovery": 100,
     "decisions": 100,
     "implementation": 100,
-    "testing": 80,
-    "certification": 0,
+    "testing": 100,
+    "certification": 100,
     "release": 0,
     "validation": 0
   },
   "certification": {
-    "status": "not-started",
-    "commitSha": null,
-    "evidence": []
+    "status": "passed",
+    "commitSha": "8b4da80066801951c69397a6ea1966322c78ea77",
+    "evidence": [
+      "Activation baseline 6a2339b102fa29379a263f9914de942390a42ecd: CI 31601591564, Security baseline 31601591554 and Product Intake 31601591588 passed before VS-34 runtime edits",
+      "Today TDD RED a29d6f85d0ec0489a40bd588abc4dcd787e87da2: 3 intended VS-34 clarity failures reproduced while 174 existing tests passed and the authentic Today runtime remained green",
+      "Today GREEN efb366403a465c9921d131a3416f437c2ef39269: Today structural contract and authentic Expo Web Today-to-Opportunity-Detail runtime passed with Security baseline 31604504039 and Product Intake 31604504064 green",
+      "Navigation TDD RED ca0133a5798f95e1026cbb90215608356a5d82b6: exactly 3 intended Settings, Context and Feedback Profile-navigation failures reproduced while 177 of 180 tests passed and Today remained green",
+      "Final exact candidate 8b4da80066801951c69397a6ea1966322c78ea77: CI 31607101677, Security baseline 31607101748 and Product Intake 31607101728 all passed",
+      "CI 31607101677: 180 mobile tests passed with 0 failures and 0 skipped, including authentic Expo Web VS-21 discovery, VS-15 Context, VS-17 progressive questions, VS-34 Today-to-Opportunity-Detail and VS-34 native/light Profile back-navigation coverage",
+      "CI 31607101677: TypeScript, Expo lint, Expo SDK 54 platform validation, clean PostgreSQL 17 migration replay, API Release build and dashboard artifact all passed",
+      "CI 31607101677: 346 API tests passed with 0 failures and 0 skipped",
+      "Changed-file review of PR #58 confirmed runtime changes are limited to TodayFocusScreen, Settings/Context/Feedback pushed-route shells and mobile tests; no API, migration, infrastructure, release workflow, menu/media or Pilot Operations runtime change was introduced"
+    ]
   },
   "release": {
     "status": "not-authorized",
