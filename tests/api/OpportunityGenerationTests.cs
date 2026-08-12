@@ -34,12 +34,15 @@ public sealed class OpportunityGenerationTests
             context: [Fact("context", "operatingchannels", "Dine in | Takeaway | Delivery", "owner")]);
 
         var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
+        var focusCandidate = OpportunityFocusService.SelectEligibleCandidate(result);
 
         Assert.NotNull(result.Selected);
         Assert.Equal("ordering-path-clarity-review", result.Selected!.PatternKey);
         Assert.Equal(RestaurantCafeKnowledgeManifestV2.PackKey, result.Selected.KnowledgePackKey);
         Assert.Contains(result.Selected.Evidence, x =>
             x.Key == "operatingchannels" && x.Value == "Dine in | Takeaway | Delivery");
+        Assert.NotNull(focusCandidate);
+        Assert.Equal("ordering-path-clarity-review", focusCandidate!.PatternKey);
     }
 
     [Fact]
@@ -131,7 +134,7 @@ public sealed class OpportunityGenerationTests
     }
 
     [Fact]
-    public void Policy_only_profile_and_goal_do_not_generate_zero_evidence_fallback()
+    public void Policy_only_profile_and_goal_do_not_qualify_for_todays_focus()
     {
         var businessId = Guid.NewGuid();
         var result = OpportunityGenerator.Generate(
@@ -141,8 +144,9 @@ public sealed class OpportunityGenerationTests
             [],
             Now);
 
-        Assert.Null(result.Selected);
-        Assert.Empty(result.Candidates);
+        Assert.NotNull(result.Selected);
+        Assert.Empty(result.Selected!.Evidence.Where(x => x.Layer != "policy"));
+        Assert.Null(OpportunityFocusService.SelectEligibleCandidate(result));
     }
 
     [Fact]
