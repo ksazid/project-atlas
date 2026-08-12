@@ -15,7 +15,6 @@ const GREEN_BRIGHT = '#008A57';
 const DARK = '#0A2F25';
 const INK = '#17221C';
 const MUTED = '#5B6761';
-const SOFT = '#F7F5F0';
 const SOFT_MINT = '#F1F8F4';
 const SOFT_BLUE = '#F1F6FB';
 const SOFT_AMBER = '#FFF8E8';
