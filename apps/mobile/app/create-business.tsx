@@ -502,7 +502,7 @@ export default function CreateBusinessScreen() {
           {form.socialChannels?.trim() ? <Detail icon="↗" text={form.socialChannels.trim()} /> : null}
           {form.businessHours.trim() ? <Detail icon="◷" text={form.businessHours.trim()} /> : null}
           {form.description.trim() ? <Detail icon="≡" text={form.description.trim()} /> : null}
-          <Detail icon="⊕" text="Observed publicly. Review every detail and edit anything that needs correction." />
+          <Detail icon="⊕" text="Observed from public business page" />
           <View style={s.divider} />
           <Text style={s.sectionTitle}>Categories</Text>
           <View style={s.chipRow}>
