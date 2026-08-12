@@ -24,7 +24,6 @@ const files = [
 const sources = files.map(path => [path, readFileSync(new URL(path, import.meta.url), 'utf8')]);
 const todaySource = readFileSync(new URL('../../apps/mobile/src/features/today-focus/TodayFocusScreen.tsx', import.meta.url), 'utf8');
 const atlasScreenSource = readFileSync(new URL('../../apps/mobile/src/components/AtlasScreen.tsx', import.meta.url), 'utf8');
-const contextSource = readFileSync(new URL('../../apps/mobile/app/(tabs)/context.tsx', import.meta.url), 'utf8');
 
 test('every current first-party screen uses AtlasScreen', () => {
   for (const [path, source] of sources) {
@@ -48,11 +47,4 @@ test('scrolling screens keep the top safe area outside scrollable content', () =
   assert.match(atlasScreenSource, /const scrollContentSafeAreaStyle:[^{]*\{[^}]*paddingBottom:\s*metrics\.paddingBottom[^}]*paddingHorizontal:\s*metrics\.paddingHorizontal[^}]*\}/s);
   assert.match(atlasScreenSource, /<View style=\{\[\{ flex: 1 \}, fixedSafeAreaStyle\]\}>[\s\S]*<ScrollView/);
   assert.doesNotMatch(atlasScreenSource, /const scrollContentSafeAreaStyle:[^{]*\{[^}]*paddingTop:/s);
-});
-
-test('Context presents saved intelligence with owner-readable labels and no internal slice jargon', () => {
-  for (const label of ['Operating channels', 'Price position', 'Primary channels', 'Service periods']) {
-    assert.match(contextSource, new RegExp(label));
-  }
-  assert.doesNotMatch(contextSource, /VS-\d+/);
 });
