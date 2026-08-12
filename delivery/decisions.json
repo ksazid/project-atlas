@@ -6,11 +6,7 @@
       "sliceId": "VS-13",
       "status": "approved",
       "question": "How should Atlas use the Starbucks design experiment while preparing for its final identity?",
-      "options": [
-        "Keep screen-level trademark assets",
-        "Use Starbucks visual grammar with one replaceable BrandMark boundary",
-        "Retain the previous Atlas light-green system"
-      ],
+      "options": ["Keep screen-level trademark assets","Use Starbucks visual grammar with one replaceable BrandMark boundary","Retain the previous Atlas light-green system"],
       "decision": "Use Starbucks visual grammar as Atlas's primary design authority and centralize the temporary test mark in one replaceable BrandMark component.",
       "blocks": [],
       "decidedBy": "ksazid",
@@ -22,11 +18,7 @@
       "sliceId": "VS-14",
       "status": "approved",
       "question": "How should VS-14 handle the inherited five-tab navigation while the design baseline describes four primary destinations?",
-      "options": [
-        "Restructure navigation in VS-14",
-        "Preserve the existing navigation model for the bounded visual migration and defer alignment",
-        "Silently redefine the baseline"
-      ],
+      "options": ["Restructure navigation in VS-14","Preserve the existing navigation model for the bounded visual migration and defer alignment","Silently redefine the baseline"],
       "decision": "Preserve the existing navigation model for VS-14 and defer alignment to a separate governed navigation slice.",
       "blocks": [],
       "decidedBy": "ksazid",
@@ -38,11 +30,7 @@
       "sliceId": "VS-15",
       "status": "approved",
       "question": "How should VS-15 handle the inherited five-tab navigation while the approved baseline describes four persistent destinations?",
-      "options": [
-        "Restructure navigation in VS-15",
-        "Preserve the existing navigation model for the bounded Context visual migration and defer alignment",
-        "Silently redefine the baseline"
-      ],
+      "options": ["Restructure navigation in VS-15","Preserve the existing navigation model for the bounded Context visual migration and defer alignment","Silently redefine the baseline"],
       "decision": "Preserve the existing navigation model for VS-15 and defer navigation alignment to a separate governed slice.",
       "blocks": [],
       "decidedBy": "ksazid",
@@ -54,11 +42,7 @@
       "sliceId": "VS-16",
       "status": "approved",
       "question": "Which public sources should the first Category Intelligence discovery slice support?",
-      "options": [
-        "Keep Wolt/Bolt public pages only",
-        "Support ordinary HTTPS business websites plus Wolt/Bolt through a provider-neutral safe public snapshot",
-        "Add private provider/POS connectors now"
-      ],
+      "options": ["Keep Wolt/Bolt public pages only","Support ordinary HTTPS business websites plus Wolt/Bolt through a provider-neutral safe public snapshot","Add private provider/POS connectors now"],
       "decision": "Support ordinary HTTPS public business websites plus Wolt and Bolt Food public pages through a provider-neutral Public Business Snapshot, with conservative extraction, owner confirmation and SSRF-safe fetching. Private connectors remain out of scope.",
       "blocks": [],
       "decidedBy": "ksazid",
@@ -70,11 +54,7 @@
       "sliceId": "VS-17",
       "status": "approved",
       "question": "How should VS-17 collect optional category-aware onboarding context?",
-      "options": [
-        "Generate onboarding questions dynamically with AI",
-        "Show a fixed static form per category",
-        "Use a deterministic versioned skippable catalogue selected from missing context"
-      ],
+      "options": ["Generate onboarding questions dynamically with AI","Show a fixed static form per category","Use a deterministic versioned skippable catalogue selected from missing context"],
       "decision": "Use a deterministic, versioned, server-owned and fully skippable progressive-question catalogue. Create the Business first, select only 3–5 highest-value missing questions, present them tap-first one at a time, persist answers as owner-confirmed Business Context, and persist skip/answer progress separately for resumability.",
       "blocks": [],
       "decidedBy": "ksazid",
@@ -86,11 +66,7 @@
       "sliceId": "VS-21",
       "status": "approved",
       "question": "How should URL-first onboarding resolve operating location and dependent market metadata, including multi-location businesses?",
-      "options": [
-        "Keep manual country/timezone/currency fields",
-        "Auto-select the first address found without owner review",
-        "Resolve a Business location, let the owner select among branches when ambiguous, use Google Places search when unknown, and derive country/timezone/currency automatically"
-      ],
+      "options": ["Keep manual country/timezone/currency fields","Auto-select the first address found without owner review","Resolve a Business location, let the owner select among branches when ambiguous, use Google Places search when unknown, and derive country/timezone/currency automatically"],
       "decision": "Treat the operating location as the owner-facing choice. Preselect one strong branch but keep it changeable; show branch cards when multiple matches exist; use Google Places Text Search (New) when location is unknown; obtain canonical address, coordinates, country and IANA timezone from the same Places response; derive ISO currency inside Atlas; onboard one location first and add other branches later. Do not call the separate Google Time Zone API in this slice.",
       "blocks": [],
       "decidedBy": "ksazid",
@@ -102,11 +78,7 @@
       "sliceId": "VS-25",
       "status": "approved",
       "question": "How should Atlas retain restaurant images and menu data discovered from public business sources?",
-      "options": [
-        "Copy and rehost third-party image binaries and raw menu pages",
-        "Store provenance-rich remote media references plus structured factual menu/offerings data without copying third-party binaries",
-        "Do not retain media or menu data"
-      ],
+      "options": ["Copy and rehost third-party image binaries and raw menu pages","Store provenance-rich remote media references plus structured factual menu/offerings data without copying third-party binaries","Do not retain media or menu data"],
       "decision": "Store provider-neutral remote media references and structured Business Offering facts with complete source/provenance. Do not copy third-party image binaries. Treat menu-item as the first generic offering kind, retain only data exposed by already-authorised public discovery sources, and materialise accepted records to the Business after confirmation without falsely marking unseen public media/menu facts as owner-confirmed.",
       "blocks": [],
       "decidedBy": "ksazid",
@@ -118,11 +90,7 @@
       "sliceId": "VS-26",
       "status": "approved",
       "question": "How should Atlas use a uniquely resolved Google Place to reduce repetitive onboarding while respecting owner authority and Google Places content restrictions?",
-      "options": [
-        "Ask all operating questions manually and do not enrich",
-        "Fetch rich Place Details for every search candidate and persist the provider response",
-        "After one exact Place is selected, fetch one bounded Place Details response transiently, let the owner explicitly submit canonical operating answers, retain only the Place ID as Google provider content, then ask Goals first and suppress satisfied questions"
-      ],
+      "options": ["Ask all operating questions manually and do not enrich","Fetch rich Place Details for every search candidate and persist the provider response","After one exact Place is selected, fetch one bounded Place Details response transiently, let the owner explicitly submit canonical operating answers, retain only the Place ID as Google provider content, then ask Goals first and suppress satisfied questions"],
       "decision": "After Atlas uniquely resolves a Business to one Google Place, use at most one bounded Places API (New) Place Details request for the current owner interaction regardless of whether discovery began from a website, Bolt, Wolt or Google URL. Google rich response content remains transient and Atlas retains only the Place ID as Google provider content. Persist canonical operating context only through a separate explicit owner submit/confirm action; do not persist copied Google payloads, attribution payloads or hidden Google-derived facts. For sufficiently enriched Businesses, optional non-goal onboarding targets 0–3 questions, with five retained only as the degraded/missing-context ceiling. Goals remain owner-only and are presented before optional non-goal context.",
       "blocks": [],
       "decidedBy": "ksazid",
@@ -134,16 +102,28 @@
       "sliceId": "VS-28",
       "status": "approved",
       "question": "How should VS-28 handle the approved four-destination design baseline while the certified runtime currently ships five PES tabs?",
-      "options": [
-        "Restructure navigation while performing the native polish",
-        "Preserve the certified five-tab shell for VS-28 only and defer navigation alignment to a dedicated governed slice",
-        "Silently treat the merged five-tab runtime as a replacement design baseline"
-      ],
+      "options": ["Restructure navigation while performing the native polish","Preserve the certified five-tab shell for VS-28 only and defer navigation alignment to a dedicated governed slice","Silently treat the merged five-tab runtime as a replacement design baseline"],
       "decision": "Preserve the certified five-tab shell for VS-28 only. Keep route names, ordering and destination meaning unchanged, and keep the four-vs-five destination alignment deferred to a separate governed navigation slice.",
       "blocks": [],
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-12T01:01:00+02:00",
       "rationale": "The Product Owner approved the VS-28 written design for device-adaptive native polish without a navigation redesign. DEC-02 and DEC-03 already identified the inherited mismatch and deferred structural alignment; VS-28 makes that preservation explicit rather than silently overriding ATLAS-DESIGN-001."
+    },
+    {
+      "id": "DEC-10",
+      "sliceId": "VS-31",
+      "status": "approved",
+      "question": "How should Atlas resolve the long-standing four-vs-five primary navigation mismatch after VS-28 and VS-29?",
+      "options": [
+        "Keep five persistent tabs indefinitely",
+        "Align persistent navigation to Today, History, Goals and Profile while keeping Business Hub as Profile root and moving Context/Settings to pushed Profile details",
+        "Replace NativeTabs with a new custom navigation system"
+      ],
+      "decision": "Align persistent navigation to ATLAS-DESIGN-001 v1.2: Today, History, Goals and Profile. Keep the existing Business Hub as the Profile root; move Context and Settings to pushed Profile-detail routes while preserving all capabilities and stable /context and /settings paths; move History into the native tab group while preserving /history; retain Expo Router NativeTabs and make no domain/API/database changes.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-12T08:01:00+02:00",
+      "rationale": "DEC-02, DEC-03 and DEC-09 explicitly deferred the mismatch to a dedicated governed navigation slice. The Product Owner has now granted standing approval for upcoming slices including required design changes. This option satisfies the approved design baseline with the smallest runtime change and preserves Business, Context and Settings functionality."
     }
   ]
 }

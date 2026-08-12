@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { View } from 'react-native';
 
-export type AtlasIconName = 'home' | 'business' | 'goals' | 'context' | 'settings';
+export type AtlasIconName = 'home' | 'history' | 'business' | 'goals' | 'context' | 'settings';
 
 type Props = { name: AtlasIconName; size?: number; color: string };
 
@@ -10,6 +10,7 @@ export function AtlasIcon({ name, size = 20, color }: Props): ReactElement {
   return (
     <View accessible={false} style={{ width: size, height: size }}>
       {name === 'home' ? <HomeIcon size={size} color={color} stroke={stroke} /> : null}
+      {name === 'history' ? <HistoryIcon size={size} color={color} stroke={stroke} /> : null}
       {name === 'business' ? <BusinessIcon size={size} color={color} stroke={stroke} /> : null}
       {name === 'goals' ? <GoalsIcon size={size} color={color} stroke={stroke} /> : null}
       {name === 'context' ? <ContextIcon size={size} color={color} stroke={stroke} /> : null}
@@ -24,6 +25,15 @@ function HomeIcon({ size, color, stroke }: IconGeometryProps) {
     <View style={{ position: 'absolute', left: size * .20, top: size * .24, width: size * .43, height: stroke, borderRadius: stroke, backgroundColor: color, transform: [{ rotate: '-38deg' }] }} />
     <View style={{ position: 'absolute', right: size * .20, top: size * .24, width: size * .43, height: stroke, borderRadius: stroke, backgroundColor: color, transform: [{ rotate: '38deg' }] }} />
     <View style={{ position: 'absolute', left: size * .43, bottom: size * .12, width: size * .18, height: size * .27, borderColor: color, borderWidth: stroke, borderBottomWidth: 0, borderRadius: size * .04 }} />
+  </>;
+}
+
+function HistoryIcon({ size, color, stroke }: IconGeometryProps) {
+  return <>
+    <View style={{ position: 'absolute', left: size * .14, top: size * .14, width: size * .72, height: size * .72, borderRadius: size * .36, borderColor: color, borderWidth: stroke }} />
+    <View style={{ position: 'absolute', left: size * .49, top: size * .28, width: stroke, height: size * .24, borderRadius: stroke, backgroundColor: color }} />
+    <View style={{ position: 'absolute', left: size * .49, top: size * .49, width: size * .20, height: stroke, borderRadius: stroke, backgroundColor: color, transform: [{ rotate: '28deg' }] }} />
+    <View style={{ position: 'absolute', left: size * .05, top: size * .20, width: size * .24, height: stroke, borderRadius: stroke, backgroundColor: color, transform: [{ rotate: '-24deg' }] }} />
   </>;
 }
 

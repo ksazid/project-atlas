@@ -14,24 +14,24 @@ export default function TabsLayout() {
     >
       <NativeTabs.Trigger name="index">
         <Icon
-          sf={{ default: 'house', selected: 'house.fill' }}
+          sf={{ default: 'sparkles', selected: 'sparkles' }}
           androidSrc={{
             default: <AtlasIcon name="home" color={tokens.color.muted} />,
             selected: <AtlasIcon name="home" color={tokens.color.green} />,
           }}
         />
-        <Label>Home</Label>
+        <Label>Today</Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="profile">
+      <NativeTabs.Trigger name="history">
         <Icon
-          sf={{ default: 'briefcase', selected: 'briefcase.fill' }}
+          sf={{ default: 'clock.arrow.circlepath', selected: 'clock.arrow.circlepath' }}
           androidSrc={{
-            default: <AtlasIcon name="business" color={tokens.color.muted} />,
-            selected: <AtlasIcon name="business" color={tokens.color.green} />,
+            default: <AtlasIcon name="history" color={tokens.color.muted} />,
+            selected: <AtlasIcon name="history" color={tokens.color.green} />,
           }}
         />
-        <Label>Business</Label>
+        <Label>History</Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="goals">
@@ -45,26 +45,15 @@ export default function TabsLayout() {
         <Label>Goals</Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="context">
+      <NativeTabs.Trigger name="profile">
         <Icon
-          sf={{ default: 'doc.text', selected: 'doc.text.fill' }}
+          sf={{ default: 'person.crop.circle', selected: 'person.crop.circle.fill' }}
           androidSrc={{
-            default: <AtlasIcon name="context" color={tokens.color.muted} />,
-            selected: <AtlasIcon name="context" color={tokens.color.green} />,
+            default: <AtlasIcon name="business" color={tokens.color.muted} />,
+            selected: <AtlasIcon name="business" color={tokens.color.green} />,
           }}
         />
-        <Label>Context</Label>
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="settings">
-        <Icon
-          sf={{ default: 'gearshape', selected: 'gearshape.fill' }}
-          androidSrc={{
-            default: <AtlasIcon name="settings" color={tokens.color.muted} />,
-            selected: <AtlasIcon name="settings" color={tokens.color.green} />,
-          }}
-        />
-        <Label>Settings</Label>
+        <Label>Profile</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

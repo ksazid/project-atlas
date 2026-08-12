@@ -1,4 +1,5 @@
 import type { ReactElement, ReactNode } from 'react';
+import { useSegments } from 'expo-router';
 import {
   ScrollView,
   View,
@@ -34,13 +35,16 @@ export function AtlasScreen({
   automaticallyAdjustKeyboardInsets,
 }: AtlasScreenProps): ReactElement {
   const insets = useSafeAreaInsets();
+  const segments = useSegments();
   const { width, fontScale } = useWindowDimensions();
+  const isPersistentTabRoute = segments.includes('(tabs)');
+  const isProfileDetailWithNativeHeader = segments.length === 1 && (segments[0] === 'context' || segments[0] === 'settings');
   const metrics = getAtlasScreenMetrics({
     width,
-    topInset: insets.top,
+    topInset: isProfileDetailWithNativeHeader ? 0 : insets.top,
     bottomInset: insets.bottom,
     fontScale,
-    hasTabBar,
+    hasTabBar: hasTabBar && isPersistentTabRoute,
   });
   const fixedSafeAreaStyle: ViewStyle = {
     paddingTop: metrics.paddingTop,

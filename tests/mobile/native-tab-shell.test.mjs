@@ -4,13 +4,19 @@ import test from 'node:test';
 
 const source = readFileSync(new URL('../../apps/mobile/app/(tabs)/_layout.tsx', import.meta.url), 'utf8');
 
-test('VS-28 preserves all five certified routes', () => {
-  for (const route of ['index', 'profile', 'goals', 'context', 'settings']) {
-    assert.match(source, new RegExp(`name="${route}"`));
+test('VS-31 exposes exactly the four approved persistent destinations', () => {
+  const triggers = [...source.matchAll(/<NativeTabs\.Trigger\s+name="([^"]+)"/g)].map(match => match[1]);
+  assert.deepEqual(triggers, ['index', 'history', 'goals', 'profile']);
+
+  for (const label of ['Today', 'History', 'Goals', 'Profile']) {
+    assert.match(source, new RegExp(`<Label>${label}</Label>`));
   }
+
+  assert.doesNotMatch(source, /<NativeTabs\.Trigger\s+name="context"/);
+  assert.doesNotMatch(source, /<NativeTabs\.Trigger\s+name="settings"/);
 });
 
-test('iOS top-level navigation delegates to Expo native system tabs', () => {
+test('top-level navigation continues to delegate to Expo native system tabs', () => {
   assert.match(source, /expo-router\/unstable-native-tabs/);
   assert.match(source, /<NativeTabs\b/);
   assert.match(source, /<NativeTabs\.Trigger\s+name="index"/);

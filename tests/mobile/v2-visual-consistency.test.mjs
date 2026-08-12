@@ -3,13 +3,13 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const profileRoute = readFileSync('apps/mobile/app/(tabs)/profile.tsx', 'utf8');
-assert.match(profileRoute, /BusinessHubScreen/, 'Business tab must delegate to BusinessHubScreen');
+assert.match(profileRoute, /BusinessHubScreen/, 'Profile tab must delegate to BusinessHubScreen');
 
 const targets = [
   'apps/mobile/src/features/today-focus/TodayFocusScreen.tsx',
   'apps/mobile/src/features/business-hub/BusinessHubScreen.tsx',
   'apps/mobile/app/(tabs)/goals.tsx',
-  'apps/mobile/app/(tabs)/context.tsx'
+  'apps/mobile/src/features/context/ContextScreen.tsx'
 ];
 
 const sources = Object.fromEntries(targets.map(path => [path, readFileSync(path, 'utf8')]));

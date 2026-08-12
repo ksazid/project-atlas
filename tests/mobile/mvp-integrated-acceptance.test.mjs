@@ -7,7 +7,7 @@ const readJson = path => JSON.parse(read(path));
 
 function effectiveProfileSource() {
   const route = read('apps/mobile/app/(tabs)/profile.tsx');
-  assert.match(route, /BusinessHubScreen/, 'Business tab must delegate to the governed Business Hub screen');
+  assert.match(route, /BusinessHubScreen/, 'Profile tab must delegate to the governed Business Hub screen');
   return read('apps/mobile/src/features/business-hub/BusinessHubScreen.tsx');
 }
 
@@ -34,11 +34,11 @@ test('integrated owner journey retains the implemented Atlas routes', () => {
     'apps/mobile/app/create-business.tsx',
     'apps/mobile/app/progressive-questions.tsx',
     'apps/mobile/app/(tabs)/index.tsx',
+    'apps/mobile/app/(tabs)/history.tsx',
     'apps/mobile/app/(tabs)/profile.tsx',
     'apps/mobile/app/(tabs)/goals.tsx',
-    'apps/mobile/app/(tabs)/context.tsx',
-    'apps/mobile/app/(tabs)/settings.tsx',
-    'apps/mobile/app/history.tsx',
+    'apps/mobile/app/context.tsx',
+    'apps/mobile/app/settings.tsx',
     'apps/mobile/app/weekly-review.tsx',
     'apps/mobile/app/notifications.tsx',
     'apps/mobile/app/opportunities/[opportunityId].tsx'
@@ -51,7 +51,7 @@ test('Profile Goals and Context share the approved Atlas visual primitives', () 
   const sources = [
     effectiveProfileSource(),
     read('apps/mobile/app/(tabs)/goals.tsx'),
-    read('apps/mobile/app/(tabs)/context.tsx')
+    read('apps/mobile/src/features/context/ContextScreen.tsx')
   ];
 
   for (const source of sources) {
