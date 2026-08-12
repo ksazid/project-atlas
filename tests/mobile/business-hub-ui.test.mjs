@@ -9,8 +9,8 @@ const editRouteSource = read('../../apps/mobile/app/edit-business.tsx');
 const menuScreenSource = read('../../apps/mobile/src/features/business-hub/BusinessMenuScreen.tsx');
 const menuRouteSource = read('../../apps/mobile/app/business-menu.tsx');
 
-test('Business tab is a read-first business hub with approved sections and secondary actions', () => {
-  for (const text of ['BUSINESS', 'Business photos', 'Menu intelligence', 'Edit business details', 'Review business context']) {
+test('Profile tab is a read-first business hub with approved sections and secondary actions', () => {
+  for (const text of ['PROFILE', 'Business photos', 'Menu intelligence', 'Edit business details', 'Review business context', 'Settings']) {
     assert.match(hubSource, new RegExp(text));
   }
   assert.match(hubSource, /getBusinessHub/);

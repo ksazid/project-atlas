@@ -20,7 +20,7 @@ test('deleted or stale business selection returns to business setup instead of a
 });
 
 test('Expo reset is visible only for the Development demo session and preserves sign-in', () => {
-  const settings = read('apps/mobile/app/(tabs)/settings.tsx');
+  const settings = read('apps/mobile/src/features/settings/SettingsScreen.tsx');
   const session = read('apps/mobile/src/auth/session.ts');
 
   assert.match(settings, /__DEV__/);
