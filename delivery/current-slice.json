@@ -151,7 +151,7 @@
   },
   "links": {
     "specification": "docs/slices/VS-34.md",
-    "implementationPr": null,
+    "implementationPr": "https://github.com/ksazid/project-atlas/pull/58",
     "evidence": [
       "docs/slices/VS-34.md",
       "docs/superpowers/specs/2026-08-12-vs-34-today-clarity-navigation-design.md",
