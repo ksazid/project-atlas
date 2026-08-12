@@ -25,6 +25,13 @@ public sealed record OpportunityFocusGenerationResult(
 
 public static class OpportunityFocusService
 {
+    public static GeneratedOpportunityCandidate? SelectEligibleCandidate(OpportunityGenerationResult generation)
+    {
+        ArgumentNullException.ThrowIfNull(generation);
+        return generation.Candidates.FirstOrDefault(candidate =>
+            candidate.Evidence.Any(evidence => !string.Equals(evidence.Layer, "policy", StringComparison.OrdinalIgnoreCase)));
+    }
+
     public static async Task<OpportunityFocusGenerationResult> GenerateAsync(
         AtlasDbContext db,
         Guid businessId,
@@ -118,7 +125,8 @@ public static class OpportunityFocusService
         }
 
         var generation = OpportunityGenerator.Generate(profile, goals, bundle, priorOpportunities, now);
-        if (generation.Selected is null)
+        var candidate = SelectEligibleCandidate(generation);
+        if (candidate is null)
         {
             await SaveStatusChangeIfNeeded(db, current, ct);
             return new OpportunityFocusGenerationResult(
@@ -128,7 +136,6 @@ public static class OpportunityFocusService
                 "Atlas does not have enough evidence for a useful recommendation yet. Add or confirm relevant Business Context instead of receiving filler guidance.");
         }
 
-        var candidate = generation.Selected;
         var opportunity = new Opportunity
         {
             Id = Guid.NewGuid(),
