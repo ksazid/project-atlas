@@ -26,69 +26,32 @@ export function BusinessHubScreen() {
   const [heroFailed, setHeroFailed] = useState(false);
 
   const load = useCallback(async (manual = false) => {
-    if (manual) setRefreshing(true);
-    else setState('loading');
+    if (manual) setRefreshing(true); else setState('loading');
     try {
       const session = await loadSession();
-      if (!session?.businessId) {
-        setHub(null);
-        setState('missing');
-        return;
-      }
+      if (!session?.businessId) { setHub(null); setState('missing'); return; }
       const result = await getBusinessHubState(session.accessToken, session.businessId);
-      if (result.state === 'missing') {
-        await clearBusinessSelection();
-        setHub(null);
-        setState('missing');
-        return;
-      }
-      setHub(result.hub);
-      setHeroFailed(false);
-      setState('ready');
-    } catch {
-      setState('error');
-    } finally {
-      setRefreshing(false);
-    }
+      if (result.state === 'missing') { await clearBusinessSelection(); setHub(null); setState('missing'); return; }
+      setHub(result.hub); setHeroFailed(false); setState('ready');
+    } catch { setState('error'); } finally { setRefreshing(false); }
   }, []);
-
   useEffect(() => { void load(); }, [load]);
 
-  if (state !== 'ready' || !hub) {
-    return <HubState state={state} onRetry={() => void load()} onContinue={() => router.replace('/create-business')} />;
-  }
+  if (state !== 'ready' || !hub) return <HubState state={state} onRetry={() => void load()} onContinue={() => router.replace('/create-business')} />;
 
   return (
-    <AtlasScreen
-      hasTabBar
-      contentStyle={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} tintColor={tokens.color.green} onRefresh={() => void load(true)} />}
-      showsVerticalScrollIndicator={false}
-    >
+    <AtlasScreen hasTabBar contentStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing} tintColor={tokens.color.green} onRefresh={() => void load(true)} />} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
-        <View style={styles.header}>
-          <BrandMark size={48} />
-          <Text style={styles.eyebrow}>PROFILE</Text>
-          <Text accessibilityRole="header" style={styles.heading}>This is the business Atlas understands today.</Text>
-          <Text style={styles.subheading}>Review the real operating picture behind your recommendations, then edit only when something has changed.</Text>
-        </View>
-
+        <View style={styles.header}><BrandMark size={48} /><Text style={styles.eyebrow}>PROFILE</Text><Text accessibilityRole="header" style={styles.heading}>This is the business Atlas understands today.</Text><Text style={styles.subheading}>Review the real operating picture behind your recommendations, then edit only when something has changed.</Text></View>
         <BusinessHero business={hub.business} profile={hub.profile} media={hub.media} imageFailed={heroFailed} onError={() => setHeroFailed(true)} />
         <BusinessSnapshotCard business={hub.business} profile={hub.profile} />
         <BusinessMediaPreview media={hub.media} title="Business photos" />
         <MenuIntelligenceCard menu={hub.menu} title="Menu intelligence" onViewFull={() => router.push('/business-menu')} />
-        <View accessibilityLabel={REVIEW_CONTEXT_ACTION}>
-          <BusinessContextStatus context={hub.context} onReview={() => router.push('/context')} />
-        </View>
-        <BusinessDataCard onOpen={() => router.push('/business-data')} />
-
+        <View accessibilityLabel={REVIEW_CONTEXT_ACTION}><BusinessContextStatus context={hub.context} onReview={() => router.push('/context')} /></View>
+        <BusinessDataCard onOpen={() => router.push('/connectors')} />
         <View style={styles.profileActions}>
-          <AtlasPressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')} style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>Settings</Text>
-          </AtlasPressable>
-          <AtlasPressable accessibilityRole="button" accessibilityLabel="Edit business details" onPress={() => router.push('/edit-business')} style={styles.editButton}>
-            <Text style={styles.editButtonText}>Edit business details</Text>
-          </AtlasPressable>
+          <AtlasPressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')} style={styles.secondaryButton}><Text style={styles.secondaryButtonText}>Settings</Text></AtlasPressable>
+          <AtlasPressable accessibilityRole="button" accessibilityLabel="Edit business details" onPress={() => router.push('/edit-business')} style={styles.editButton}><Text style={styles.editButtonText}>Edit business details</Text></AtlasPressable>
         </View>
         {hub.latestObservedAt ? <Text style={styles.freshness}>Business intelligence last observed {formatDate(hub.latestObservedAt)}.</Text> : null}
       </View>
@@ -101,19 +64,5 @@ function HubState({ state, onRetry, onContinue }: { state: ScreenState; onRetry:
   if (state === 'missing') return <AtlasScreen hasTabBar mode="static" contentStyle={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Set up your business</Text><Text style={styles.stateCopy}>Atlas does not have a business for this account yet. Start setup to add one.</Text><AtlasPressable accessibilityRole="button" accessibilityLabel="Set up your business" onPress={onContinue} style={styles.stateButton}><Text style={styles.stateButtonText}>Set up your business</Text></AtlasPressable></AtlasScreen>;
   return <AtlasScreen hasTabBar mode="static" contentStyle={styles.stateScreen}><BrandMark size={56} /><Text accessibilityRole="header" style={styles.stateTitle}>Business Hub is temporarily unavailable</Text><Text style={styles.stateCopy}>Your saved business information is unchanged. Try loading it again.</Text><AtlasPressable accessibilityRole="button" accessibilityLabel="Try again" onPress={onRetry} style={styles.stateButton}><Text style={styles.stateButtonText}>Try again</Text></AtlasPressable></AtlasScreen>;
 }
-
 function formatDate(value: string): string { const date = new Date(value); return Number.isNaN(date.getTime()) ? 'recently' : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); }
-
-const styles = StyleSheet.create({
-  container: { alignItems: 'center', backgroundColor: tokens.color.surface },
-  content: { gap: 18, maxWidth: 680, width: '100%' }, header: { gap: 7, marginBottom: 2 },
-  eyebrow: { color: tokens.color.green, fontSize: 11, fontWeight: '900', letterSpacing: 1.2, marginTop: 7 },
-  heading: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 31, fontWeight: '800', letterSpacing: -.45, lineHeight: 37 },
-  subheading: { color: tokens.color.muted, fontSize: 14.5, lineHeight: 22 },
-  profileActions: { gap: 10 },
-  secondaryButton: { alignItems: 'center', borderColor: tokens.color.green, borderRadius: tokens.radius.pill, borderWidth: 1.5, justifyContent: 'center', minHeight: 48, paddingHorizontal: 22 },
-  secondaryButtonText: { color: tokens.color.greenDeep, fontSize: 14, fontWeight: '800' },
-  editButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 52, paddingHorizontal: 22 }, editButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
-  freshness: { color: tokens.color.muted, fontSize: 11.5, lineHeight: 17, textAlign: 'center' },
-  stateScreen: { alignItems: 'center', backgroundColor: tokens.color.surface, gap: 14, justifyContent: 'center' }, stateTitle: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 27, fontWeight: '800', lineHeight: 33, textAlign: 'center' }, stateCopy: { color: tokens.color.muted, fontSize: 14, lineHeight: 21, maxWidth: 380, textAlign: 'center' }, stateButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 48, paddingHorizontal: 20 }, stateButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' },
-});
+const styles = StyleSheet.create({ container: { alignItems: 'center', backgroundColor: tokens.color.surface }, content: { gap: 18, maxWidth: 680, width: '100%' }, header: { gap: 7, marginBottom: 2 }, eyebrow: { color: tokens.color.green, fontSize: 11, fontWeight: '900', letterSpacing: 1.2, marginTop: 7 }, heading: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 31, fontWeight: '800', letterSpacing: -.45, lineHeight: 37 }, subheading: { color: tokens.color.muted, fontSize: 14.5, lineHeight: 22 }, profileActions: { gap: 10 }, secondaryButton: { alignItems: 'center', borderColor: tokens.color.green, borderRadius: tokens.radius.pill, borderWidth: 1.5, justifyContent: 'center', minHeight: 48, paddingHorizontal: 22 }, secondaryButtonText: { color: tokens.color.greenDeep, fontSize: 14, fontWeight: '800' }, editButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 52, paddingHorizontal: 22 }, editButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' }, freshness: { color: tokens.color.muted, fontSize: 11.5, lineHeight: 17, textAlign: 'center' }, stateScreen: { alignItems: 'center', backgroundColor: tokens.color.surface, gap: 14, justifyContent: 'center' }, stateTitle: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 27, fontWeight: '800', lineHeight: 33, textAlign: 'center' }, stateCopy: { color: tokens.color.muted, fontSize: 14, lineHeight: 21, maxWidth: 380, textAlign: 'center' }, stateButton: { alignItems: 'center', backgroundColor: tokens.color.green, borderRadius: tokens.radius.pill, justifyContent: 'center', minHeight: 48, paddingHorizontal: 20 }, stateButtonText: { color: tokens.color.surface, fontSize: 14, fontWeight: '800' } });
