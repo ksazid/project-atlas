@@ -6,15 +6,17 @@ import test from 'node:test';
 const root = process.cwd();
 const read = value => fs.readFileSync(path.join(root, value), 'utf8');
 
-test('VS-38 adds a prominent Business data card to Profile without a new tab', () => {
+test('VS-38 keeps a prominent Business data entry on Profile without a new tab', () => {
   const hub = read('apps/mobile/src/features/business-hub/BusinessHubScreen.tsx');
+  const connectors = read('apps/mobile/src/features/connectors/ConnectorsHubScreen.tsx');
   const tabs = read('apps/mobile/app/(tabs)/_layout.tsx');
   assert.match(hub, /BusinessDataCard/);
-  assert.match(hub, /router\.push\('\/business-data'\)/);
+  assert.match(hub, /router\.push\('\/connectors'\)/);
+  assert.match(connectors, /router\.push\('\/business-data'\)/);
   assert.equal((tabs.match(/<NativeTabs\.Trigger/g) ?? []).length, 4);
 });
 
-test('VS-38 connector screen prioritizes Drive and keeps device upload secondary', () => {
+test('VS-38 connector detail prioritizes Drive and keeps device upload secondary', () => {
   const route = 'apps/mobile/app/business-data.tsx';
   const screen = 'apps/mobile/src/features/operational-data/OperationalDataScreen.tsx';
   const model = 'apps/mobile/src/features/operational-data/operational-data-model.ts';
