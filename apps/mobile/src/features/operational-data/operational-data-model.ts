@@ -27,12 +27,13 @@ export function extractGoogleDriveFolderId(value: string): string | null {
     if (folderMatch?.[1]) return folderMatch[1];
     const id = url.searchParams.get('id');
     return id && /^[A-Za-z0-9_-]+$/.test(id) ? id : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
-export function presentConnector(connector: Pick<OperationalConnector, 'state' | 'folderName'>) {
+export function presentConnector(connector: Pick<OperationalConnector, 'state' | 'folderName' | 'message'>) {
+  if (connector.state === 'error' && connector.message?.includes('sync schedule')) {
+    return { title: connector.folderName ?? 'Google Drive connected', primaryAction: 'Sync now', tone: 'warning' as const };
+  }
   switch (connector.state) {
     case 'connected': return { title: connector.folderName ?? 'Google Drive connected', primaryAction: 'Sync now', tone: 'positive' as const };
     case 'syncing': return { title: connector.folderName ?? 'Google Drive connected', primaryAction: 'Syncing…', tone: 'neutral' as const };
