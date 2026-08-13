@@ -1,3 +1,4 @@
+import { fetch as expoFetch } from 'expo/fetch';
 import { env } from '@/lib/env';
 import type { OperationalConnector, OperationalSchedule } from './operational-data-model';
 
@@ -17,6 +18,24 @@ export type OperationalSyncResult = {
   unchangedFiles: number;
 };
 
+export type OperationalUploadAsset = { uri: string; name: string; file?: unknown };
+export type OperationalUploadPreview = {
+  previewFingerprint: string;
+  rowCount: number;
+  orderCount: number;
+  earliestBusinessDate: string;
+  latestBusinessDate: string;
+  recognizedColumns: string[];
+  ignoredSensitiveColumns: string[];
+  metricKeys: string[];
+};
+export type OperationalUploadResult = {
+  state: 'imported' | 'duplicate' | 'overlap-conflict';
+  createdSignals: number;
+  createdChanges: number;
+  freshness: 'fresh' | 'stale' | 'historical';
+};
+
 async function request<T>(token: string, path: string, init?: RequestInit, allowNotFound = false): Promise<T | null> {
   const response = await fetch(`${env.apiUrl}${path}`, { ...init, headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...init?.headers } });
   if (allowNotFound && response.status === 404) return null;
@@ -25,7 +44,15 @@ async function request<T>(token: string, path: string, init?: RequestInit, allow
   return response.json() as Promise<T>;
 }
 
+async function multipartRequest<T>(token: string, requestPath: string, form: FormData): Promise<T> {
+  const response = await expoFetch(`${env.apiUrl}${requestPath}`, { method: 'POST', headers: { Accept: 'application/json', Authorization: `Bearer ${token}` }, body: form });
+  if (!response.ok) throw new Error('That CSV could not be processed. Check the file and try again.');
+  return response.json() as Promise<T>;
+}
+
 const path = (businessId: string) => `/api/v1/businesses/${businessId}/operational-connector`;
+const previewUploadPath = (businessId: string) => `/api/v1/businesses/${businessId}/operational-upload/preview`;
+const confirmUploadPath = (businessId: string) => `/api/v1/businesses/${businessId}/operational-upload/confirm`;
 const toWireSchedule = (schedule: OperationalSchedule) => schedule === 'every-6-hours' ? 'every-six-hours' : schedule;
 const fromWireSchedule = (schedule: OperationalConnectorWire['schedule']): OperationalSchedule => schedule === 'every-six-hours' ? 'every-6-hours' : schedule;
 const mapConnector = (value: OperationalConnectorWire): OperationalConnector => ({
@@ -35,6 +62,11 @@ const mapConnector = (value: OperationalConnectorWire): OperationalConnector => 
   lastSuccessfulSyncAt: value.lastSuccessAt,
   message: value.errorCode ?? null,
 });
+
+function appendCsv(form: FormData, asset: OperationalUploadAsset) {
+  if (asset.file) form.append('file', asset.file as Blob, asset.name);
+  else form.append('file', { uri: asset.uri, name: asset.name, type: 'text/csv' } as unknown as Blob);
+}
 
 export async function getOperationalConnector(token: string, businessId: string): Promise<OperationalConnector> {
   const value = await request<OperationalConnectorWire>(token, path(businessId), undefined, true);
@@ -57,6 +89,19 @@ export async function setOperationalSchedule(token: string, businessId: string, 
   const value = await request<OperationalConnectorWire>(token, `${path(businessId)}/schedule`, { method: 'PUT', body: JSON.stringify({ schedule: toWireSchedule(schedule) }) });
   if (!value) throw new Error('Business data is temporarily unavailable.');
   return mapConnector(value);
+}
+
+export async function previewOperationalUpload(token: string, businessId: string, asset: OperationalUploadAsset): Promise<OperationalUploadPreview> {
+  const form = new FormData();
+  appendCsv(form, asset);
+  return multipartRequest<OperationalUploadPreview>(token, previewUploadPath(businessId), form);
+}
+
+export async function confirmOperationalUpload(token: string, businessId: string, asset: OperationalUploadAsset, previewFingerprint: string): Promise<OperationalUploadResult> {
+  const form = new FormData();
+  appendCsv(form, asset);
+  form.append('PreviewFingerprint', previewFingerprint);
+  return multipartRequest<OperationalUploadResult>(token, confirmUploadPath(businessId), form);
 }
 
 export const disconnectOperationalFolder = (token: string, businessId: string) => request<void>(token, path(businessId), { method: 'DELETE' });
