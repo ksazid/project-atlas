@@ -49,10 +49,6 @@ export default function SettingsScreen() {
   return (
     <AtlasScreen hasTabBar contentStyle={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
-        <AtlasPressable accessibilityRole="button" accessibilityLabel="Back to Profile" onPress={() => router.back()} style={styles.back}>
-          <Text style={styles.backText}>‹ Profile</Text>
-        </AtlasPressable>
-
         <View style={styles.header}>
           <BrandMark size={44} />
           <Text style={styles.eyebrow}>SETTINGS</Text>
@@ -98,8 +94,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: { alignItems: 'center', backgroundColor: tokens.color.surface },
   content: { gap: 16, maxWidth: 680, width: '100%' },
-  back: { alignSelf: 'flex-start', justifyContent: 'center', minHeight: 44 },
-  backText: { color: tokens.color.green, fontSize: 14, fontWeight: '800' },
   header: { gap: 7, marginBottom: 2 },
   eyebrow: { color: tokens.color.green, fontSize: 11, fontWeight: '900', letterSpacing: 1.2, marginTop: 4 },
   title: { color: tokens.color.greenDeep, fontFamily: 'Georgia', fontSize: 31, fontWeight: '800', letterSpacing: -.45, lineHeight: 37 },
