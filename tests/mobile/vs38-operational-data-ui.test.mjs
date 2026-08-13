@@ -17,11 +17,14 @@ test('VS-38 adds a prominent Business data card to Profile without a new tab', (
 test('VS-38 connector screen prioritizes Drive and keeps device upload secondary', () => {
   const route = 'apps/mobile/app/business-data.tsx';
   const screen = 'apps/mobile/src/features/operational-data/OperationalDataScreen.tsx';
+  const model = 'apps/mobile/src/features/operational-data/operational-data-model.ts';
   assert.ok(fs.existsSync(path.join(root, route)));
   assert.ok(fs.existsSync(path.join(root, screen)));
   const source = read(screen);
-  assert.match(source, /Connect Google Drive/);
-  assert.match(source, /Sync now/);
+  const modelSource = read(model);
+  assert.match(modelSource, /Connect Google Drive/);
+  assert.match(modelSource, /Sync now/);
+  assert.match(source, /presentation\.primaryAction/);
   assert.match(source, /Upload CSV from this device/);
   assert.match(source, /raw CSV stays in Google Drive/i);
   assert.match(source, /customer-identifying fields/i);
