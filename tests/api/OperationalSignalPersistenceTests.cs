@@ -1,5 +1,6 @@
 using Atlas.Api;
 using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace Atlas.Api.Tests;
 
