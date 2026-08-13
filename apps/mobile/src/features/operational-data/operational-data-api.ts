@@ -1,3 +1,4 @@
+import { fetch as expoFetch } from 'expo/fetch';
 import { env } from '@/lib/env';
 import type { OperationalConnector, OperationalSchedule } from './operational-data-model';
 
@@ -44,7 +45,7 @@ async function request<T>(token: string, path: string, init?: RequestInit, allow
 }
 
 async function multipartRequest<T>(token: string, requestPath: string, form: FormData): Promise<T> {
-  const response = await fetch(`${env.apiUrl}${requestPath}`, { method: 'POST', headers: { Accept: 'application/json', Authorization: `Bearer ${token}` }, body: form });
+  const response = await expoFetch(`${env.apiUrl}${requestPath}`, { method: 'POST', headers: { Accept: 'application/json', Authorization: `Bearer ${token}` }, body: form });
   if (!response.ok) throw new Error('That CSV could not be processed. Check the file and try again.');
   return response.json() as Promise<T>;
 }
