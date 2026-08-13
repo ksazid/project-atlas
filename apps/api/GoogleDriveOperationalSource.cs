@@ -33,6 +33,13 @@ public interface IGoogleDriveAccessTokenProvider
     Task<string> GetAccessTokenAsync(CancellationToken cancellationToken);
 }
 
+public interface IOperationalFileSource
+{
+    Task<OperationalDriveFolder> ValidateFolderAsync(string folderId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<OperationalSourceFile>> ListAsync(string folderId, CancellationToken cancellationToken);
+    Task<Stream> OpenReadAsync(string fileId, CancellationToken cancellationToken);
+}
+
 public sealed class GoogleDriveConnectorOptions
 {
     public string ClientEmail { get; set; } = "";
@@ -112,7 +119,7 @@ public sealed class GoogleServiceAccountAccessTokenProvider(
         [property: JsonPropertyName("expires_in")] int ExpiresIn);
 }
 
-public sealed class GoogleDriveOperationalSource(HttpClient client, IGoogleDriveAccessTokenProvider tokens)
+public sealed class GoogleDriveOperationalSource(HttpClient client, IGoogleDriveAccessTokenProvider tokens) : IOperationalFileSource
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
