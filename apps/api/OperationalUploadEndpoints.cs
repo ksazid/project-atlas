@@ -16,14 +16,15 @@ public sealed record OperationalUploadPreviewResponse(
 
 public static class OperationalUploadEndpoints
 {
-    private const string BasePath = "/api/v1/businesses/{businessId:guid}/operational-upload";
+    private const string PreviewPath = "/api/v1/businesses/{businessId:guid}/operational-upload/preview";
+    private const string ConfirmPath = "/api/v1/businesses/{businessId:guid}/operational-upload/confirm";
 
     public static void MapOperationalUploadEndpoints(this WebApplication app)
     {
-        app.MapPost(BasePath + "/preview", PreviewAsync)
+        app.MapPost(PreviewPath, PreviewAsync)
             .RequireAuthorization("BusinessOwner")
             .DisableAntiforgery();
-        app.MapPost(BasePath + "/confirm", ConfirmAsync)
+        app.MapPost(ConfirmPath, ConfirmAsync)
             .RequireAuthorization("BusinessOwner")
             .DisableAntiforgery();
     }
