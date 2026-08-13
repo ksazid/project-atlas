@@ -56,7 +56,7 @@
   ],
   "decisionIds": ["DEC-12"],
   "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
-  "certification": {"status":"certified","commitSha":"e2cd74e5f7c9ede559abe78a43ebfacf6762262c","evidence":["CI #814","Security baseline #769","Product Intake #746"]},
+  "certification": {"status":"passed","commitSha":"e2cd74e5f7c9ede559abe78a43ebfacf6762262c","evidence":["CI #814","Security baseline #769","Product Intake #746"]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"ready","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
