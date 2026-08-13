@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-41",
-  "title": "VS-41 — Device CSV Fallback",
-  "status": "completed",
-  "lifecycle": "certified",
+  "sliceId": "VS-42",
+  "title": "VS-42 — Operational Signal Prioritisation",
+  "status": "active",
+  "lifecycle": "implementing",
   "riskLevel": "high",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-16"],
+  "requirements": ["FR-07"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
   "dependencies": [
     "ATLAS-PRD-001",
@@ -14,99 +14,77 @@
     "ATLAS-DESIGN-001@1.2",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "VS-38@9e439b87c21615f33690b55855c0c5add4d99388",
-    "VS-40@1fe27bb8a1e7f80fe0c7db4137100cd48e42e21f"
+    "VS-40@1fe27bb8a1e7f80fe0c7db4137100cd48e42e21f",
+    "VS-41@cd643778bb7aea59cb19dac94c3936008d2e203f"
   ],
   "blockers": [],
   "allowedPaths": [
-    "apps/mobile/package.json",
-    "apps/mobile/src/features/operational-data/**",
-    "tests/mobile/**",
+    "apps/api/OpportunityGeneration.cs",
+    "tests/api/OperationalSignalPrioritisationVs42Tests.cs",
     "delivery/**",
-    "docs/**",
-    "README.md"
+    "docs/**"
   ],
   "protectedPaths": [
-    "apps/api/**",
-    "tests/api/**",
+    "apps/api/Migrations/**",
+    "apps/mobile/**",
+    "tests/mobile/**",
     ".github/workflows/release.yml",
     "infrastructure/**",
     "**/Payments/**",
     "**/appsettings.Production.json"
   ],
   "impact": {
-    "areas": ["customer-flow","frontend","operations-support"],
+    "areas": ["customer-flow","operations-support"],
     "notes": [
-      "Activates the existing device CSV fallback while preserving Google Drive as the primary persistent pilot connector.",
-      "Reuses the existing owner-only multipart preview and fingerprint-bound confirmation endpoints; no API, database, ingestion-policy or Drive permission changes are authorized.",
-      "The mobile picker is restricted to one CSV and avoids base64/raw-byte storage in application state; only a transient selected-file reference is retained through confirmation.",
-      "Preview exposes only privacy-safe counts, date range, recognized/ignored column summaries and metric keys before the owner confirms ingestion.",
-      "Release and production enablement remain out of scope."
+      "Prioritises valid fresh operational-change evidence within the same owner goal priority so Today’s Focus responds to real business movement before generic review patterns.",
+      "Among fresh operational candidates at the same goal priority, larger absolute observed relative movement is used before existing confidence, effort, category and deterministic tie-breakers.",
+      "Stale operational evidence is not promoted ahead of supported generic evidence.",
+      "Eligibility thresholds, supported metrics/windows, category rules, cooldowns, confidence degradation, evidence provenance and causation guardrails remain unchanged.",
+      "No connector, ingestion, database, mobile UI, release or production changes are authorized."
     ]
   },
   "approvals": [
     {
       "type": "scope",
       "status": "approved",
-      "version": "VS-41@1.0",
+      "version": "VS-42@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-13T18:52:00+02:00",
-      "rationale": "Product Owner instructed Atlas to continue to the next slice after VS-40 merged; VS-41 is the previously declared device CSV fallback boundary."
+      "at": "2026-08-13T20:42:00+02:00",
+      "rationale": "Product Owner said 'Go ahead' after VS-41 merged; the next pilot-critical VS-42 boundary was then explicitly communicated as operational signal prioritisation."
     },
     {
       "type": "policy",
       "status": "approved",
-      "version": "VS-41@1.0",
+      "version": "VS-42@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-13T18:52:00+02:00",
-      "rationale": "Fallback must reuse the existing privacy-safe preview/confirm ingestion contract and must not weaken the Drive-primary or raw-file non-retention policy."
+      "at": "2026-08-13T20:42:00+02:00",
+      "rationale": "Fresh observed operational evidence may affect ranking only; it must not weaken evidence thresholds, owner control, no-filler behavior, cooldowns or correlation-not-causation guardrails."
     },
     {
       "type": "implementation",
       "status": "approved",
-      "version": "VS-41@1.0",
+      "version": "VS-42@1.0",
       "commitSha": null,
       "by": "ksazid",
-      "at": "2026-08-13T18:52:00+02:00",
-      "rationale": "Product Owner said 'Ok go next', authorizing implementation of the already-communicated VS-41 boundary."
+      "at": "2026-08-13T20:42:00+02:00",
+      "rationale": "Product Owner instructed Atlas to proceed, authorizing implementation of the communicated VS-42 boundary."
     },
-    {
-      "type": "certification",
-      "status": "approved",
-      "version": "VS-41@1.0",
-      "commitSha": "cd643778bb7aea59cb19dac94c3936008d2e203f",
-      "by": "ksazid",
-      "at": "2026-08-13T20:24:45+02:00",
-      "rationale": "Product Owner instructed Atlas to fix the failing gate and proceed; CI #805, Security baseline #762 and Product intake #739 passed on the exact implementation head."
-    },
+    {"type":"certification","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": ["DEC-12"],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
-  "certification": {
-    "status": "passed",
-    "commitSha": "cd643778bb7aea59cb19dac94c3936008d2e203f",
-    "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31730131781",
-      "https://github.com/ksazid/project-atlas/actions/runs/31730131817",
-      "https://github.com/ksazid/project-atlas/actions/runs/31730131768",
-      "tests/mobile/vs41-device-csv-fallback.test.mjs"
-    ]
-  },
+  "progress": {"discovery":100,"decisions":100,"implementation":90,"testing":70,"certification":0,"release":0,"validation":0},
+  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"ready","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification": "docs/slices/VS-41.md",
-    "implementationPr": "https://github.com/ksazid/project-atlas/pull/65",
-    "evidence": [
-      "https://github.com/ksazid/project-atlas/actions/runs/31730131781",
-      "https://github.com/ksazid/project-atlas/actions/runs/31730131817",
-      "https://github.com/ksazid/project-atlas/actions/runs/31730131768",
-      "tests/mobile/vs41-device-csv-fallback.test.mjs"
-    ]
+    "specification": "docs/slices/VS-42.md",
+    "implementationPr": null,
+    "evidence": ["tests/api/OperationalSignalPrioritisationVs42Tests.cs"]
   },
   "maxAttempts": 3
 }
