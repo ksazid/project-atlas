@@ -51,7 +51,8 @@ async function multipartRequest<T>(token: string, requestPath: string, form: For
 }
 
 const path = (businessId: string) => `/api/v1/businesses/${businessId}/operational-connector`;
-const uploadPath = (businessId: string, action: 'preview' | 'confirm') => `/api/v1/businesses/${businessId}/operational-upload/${action}`;
+const previewUploadPath = (businessId: string) => `/api/v1/businesses/${businessId}/operational-upload/preview`;
+const confirmUploadPath = (businessId: string) => `/api/v1/businesses/${businessId}/operational-upload/confirm`;
 const toWireSchedule = (schedule: OperationalSchedule) => schedule === 'every-6-hours' ? 'every-six-hours' : schedule;
 const fromWireSchedule = (schedule: OperationalConnectorWire['schedule']): OperationalSchedule => schedule === 'every-six-hours' ? 'every-6-hours' : schedule;
 const mapConnector = (value: OperationalConnectorWire): OperationalConnector => ({
@@ -93,14 +94,14 @@ export async function setOperationalSchedule(token: string, businessId: string, 
 export async function previewOperationalUpload(token: string, businessId: string, asset: OperationalUploadAsset): Promise<OperationalUploadPreview> {
   const form = new FormData();
   appendCsv(form, asset);
-  return multipartRequest<OperationalUploadPreview>(token, uploadPath(businessId, 'preview'), form);
+  return multipartRequest<OperationalUploadPreview>(token, previewUploadPath(businessId), form);
 }
 
 export async function confirmOperationalUpload(token: string, businessId: string, asset: OperationalUploadAsset, previewFingerprint: string): Promise<OperationalUploadResult> {
   const form = new FormData();
   appendCsv(form, asset);
   form.append('PreviewFingerprint', previewFingerprint);
-  return multipartRequest<OperationalUploadResult>(token, uploadPath(businessId, 'confirm'), form);
+  return multipartRequest<OperationalUploadResult>(token, confirmUploadPath(businessId), form);
 }
 
 export const disconnectOperationalFolder = (token: string, businessId: string) => request<void>(token, path(businessId), { method: 'DELETE' });
