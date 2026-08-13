@@ -9,6 +9,7 @@ public static class KnowledgeEvidenceLayers
     public const string Context = "context";
     public const string LocalMarket = "local-market";
     public const string Memory = "memory";
+    public const string Operational = "operational";
 }
 
 public sealed record ResolvedKnowledgeManifest(string Layer, string PackKey, string ExactVersion, string Fingerprint);
@@ -20,7 +21,10 @@ public sealed record ResolvedKnowledgeBundle(
     IReadOnlyList<ResolvedKnowledgeFact> ContextFacts,
     IReadOnlyList<ResolvedKnowledgeFact> LocalMarketFacts,
     IReadOnlyList<ResolvedKnowledgeFact> MemoryFacts,
-    string Fingerprint);
+    string Fingerprint)
+{
+    public IReadOnlyList<ResolvedKnowledgeFact> OperationalFacts { get; init; } = [];
+}
 
 public sealed class KnowledgeBundleResolutionException(string code, string message) : Exception(message)
 {
@@ -34,13 +38,23 @@ public static class KnowledgeBundleResolver
         BusinessKnowledgeAssignment coreAssignment,
         IReadOnlyCollection<BusinessProfileField> profileFields,
         IReadOnlyCollection<BusinessContextEntry> contextEntries,
-        IReadOnlyCollection<BusinessMemoryItem> memoryItems)
+        IReadOnlyCollection<BusinessMemoryItem> memoryItems) =>
+        Resolve(business, coreAssignment, profileFields, contextEntries, memoryItems, []);
+
+    public static ResolvedKnowledgeBundle Resolve(
+        Business business,
+        BusinessKnowledgeAssignment coreAssignment,
+        IReadOnlyCollection<BusinessProfileField> profileFields,
+        IReadOnlyCollection<BusinessContextEntry> contextEntries,
+        IReadOnlyCollection<BusinessMemoryItem> memoryItems,
+        IReadOnlyCollection<ResolvedKnowledgeFact> operationalFacts)
     {
         ArgumentNullException.ThrowIfNull(business);
         ArgumentNullException.ThrowIfNull(coreAssignment);
         ArgumentNullException.ThrowIfNull(profileFields);
         ArgumentNullException.ThrowIfNull(contextEntries);
         ArgumentNullException.ThrowIfNull(memoryItems);
+        ArgumentNullException.ThrowIfNull(operationalFacts);
 
         var core = GenericBusinessKnowledgeManifestV2.Create();
         EnsureCoreAssignment(business, coreAssignment, core);
@@ -51,7 +65,8 @@ public static class KnowledgeBundleResolver
         var contextFacts = ResolveContext(business.Id, contextEntries);
         var localMarketFacts = ResolveLocalMarket(business);
         var memoryFacts = ResolveMemory(business.Id, memoryItems);
-        var fingerprint = Fingerprint(categoryKey, subcategoryKey, manifests, contextFacts, localMarketFacts, memoryFacts);
+        var resolvedOperationalFacts = CanonicalOperationalFacts(operationalFacts);
+        var fingerprint = Fingerprint(categoryKey, subcategoryKey, manifests, contextFacts, localMarketFacts, memoryFacts, resolvedOperationalFacts);
 
         return new ResolvedKnowledgeBundle(
             categoryKey,
@@ -60,7 +75,10 @@ public static class KnowledgeBundleResolver
             contextFacts,
             localMarketFacts,
             memoryFacts,
-            fingerprint);
+            fingerprint)
+        {
+            OperationalFacts = resolvedOperationalFacts
+        };
     }
 
     private static void EnsureCoreAssignment(Business business, BusinessKnowledgeAssignment assignment, KnowledgePackManifestV2 core)
@@ -145,7 +163,8 @@ public static class KnowledgeBundleResolver
         IReadOnlyList<ResolvedKnowledgeManifest> manifests,
         IReadOnlyList<ResolvedKnowledgeFact> contextFacts,
         IReadOnlyList<ResolvedKnowledgeFact> localMarketFacts,
-        IReadOnlyList<ResolvedKnowledgeFact> memoryFacts)
+        IReadOnlyList<ResolvedKnowledgeFact> memoryFacts,
+        IReadOnlyList<ResolvedKnowledgeFact> operationalFacts)
     {
         var canonical = new
         {
@@ -155,7 +174,8 @@ public static class KnowledgeBundleResolver
                 .Select(item => new { item.Layer, item.PackKey, item.ExactVersion, item.Fingerprint }).ToArray(),
             ContextFacts = CanonicalFacts(contextFacts),
             LocalMarketFacts = CanonicalFacts(localMarketFacts),
-            MemoryFacts = CanonicalFacts(memoryFacts)
+            MemoryFacts = CanonicalFacts(memoryFacts),
+            OperationalFacts = CanonicalFacts(operationalFacts)
         };
         var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(canonical));
         return Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
@@ -166,5 +186,14 @@ public static class KnowledgeBundleResolver
             .ThenBy(item => item.Value, StringComparer.Ordinal)
             .ThenBy(item => item.Source, StringComparer.Ordinal)
             .Select(item => (object)new { item.Layer, item.Key, item.Value, item.Source })
+            .ToArray();
+
+    private static IReadOnlyList<ResolvedKnowledgeFact> CanonicalOperationalFacts(
+        IEnumerable<ResolvedKnowledgeFact> facts) =>
+        facts.Where(item => string.Equals(item.Layer, KnowledgeEvidenceLayers.Operational, StringComparison.Ordinal) &&
+                            !string.IsNullOrWhiteSpace(item.Key) && !string.IsNullOrWhiteSpace(item.Value))
+            .OrderBy(item => item.Key, StringComparer.Ordinal)
+            .ThenBy(item => item.Value, StringComparer.Ordinal)
+            .ThenBy(item => item.Source, StringComparer.Ordinal)
             .ToArray();
 }

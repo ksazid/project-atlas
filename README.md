@@ -15,6 +15,9 @@ The current product implementation uses PES without restructuring the framework.
 - VS-01: identity and Business foundation
 - VS-02: Business profile, goals and context
 - VS-03: modular Knowledge Pack foundation in PR #7
+- VS-38: persistent, folder-scoped Google Drive operational signals pilot in PR #62
+
+VS-38 uses one private Google Drive folder shared Viewer-only with the Atlas connector identity. Manual and scheduled sync process only new or changed CSV files, discard raw content after normalization, exclude customer PII, and feed provider-neutral Signals and Changes into the existing Today evidence boundary. Device CSV upload remains the fallback; Drive write-back, whole-Drive OAuth and public-link sharing are prohibited.
 
 VS-03 introduces `KnowledgePack -> KnowledgePackVersion -> KnowledgeSection[]`, immutable published versions, explicit exact-version business assignment, lifecycle and audit APIs, optimistic concurrency, and a unified mobile Knowledge Pack view with secure offline caching. It does not introduce AI execution, embeddings, vector storage, production deployment, production credentials, or paid services.
 

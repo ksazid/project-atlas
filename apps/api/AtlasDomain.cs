@@ -130,6 +130,11 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
     public DbSet<BusinessDiscoverySnapshot> BusinessDiscoverySnapshots => Set<BusinessDiscoverySnapshot>();
     public DbSet<BusinessDiscoveryFact> BusinessDiscoveryFacts => Set<BusinessDiscoveryFact>();
     public DbSet<BusinessProfileField> BusinessProfileFields => Set<BusinessProfileField>();
+    public DbSet<OperationalConnector> OperationalConnectors => Set<OperationalConnector>();
+    public DbSet<OperationalFileCheckpoint> OperationalFileCheckpoints => Set<OperationalFileCheckpoint>();
+    public DbSet<OperationalImport> OperationalImports => Set<OperationalImport>();
+    public DbSet<BusinessSignal> BusinessSignals => Set<BusinessSignal>();
+    public DbSet<BusinessChange> BusinessChanges => Set<BusinessChange>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -170,6 +175,51 @@ public sealed class AtlasDbContext(DbContextOptions<AtlasDbContext> options) : D
         modelBuilder.Entity<BusinessProfileField>().Property(x => x.Confidence).HasMaxLength(20);
         modelBuilder.Entity<BusinessProfileField>().Property(x => x.EvidenceClass).HasMaxLength(40);
         modelBuilder.Entity<BusinessProfileField>().HasIndex(x => new { x.BusinessId, x.Key }).IsUnique();
+
+        modelBuilder.Entity<OperationalConnector>().HasIndex(x => x.BusinessId).IsUnique();
+        modelBuilder.Entity<OperationalConnector>().Property(x => x.SourceKind).HasMaxLength(40);
+        modelBuilder.Entity<OperationalConnector>().Property(x => x.FolderId).HasMaxLength(200);
+        modelBuilder.Entity<OperationalConnector>().Property(x => x.FolderName).HasMaxLength(240);
+        modelBuilder.Entity<OperationalConnector>().Property(x => x.Status).HasMaxLength(40);
+        modelBuilder.Entity<OperationalConnector>().Property(x => x.Schedule).HasMaxLength(40);
+        modelBuilder.Entity<OperationalConnector>().Property(x => x.ErrorCode).HasMaxLength(120);
+        modelBuilder.Entity<OperationalConnector>().HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<OperationalFileCheckpoint>().HasIndex(x => new { x.BusinessId, x.ProviderFileId }).IsUnique();
+        modelBuilder.Entity<OperationalFileCheckpoint>().Property(x => x.ProviderFileId).HasMaxLength(200);
+        modelBuilder.Entity<OperationalFileCheckpoint>().Property(x => x.FileName).HasMaxLength(240);
+        modelBuilder.Entity<OperationalFileCheckpoint>().Property(x => x.MimeType).HasMaxLength(120);
+        modelBuilder.Entity<OperationalFileCheckpoint>().Property(x => x.ContentFingerprint).HasMaxLength(128);
+        modelBuilder.Entity<OperationalFileCheckpoint>().HasOne<OperationalConnector>().WithMany().HasForeignKey(x => x.ConnectorId).OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<OperationalImport>().HasIndex(x => new { x.BusinessId, x.ImportFingerprint }).IsUnique();
+        modelBuilder.Entity<OperationalImport>().Property(x => x.SourceKind).HasMaxLength(40);
+        modelBuilder.Entity<OperationalImport>().Property(x => x.ImportFingerprint).HasMaxLength(128);
+        modelBuilder.Entity<OperationalImport>().Property(x => x.Status).HasMaxLength(40);
+        modelBuilder.Entity<OperationalImport>().HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<BusinessSignal>().HasIndex(x => new { x.BusinessId, x.Identity }).IsUnique();
+        modelBuilder.Entity<BusinessSignal>().Property(x => x.Identity).HasMaxLength(128);
+        modelBuilder.Entity<BusinessSignal>().Property(x => x.MetricKey).HasMaxLength(80);
+        modelBuilder.Entity<BusinessSignal>().Property(x => x.Value).HasPrecision(18, 4);
+        modelBuilder.Entity<BusinessSignal>().Property(x => x.Unit).HasMaxLength(40);
+        modelBuilder.Entity<BusinessSignal>().Property(x => x.Currency).HasMaxLength(3);
+        modelBuilder.Entity<BusinessSignal>().Property(x => x.DimensionsJson).HasColumnType("jsonb");
+        modelBuilder.Entity<BusinessSignal>().Property(x => x.SourceKind).HasMaxLength(40);
+        modelBuilder.Entity<BusinessSignal>().Property(x => x.SourceReference).HasMaxLength(240);
+        modelBuilder.Entity<BusinessSignal>().Property(x => x.Confidence).HasMaxLength(20);
+        modelBuilder.Entity<BusinessSignal>().HasOne<OperationalImport>().WithMany().HasForeignKey(x => x.OperationalImportId).OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<BusinessChange>().HasIndex(x => new { x.BusinessId, x.Identity }).IsUnique();
+        modelBuilder.Entity<BusinessChange>().Property(x => x.Identity).HasMaxLength(128);
+        modelBuilder.Entity<BusinessChange>().Property(x => x.MetricKey).HasMaxLength(80);
+        modelBuilder.Entity<BusinessChange>().Property(x => x.CurrentValue).HasPrecision(18, 4);
+        modelBuilder.Entity<BusinessChange>().Property(x => x.ComparisonValue).HasPrecision(18, 4);
+        modelBuilder.Entity<BusinessChange>().Property(x => x.AbsoluteDelta).HasPrecision(18, 4);
+        modelBuilder.Entity<BusinessChange>().Property(x => x.RelativeDelta).HasPrecision(18, 6);
+        modelBuilder.Entity<BusinessChange>().Property(x => x.EvidenceSignalIdsJson).HasColumnType("jsonb");
+        modelBuilder.Entity<BusinessChange>().Property(x => x.Confidence).HasMaxLength(20);
+        modelBuilder.Entity<BusinessChange>().HasOne<Business>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<KnowledgePack>().Property(x => x.Version).IsRowVersion();
         modelBuilder.Entity<KnowledgePackVersion>().Property(x => x.ConcurrencyVersion).IsRowVersion();

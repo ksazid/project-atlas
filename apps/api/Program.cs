@@ -7,6 +7,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+builder.Services.Configure<GoogleDriveConnectorOptions>(builder.Configuration.GetSection("GoogleDriveConnector"));
+builder.Services.AddHttpClient("GoogleDriveToken", client => client.Timeout = TimeSpan.FromSeconds(15));
+builder.Services.AddSingleton<IGoogleDriveAccessTokenProvider, GoogleServiceAccountAccessTokenProvider>();
+builder.Services.AddHttpClient<GoogleDriveOperationalSource>(client =>
+{
+    client.BaseAddress = new Uri("https://www.googleapis.com/drive/v3/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddScoped<IOperationalFileSource>(services => services.GetRequiredService<GoogleDriveOperationalSource>());
+builder.Services.AddScoped<OperationalConnectorService>();
+builder.Services.AddHostedService<OperationalSyncWorker>();
 builder.Services.AddHttpClient<BusinessDiscoveryService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(8);
@@ -44,6 +55,7 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseAuthorization();
+app.MapOperationalConnectorEndpoints();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" }));
 app.MapGet("/health/ready", async (AtlasDbContext db, CancellationToken ct) =>
@@ -233,6 +245,7 @@ app.MapPilotOpportunityOperationsEndpoints();
 app.MapHistoryEndpoints();
 app.MapWeeklyReviewEndpoints();
 app.MapNotificationEndpoints();
+app.MapOperationalUploadEndpoints();
 
 app.MapPost("/api/v1/session/logout", (HttpContext context) =>
     Results.Ok(new { status = "signed_out", correlationId = context.TraceIdentifier })).RequireAuthorization();
