@@ -1,77 +1,70 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-36",
-  "title": "VS-36 — Menu & Media Coverage Recovery",
+  "sliceId": "VS-37",
+  "title": "VS-37 — Evidence-Aware Today Cooldown Repair",
   "status": "active",
   "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-02", "FR-03", "FR-05"],
+  "requirements": ["FR-05", "FR-07"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
-    "DEC-04",
-    "DEC-07",
     "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-25@ffec93593d40c6911f936673cb009788d7b86a20",
-    "VS-29@689c984040ec72e0cb7cfa314b3efe71d50ee74e",
+    "VS-30",
     "VS-34@345045cd40a97daac547aa2b847e793a20bb5fb5",
-    "VS-35@ff4ca1ac2245ef8f29f4efc5d04693d99f7ec597"
+    "VS-35@ff4ca1ac2245ef8f29f4efc5d04693d99f7ec597",
+    "VS-36@48f1ecd6359ff9beb74687fe2aeead1d2afb3802"
   ],
   "blockers": [],
   "allowedPaths": ["apps/api/**", "tests/api/**", "delivery/**", "docs/**"],
   "protectedPaths": [".github/workflows/release.yml", "infrastructure/**", "apps/mobile/**", "tests/mobile/**", "**/Payments/**", "**/Uploads/**"],
   "impact": {
-    "areas": ["api", "database", "customer-flow", "legal-privacy", "operations-support"],
+    "areas": ["api", "customer-flow", "analytics"],
     "notes": [
-      "Closes deferred public menu/media coverage debt inside existing FR-02/FR-03/FR-05 discovery and profile boundaries.",
-      "Preserves DEC-04 SSRF-safe public-source scope and DEC-07 remote-reference/structured-offering storage policy; no new provider or storage authority is introduced.",
-      "Adds provider-neutral extraction coverage classification so renderer-dependent public pages are not misrepresented as Businesses with no menu/media.",
-      "Recovers standards-based graph-linked schema.org menu structures and remote MenuItem image references only from data present in the fetched public HTML.",
-      "Renderer-required coverage propagates through the existing BusinessDiscoverySource.WarningCode provenance path and never becomes a Business fact or owner-confirmed claim.",
-      "No private/undocumented Bolt or Wolt API, crawler impersonation, search-cache evidence, JavaScript execution or production browser automation is authorised.",
-      "No database migration is authorised solely for coverage diagnostics; BusinessMediaReference and BusinessOffering materialisation remain unchanged.",
-      "Today, History, Goals, Profile, Pilot Operations, Knowledge Packs, Google enrichment and owner authority remain unchanged.",
-      "No production release, deployment, EAS build/submit/OTA, production enablement or production database mutation is authorised."
+      "Repairs FR-07 duplicate suppression after a live pilot Today no-focus case where materially changed currentpriorities could not be reconsidered inside an existing pattern cooldown.",
+      "Cooldown identity is limited to the pattern, selected goal context and evidence actually resolved by that pattern; whole-bundle fingerprints are prohibited because unrelated Context edits must not bypass duplicate prevention.",
+      "Existing Knowledge Pack cooldown durations, ranking, policy-only Focus eligibility and owner decision semantics remain unchanged.",
+      "Future EvidenceJson snapshots add a deterministic cooldownFingerprint and schema version 2; complete schema-v1 snapshots derive the equivalent identity without database backfill.",
+      "Incomplete same-pattern legacy snapshots fail closed to conservative suppression so malformed history cannot become a duplicate bypass.",
+      "No mobile UI, database migration, connector, provider/model, prompt, external action, production release, EAS/OTA or production database mutation is authorised."
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-36@1.0","commitSha":null,"by":"ksazid","at":"2026-08-12T22:35:00+02:00","rationale":"Product Owner granted standing approval for subsequent bounded Atlas slices, including necessary design changes, fixes and merge, and instructed execution to continue. VS-36 is the explicitly deferred Menu & Media Coverage Recovery slice after merged VS-35."},
-    {"type":"policy","status":"not-required","version":"VS-36@1.0","commitSha":null,"by":"PES/Loop","at":"2026-08-12T22:35:00+02:00","rationale":"VS-36 stays within approved DEC-04 public-source discovery and DEC-07 media/offering retention policy. It adds no provider, private API, copied binary storage, new schema, release boundary or production capability."},
-    {"type":"implementation","status":"approved","version":"VS-36@1.0","commitSha":null,"by":"ksazid","at":"2026-08-12T22:35:00+02:00","rationale":"Product Owner instructed this chat to proceed after VS-35 merge using the appropriate repository skills through implementation, fixes, certification and merge."},
-    {"type":"certification","status":"approved","version":"VS-36@1.0","commitSha":"d16dd5109aef00fb4d47b8e59e05f6a48ee32e38","by":"PES/Loop","at":"2026-08-13T01:37:00+02:00","rationale":"Frozen VS-36 runtime d16dd5109aef00fb4d47b8e59e05f6a48ee32e38 passed coverage classification, graph-linked structured menu/image recovery and renderer-warning provenance contracts. Verification head 06d40e0f216d7cdafe8c0eade75ade8f7e27f425 added only provenance/source-isolation regression tests and passed exact-head CI, Security baseline and Product Intake."},
+    {"type":"scope","status":"approved","version":"VS-37@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T00:51:00+02:00","rationale":"Product Owner explicitly approved finishing the evidence-aware Today cooldown repair after VS-36, merging both to main and promoting the final merged result to the Expo Go test harness."},
+    {"type":"policy","status":"not-required","version":"VS-37@1.0","commitSha":null,"by":"PES/Loop","at":"2026-08-13T01:45:00+02:00","rationale":"The repair changes only deterministic application-level Opportunity duplicate identity using evidence already stored in Opportunity EvidenceJson. It adds no provider, new data authority, schema migration, external action or production boundary."},
+    {"type":"implementation","status":"approved","version":"VS-37@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T00:51:00+02:00","rationale":"Product Owner explicitly authorised this chat to finish VS-37 through implementation, certification, merge and test-harness promotion after VS-36."},
+    {"type":"certification","status":"approved","version":"VS-37@1.0","commitSha":"c7e683dda86482cff4d659a4d88d9f9fdd087aef","by":"PES/Loop","at":"2026-08-13T04:40:00+02:00","rationale":"Frozen VS-37 runtime c7e683dda86482cff4d659a4d88d9f9fdd087aef passed evidence-aware cooldown, schema-v1 compatibility, no-filler regression, full mobile/API, PostgreSQL migration replay, build, dashboard, Security and Product Intake gates after strict RED-to-GREEN execution and changed-file review."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
-  "decisionIds": ["DEC-04", "DEC-07"],
+  "decisionIds": [],
   "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
   "certification": {
     "status":"passed",
-    "commitSha":"d16dd5109aef00fb4d47b8e59e05f6a48ee32e38",
+    "commitSha":"c7e683dda86482cff4d659a4d88d9f9fdd087aef",
     "evidence":[
-      "Task 1 RED 3eb29f922b96085d6a8701a907ada5f18aaee153: 184 mobile tests and 369 existing API tests passed while exactly 3 new VS-36 coverage-contract tests failed",
-      "Task 1 GREEN 024cb7950176bc8ed508d5813914961bde5b9f17: provider-neutral structured, semantic-html, media-only, renderer-required and none coverage classification passed exact-head gates",
-      "Task 2 RED 9fe95016318bab5f23aa76803c0187abdfbb8530: 372 existing API tests passed while exactly 2 graph-linked Menu/MenuItem recovery tests failed",
-      "Task 2 GREEN 4b9eca63b46d38353362cc71810762b1a90d83f1: bounded case-sensitive @id resolution, cycle protection and safe HTTPS MenuItem image references passed exact-head gates",
-      "Task 3 RED fd39bbc64e863ac409e45bf712b380545795152f: 374 existing API tests passed while exactly 1 renderer-warning provenance test failed because WarningCode was absent",
-      "Frozen runtime d16dd5109aef00fb4d47b8e59e05f6a48ee32e38 maps renderer-required coverage to business_source_menu_renderer_required while preserving successful source status and never materialising coverage as a Business fact",
-      "Runtime CI 31650624333 passed 184/184 mobile tests, 375/375 API tests, TypeScript, Expo lint/SDK 54, clean PostgreSQL 17 migration replay, API Release build and dashboard artifact; Security baseline and Product Intake were green",
-      "Verification head 06d40e0f216d7cdafe8c0eade75ade8f7e27f425 added only Task 4 source-isolation/materialisation regression tests; CI 31651116976 passed 184/184 mobile and 377/377 API tests plus clean PostgreSQL replay and dashboard artifact, with Security baseline 31651116875 and Product Intake 31651116887 green",
-      "Changed-file review confirmed no private provider API, crawler impersonation, JavaScript/browser automation, copied media binaries, migration, Today/navigation/Pilot Operations change, false owner confirmation or cross-business source contamination"
+      "VS-37 Task 1 established schema-v2 cooldown fingerprints from pattern + selected goal context + pattern-resolved EvidenceIds; unrelated Context does not bypass cooldown and same-evidence NotRelevant history remains suppressed",
+      "Legacy RED 6fe2e15220f6700b01bdb2c0d4ca3b459e47868b: 382 existing API tests passed and exactly 1 intended schema-v1 changed-evidence reconsideration contract failed while all 184 mobile tests passed",
+      "Frozen runtime c7e683dda86482cff4d659a4d88d9f9fdd087aef derives an equivalent fingerprint from complete schema-v1 goal/evidence snapshots and conservatively suppresses incomplete same-pattern legacy history",
+      "CI 31661213797: preflight passed with 184 mobile tests, TypeScript, Expo lint, Expo SDK 54 and authentic Expo Web regression journeys green",
+      "CI 31661213797: clean PostgreSQL 17 migration replay through 20260812150000_PilotOperations passed with no VS-37 migration; API Release build and 383 API tests passed with 0 failures and 0 skipped; dashboard build/artifact passed",
+      "Security baseline 31661213801 and Product Intake 31661213787 passed on the same frozen runtime head",
+      "Changed-file review confirmed cooldown identity excludes whole-bundle fingerprint, preserves existing cooldown-day/ranking/no-filler policy, accepts schema-v1 and schema-v2 evidence readers only, and adds no mobile, database, connector, provider, release or production capability"
     ]
   },
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
   "links": {
-    "specification":"docs/slices/VS-36.md",
-    "implementationPr":"https://github.com/ksazid/project-atlas/pull/60",
+    "specification":"docs/slices/VS-37.md",
+    "implementationPr":"https://github.com/ksazid/project-atlas/pull/61",
     "evidence":[
-      "docs/slices/VS-36.md",
-      "docs/superpowers/specs/2026-08-12-vs-36-menu-media-coverage-recovery-design.md",
-      "docs/superpowers/plans/2026-08-12-vs-36-menu-media-coverage-recovery.md"
+      "docs/slices/VS-37.md",
+      "docs/superpowers/specs/2026-08-13-vs-37-evidence-aware-today-cooldown-design.md",
+      "docs/superpowers/plans/2026-08-13-vs-37-evidence-aware-today-cooldown.md"
     ]
   },
   "maxAttempts": 3

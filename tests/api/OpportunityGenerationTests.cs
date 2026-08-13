@@ -185,6 +185,76 @@ public sealed class OpportunityGenerationTests
     }
 
     [Fact]
+    public void Changed_relevant_evidence_can_reconsider_same_pattern_inside_cooldown()
+    {
+        var businessId = Guid.NewGuid();
+        var goal = Goal(businessId, "revenue", "Increase revenue", 1);
+        var oldBundle = Bundle(
+            "restaurant-cafe",
+            context: [Fact("context", "currentpriorities", "Demand", "owner")],
+            fingerprint: "old-bundle");
+        var oldResult = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], oldBundle, [], Now.AddHours(-1));
+        var oldCandidate = Assert.Single(oldResult.Candidates, x => x.PatternKey == "current-offer-visibility-review");
+        var prior = PriorOpportunityFromCandidate(businessId, oldCandidate, Now.AddHours(-1), OpportunityStatuses.Applied);
+        var newBundle = Bundle(
+            "restaurant-cafe",
+            context: [Fact("context", "currentpriorities", "Improve weekday lunch and early-week demand", "owner")],
+            fingerprint: "new-bundle");
+
+        var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], newBundle, [prior], Now);
+        var focus = OpportunityFocusService.SelectEligibleCandidate(result);
+
+        Assert.Contains(result.Candidates, x => x.PatternKey == "current-offer-visibility-review");
+        Assert.NotNull(focus);
+        Assert.Equal("current-offer-visibility-review", focus!.PatternKey);
+    }
+
+    [Fact]
+    public void Unrelated_context_change_does_not_bypass_same_evidence_cooldown()
+    {
+        var businessId = Guid.NewGuid();
+        var goal = Goal(businessId, "revenue", "Increase revenue", 1);
+        var oldBundle = Bundle(
+            "restaurant-cafe",
+            context: [Fact("context", "currentpriorities", "Improve weekday lunch", "owner")],
+            fingerprint: "old-bundle");
+        var oldCandidate = Assert.Single(
+            OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], oldBundle, [], Now.AddHours(-1)).Candidates,
+            x => x.PatternKey == "current-offer-visibility-review");
+        var prior = PriorOpportunityFromCandidate(businessId, oldCandidate, Now.AddHours(-1), OpportunityStatuses.Available);
+        var newBundle = Bundle(
+            "restaurant-cafe",
+            context:
+            [
+                Fact("context", "currentpriorities", "Improve weekday lunch", "owner"),
+                Fact("context", "customers", "Families and office workers", "owner")
+            ],
+            fingerprint: "new-bundle");
+
+        var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], newBundle, [prior], Now);
+
+        Assert.DoesNotContain(result.Candidates, x => x.PatternKey == "current-offer-visibility-review");
+    }
+
+    [Fact]
+    public void Not_relevant_prior_with_same_identity_remains_suppressed()
+    {
+        var businessId = Guid.NewGuid();
+        var goal = Goal(businessId, "revenue", "Increase revenue", 1);
+        var bundle = Bundle(
+            "restaurant-cafe",
+            context: [Fact("context", "currentpriorities", "Improve weekday lunch", "owner")]);
+        var oldCandidate = Assert.Single(
+            OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now.AddHours(-1)).Candidates,
+            x => x.PatternKey == "current-offer-visibility-review");
+        var prior = PriorOpportunityFromCandidate(businessId, oldCandidate, Now.AddHours(-1), OpportunityStatuses.NotRelevant);
+
+        var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [prior], Now);
+
+        Assert.DoesNotContain(result.Candidates, x => x.PatternKey == "current-offer-visibility-review");
+    }
+
+    [Fact]
     public void Ranking_prefers_highest_priority_goal_then_category_specific_candidate()
     {
         var businessId = Guid.NewGuid();
@@ -211,15 +281,22 @@ public sealed class OpportunityGenerationTests
     {
         var businessId = Guid.NewGuid();
         var bundle = Bundle("restaurant-cafe", context: [Fact("context", "primarychannels", "Marketplace/platform", "owner")]);
-        var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [Goal(businessId, "growth", "Grow orders", 1)], bundle, [], Now);
+        var goal = Goal(businessId, "growth", "Grow orders", 1);
+        var result = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
+        var repeated = OpportunityGenerator.Generate(ConfirmedProfile(businessId), [goal], bundle, [], Now);
 
         var snapshotJson = OpportunityGenerationSnapshot.Serialize(result.Selected!);
+        var repeatedJson = OpportunityGenerationSnapshot.Serialize(repeated.Selected!);
         using var document = JsonDocument.Parse(snapshotJson);
+        using var repeatedDocument = JsonDocument.Parse(repeatedJson);
         var root = document.RootElement;
 
-        Assert.Equal(1, root.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(2, root.GetProperty("schemaVersion").GetInt32());
         Assert.Equal("ordering-path-clarity-review", root.GetProperty("patternKey").GetString());
         Assert.Equal(bundle.Fingerprint, root.GetProperty("bundleFingerprint").GetString());
+        var fingerprint = root.GetProperty("cooldownFingerprint").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(fingerprint));
+        Assert.Equal(fingerprint, repeatedDocument.RootElement.GetProperty("cooldownFingerprint").GetString());
         Assert.True(root.GetProperty("evidence").GetArrayLength() > 0);
         Assert.True(root.GetProperty("assumptions").GetArrayLength() > 0);
         Assert.True(root.GetProperty("limitations").GetArrayLength() > 0);
@@ -248,7 +325,8 @@ public sealed class OpportunityGenerationTests
     private static ResolvedKnowledgeBundle Bundle(string category, bool includeRestaurantManifest = true,
         IReadOnlyList<ResolvedKnowledgeFact>? context = null,
         IReadOnlyList<ResolvedKnowledgeFact>? local = null,
-        IReadOnlyList<ResolvedKnowledgeFact>? memory = null)
+        IReadOnlyList<ResolvedKnowledgeFact>? memory = null,
+        string fingerprint = "bundle-fingerprint-123")
     {
         var core = GenericBusinessKnowledgeManifestV2.Create();
         var manifests = new List<ResolvedKnowledgeManifest>
@@ -260,7 +338,7 @@ public sealed class OpportunityGenerationTests
             var restaurant = RestaurantCafeKnowledgeManifestV2.Create();
             manifests.Add(new(restaurant.Layer, restaurant.PackKey, restaurant.ExactVersion, KnowledgePackManifestV2Policy.Fingerprint(restaurant)));
         }
-        return new ResolvedKnowledgeBundle(category, null, manifests, context ?? [], local ?? [], memory ?? [], "bundle-fingerprint-123");
+        return new ResolvedKnowledgeBundle(category, null, manifests, context ?? [], local ?? [], memory ?? [], fingerprint);
     }
 
     private static Opportunity PriorOpportunity(Guid businessId, string? patternKey, DateTimeOffset createdAt)
@@ -275,4 +353,29 @@ public sealed class OpportunityGenerationTests
             CreatedAt = createdAt, ExpiresAt = createdAt.AddDays(1)
         };
     }
+
+    private static Opportunity PriorOpportunityFromCandidate(
+        Guid businessId,
+        GeneratedOpportunityCandidate candidate,
+        DateTimeOffset createdAt,
+        string status) => new()
+    {
+        Id = Guid.NewGuid(),
+        BusinessId = businessId,
+        Title = candidate.Title,
+        WhyItMatters = candidate.Reason,
+        WhyNow = candidate.WhyNow,
+        ExpectedImpact = candidate.ExpectedImpact,
+        Effort = candidate.Effort,
+        Confidence = candidate.Confidence,
+        EvidenceSummary = "Prior",
+        EvidenceJson = OpportunityGenerationSnapshot.Serialize(candidate),
+        Status = status,
+        KnowledgePackKey = candidate.KnowledgePackKey,
+        KnowledgePackVersion = candidate.KnowledgePackVersion,
+        KnowledgePackVersionId = Guid.NewGuid(),
+        GoalId = candidate.GoalId,
+        CreatedAt = createdAt,
+        ExpiresAt = createdAt.AddDays(1)
+    };
 }

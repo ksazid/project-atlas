@@ -196,7 +196,8 @@ public static class OpportunityPolicy
         root.ValueKind == JsonValueKind.Object &&
         root.TryGetProperty("schemaVersion", out var schemaVersion) &&
         schemaVersion.ValueKind == JsonValueKind.Number &&
-        schemaVersion.TryGetInt32(out var version) && version == OpportunityGenerationSnapshot.SchemaVersion &&
+        schemaVersion.TryGetInt32(out var version) &&
+        version is >= 1 && version <= OpportunityGenerationSnapshot.SchemaVersion &&
         root.TryGetProperty("evidence", out var evidence) && evidence.ValueKind == JsonValueKind.Array;
 
     private static ParsedEvidence ParseVs23Snapshot(
