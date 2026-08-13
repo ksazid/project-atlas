@@ -12,6 +12,7 @@
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
+    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "VS-38@9e439b87c21615f33690b55855c0c5add4d99388",
     "VS-40@1fe27bb8a1e7f80fe0c7db4137100cd48e42e21f",
     "VS-41@cd643778bb7aea59cb19dac94c3936008d2e203f",
@@ -38,9 +39,9 @@
   "impact": {
     "areas": ["frontend","customer-flow","operations-support"],
     "notes": [
-      "Preserves valid connector state when sync, schedule or connect commands fail and presents operation-specific recovery copy.",
-      "Repairs low-contrast text and schedule controls on the dark Google Drive card using the established Profile visual language.",
-      "Removes duplicate Settings navigation hierarchy and aligns Settings typography, spacing, cards and actions with the approved Profile/Business Data system.",
+      "Separates schedule-update presentation from failed-sync presentation without changing the connector API contract.",
+      "Preserves the established native Profile-back navigation while removing the duplicate in-page Settings title and aligning Settings typography, spacing and cards with the approved Profile system.",
+      "The underlying Expo connector failures are caused by the isolated atlas-api-test deployment being behind the connector implementation; that test service will be refreshed only after certification.",
       "No connector API contract, database, Drive permission, ingestion policy, recommendation logic or production configuration changes are authorized.",
       "Redeployment is limited to the isolated Expo Go harness and its existing Atlas test API service."
     ]
@@ -54,11 +55,11 @@
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": ["DEC-12"],
-  "progress": {"discovery":100,"decisions":100,"implementation":20,"testing":0,"certification":0,"release":0,"validation":0},
+  "progress": {"discovery":100,"decisions":100,"implementation":80,"testing":50,"certification":0,"release":0,"validation":0},
   "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"ready","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-  "links": {"specification":"docs/slices/VS-43.md","implementationPr":null,"evidence":["tests/mobile/vs43-connector-settings-remediation.test.mjs"]},
+  "links": {"specification":"docs/slices/VS-43.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/67","evidence":["tests/mobile/vs31-navigation-alignment.test.mjs","tests/mobile/vs34-profile-back-navigation.test.mjs","tests/mobile/vs38-operational-data-model.test.mjs"]},
   "maxAttempts": 3
 }
