@@ -447,15 +447,59 @@ public static class OpportunityGenerationSnapshot
         try
         {
             using var document = JsonDocument.Parse(json);
-            if (!document.RootElement.TryGetProperty("patternKey", out var pattern) || pattern.ValueKind != JsonValueKind.String)
+            var root = document.RootElement;
+            if (!root.TryGetProperty("patternKey", out var pattern) || pattern.ValueKind != JsonValueKind.String)
                 return false;
             patternKey = pattern.GetString()?.Trim();
             if (string.IsNullOrWhiteSpace(patternKey)) return false;
 
-            if (document.RootElement.TryGetProperty("cooldownFingerprint", out var fingerprint) &&
+            if (root.TryGetProperty("cooldownFingerprint", out var fingerprint) &&
                 fingerprint.ValueKind == JsonValueKind.String &&
                 !string.IsNullOrWhiteSpace(fingerprint.GetString()))
+            {
                 cooldownFingerprint = fingerprint.GetString()!.Trim();
+                return true;
+            }
+
+            if (!root.TryGetProperty("goal", out var goal) || goal.ValueKind != JsonValueKind.Object)
+                return true;
+            if (!goal.TryGetProperty("id", out var goalIdElement) ||
+                goalIdElement.ValueKind != JsonValueKind.String ||
+                !Guid.TryParse(goalIdElement.GetString(), out var goalId))
+                return true;
+            if (!goal.TryGetProperty("type", out var goalTypeElement) ||
+                goalTypeElement.ValueKind != JsonValueKind.String ||
+                string.IsNullOrWhiteSpace(goalTypeElement.GetString()))
+                return true;
+            if (!goal.TryGetProperty("title", out var goalTitleElement) ||
+                goalTitleElement.ValueKind != JsonValueKind.String ||
+                string.IsNullOrWhiteSpace(goalTitleElement.GetString()))
+                return true;
+            if (!goal.TryGetProperty("priority", out var goalPriorityElement) ||
+                goalPriorityElement.ValueKind != JsonValueKind.Number ||
+                !goalPriorityElement.TryGetInt32(out var goalPriority))
+                return true;
+            if (!root.TryGetProperty("evidence", out var evidence) || evidence.ValueKind != JsonValueKind.Array)
+                return true;
+
+            var evidenceIds = new List<string>();
+            foreach (var item in evidence.EnumerateArray())
+            {
+                if (item.ValueKind != JsonValueKind.Object ||
+                    !item.TryGetProperty("evidenceId", out var evidenceIdElement) ||
+                    evidenceIdElement.ValueKind != JsonValueKind.String ||
+                    string.IsNullOrWhiteSpace(evidenceIdElement.GetString()))
+                    return true;
+                evidenceIds.Add(evidenceIdElement.GetString()!.Trim());
+            }
+
+            cooldownFingerprint = ComputeCooldownFingerprint(
+                patternKey,
+                goalId,
+                goalTypeElement.GetString()!,
+                goalTitleElement.GetString()!,
+                goalPriority,
+                evidenceIds);
             return true;
         }
         catch (JsonException)
