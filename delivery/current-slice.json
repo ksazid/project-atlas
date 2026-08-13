@@ -3,7 +3,7 @@
   "sliceId": "VS-37",
   "title": "VS-37 — Evidence-Aware Today Cooldown Repair",
   "status": "active",
-  "lifecycle": "implementing",
+  "lifecycle": "certified",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-05", "FR-07"],
@@ -36,13 +36,25 @@
     {"type":"scope","status":"approved","version":"VS-37@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T00:51:00+02:00","rationale":"Product Owner explicitly approved finishing the evidence-aware Today cooldown repair after VS-36, merging both to main and promoting the final merged result to the Expo Go test harness."},
     {"type":"policy","status":"not-required","version":"VS-37@1.0","commitSha":null,"by":"PES/Loop","at":"2026-08-13T01:45:00+02:00","rationale":"The repair changes only deterministic application-level Opportunity duplicate identity using evidence already stored in Opportunity EvidenceJson. It adds no provider, new data authority, schema migration, external action or production boundary."},
     {"type":"implementation","status":"approved","version":"VS-37@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T00:51:00+02:00","rationale":"Product Owner explicitly authorised this chat to finish VS-37 through implementation, certification, merge and test-harness promotion after VS-36."},
-    {"type":"certification","status":"pending","version":"VS-37@1.0","commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"certification","status":"approved","version":"VS-37@1.0","commitSha":"c7e683dda86482cff4d659a4d88d9f9fdd087aef","by":"PES/Loop","at":"2026-08-13T04:40:00+02:00","rationale":"Frozen VS-37 runtime c7e683dda86482cff4d659a4d88d9f9fdd087aef passed evidence-aware cooldown, schema-v1 compatibility, no-filler regression, full mobile/API, PostgreSQL migration replay, build, dashboard, Security and Product Intake gates after strict RED-to-GREEN execution and changed-file review."},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":0,"testing":0,"certification":0,"release":0,"validation":0},
-  "certification": {"status":"not-started","commitSha":null,"evidence":[]},
+  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
+  "certification": {
+    "status":"passed",
+    "commitSha":"c7e683dda86482cff4d659a4d88d9f9fdd087aef",
+    "evidence":[
+      "VS-37 Task 1 established schema-v2 cooldown fingerprints from pattern + selected goal context + pattern-resolved EvidenceIds; unrelated Context does not bypass cooldown and same-evidence NotRelevant history remains suppressed",
+      "Legacy RED 6fe2e15220f6700b01bdb2c0d4ca3b459e47868b: 382 existing API tests passed and exactly 1 intended schema-v1 changed-evidence reconsideration contract failed while all 184 mobile tests passed",
+      "Frozen runtime c7e683dda86482cff4d659a4d88d9f9fdd087aef derives an equivalent fingerprint from complete schema-v1 goal/evidence snapshots and conservatively suppresses incomplete same-pattern legacy history",
+      "CI 31661213797: preflight passed with 184 mobile tests, TypeScript, Expo lint, Expo SDK 54 and authentic Expo Web regression journeys green",
+      "CI 31661213797: clean PostgreSQL 17 migration replay through 20260812150000_PilotOperations passed with no VS-37 migration; API Release build and 383 API tests passed with 0 failures and 0 skipped; dashboard build/artifact passed",
+      "Security baseline 31661213801 and Product Intake 31661213787 passed on the same frozen runtime head",
+      "Changed-file review confirmed cooldown identity excludes whole-bundle fingerprint, preserves existing cooldown-day/ranking/no-filler policy, accepts schema-v1 and schema-v2 evidence readers only, and adds no mobile, database, connector, provider, release or production capability"
+    ]
+  },
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"not-applicable","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
