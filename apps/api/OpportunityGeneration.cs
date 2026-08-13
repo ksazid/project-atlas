@@ -108,6 +108,8 @@ public static class OpportunityGenerator
 
         var ordered = candidates
             .OrderBy(x => x.GoalPriority)
+            .ThenBy(OperationalPriorityRank)
+            .ThenByDescending(OperationalMateriality)
             .ThenBy(x => ConfidenceRank(x.Confidence))
             .ThenBy(x => EffortRank(x.Effort))
             .ThenBy(x => x.CategorySpecific ? 0 : 1)
@@ -349,6 +351,33 @@ public static class OpportunityGenerator
             x.Layer != KnowledgeEvidenceLayers.Operational &&
             !string.Equals(x.Source, FieldSources.Owner, StringComparison.OrdinalIgnoreCase));
         return hasNonOwnerEvidence ? "Low" : "Medium";
+    }
+
+    private static int OperationalPriorityRank(GeneratedOpportunityCandidate candidate)
+    {
+        var operational = candidate.Evidence
+            .Where(IsOperationalEvidence)
+            .Select(TryParseOperationalEvidence)
+            .Where(x => x is not null)
+            .ToArray();
+        if (operational.Any(x => x!.Freshness == OperationalFreshness.Fresh)) return 0;
+        return operational.Length == 0 ? 1 : 2;
+    }
+
+    private static decimal OperationalMateriality(GeneratedOpportunityCandidate candidate) =>
+        candidate.Evidence
+            .Where(IsOperationalEvidence)
+            .Select(TryParseOperationalEvidence)
+            .Where(x => x?.Freshness == OperationalFreshness.Fresh)
+            .Select(x => Math.Abs(x!.RelativeDelta))
+            .DefaultIfEmpty(0m)
+            .Max();
+
+    private static OperationalChangeEvidence? TryParseOperationalEvidence(OpportunityEvidenceReference evidence)
+    {
+        OperationalChangeEvidenceCodec.TryParse(
+            new(evidence.Layer, evidence.Key, evidence.Value, evidence.Source), out var parsed);
+        return parsed;
     }
 
     private static bool IsOperationalEvidence(OpportunityEvidenceReference evidence) =>
