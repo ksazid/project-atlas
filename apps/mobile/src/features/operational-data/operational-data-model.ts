@@ -17,6 +17,21 @@ export const operationalScheduleChoices = [
   { value: 'manual', label: 'Manual only' },
 ] as const satisfies readonly { value: OperationalSchedule; label: string }[];
 
+export function extractGoogleDriveFolderId(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    if (url.hostname !== 'drive.google.com') return null;
+    const folderMatch = url.pathname.match(/\/folders\/([A-Za-z0-9_-]+)/);
+    if (folderMatch?.[1]) return folderMatch[1];
+    const id = url.searchParams.get('id');
+    return id && /^[A-Za-z0-9_-]+$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
 export function presentConnector(connector: Pick<OperationalConnector, 'state' | 'folderName'>) {
   switch (connector.state) {
     case 'connected': return { title: connector.folderName ?? 'Google Drive connected', primaryAction: 'Sync now', tone: 'positive' as const };
