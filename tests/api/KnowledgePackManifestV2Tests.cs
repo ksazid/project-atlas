@@ -154,7 +154,8 @@ public sealed class KnowledgePackManifestV2Tests
                 {
                     OperationalRequirement = requirement
                 }
-            ]
+            ],
+            OpportunityPatterns = []
         };
     }
 }
