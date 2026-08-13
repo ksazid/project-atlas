@@ -1,65 +1,25 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-43",
-  "title": "VS-43 — Connector Error & Settings Alignment",
-  "status": "completed",
-  "lifecycle": "certified",
+  "sliceId": "VS-44",
+  "title": "VS-44 — Connectors Hub & Live Signal Status",
+  "status": "in-progress",
+  "lifecycle": "implementation",
   "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
   "requirements": ["FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": [
-    "ATLAS-PRD-001",
-    "ATLAS-TRD-001",
-    "ATLAS-DESIGN-001@1.2",
-    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
-    "VS-38@9e439b87c21615f33690b55855c0c5add4d99388",
-    "VS-40@1fe27bb8a1e7f80fe0c7db4137100cd48e42e21f",
-    "VS-41@cd643778bb7aea59cb19dac94c3936008d2e203f",
-    "VS-42@ba7552d47f7a65bfdc0e3059adb5b2b1715469b1"
-  ],
+  "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","ATLAS-DESIGN-001@1.2","VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2","VS-40@1fe27bb8a1e7f80fe0c7db4137100cd48e42e21f","VS-41@cd643778bb7aea59cb19dac94c3936008d2e203f","VS-43@e2cd74e5f7c9ede559abe78a43ebfacf6762262c"],
   "blockers": [],
-  "allowedPaths": [
-    "apps/mobile/app/settings.tsx",
-    "apps/mobile/src/features/settings/**",
-    "apps/mobile/src/features/operational-data/**",
-    "tests/mobile/**",
-    "delivery/**",
-    "docs/**"
-  ],
-  "protectedPaths": [
-    "apps/api/**",
-    "tests/api/**",
-    "apps/api/Migrations/**",
-    ".github/workflows/release.yml",
-    "infrastructure/**",
-    "**/Payments/**",
-    "**/appsettings.Production.json"
-  ],
-  "impact": {
-    "areas": ["frontend","customer-flow","operations-support"],
-    "notes": [
-      "Separates schedule-update presentation from failed-sync presentation without changing the connector API contract.",
-      "Preserves the established native Profile-back navigation while removing the duplicate in-page Settings title and aligning Settings typography, spacing and cards with the approved Profile system.",
-      "The underlying Expo connector failures are caused by the isolated atlas-api-test deployment being behind the connector implementation; that test service will be refreshed after merge.",
-      "No connector API contract, database, Drive permission, ingestion policy, recommendation logic or production configuration changes are authorized.",
-      "Redeployment is limited to the isolated Expo Go harness and its existing Atlas test API service."
-    ]
-  },
-  "approvals": [
-    {"type":"scope","status":"approved","version":"VS-43@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T22:05:00+02:00","rationale":"Product Owner supplied screenshots of the connector error and Settings inconsistency and instructed Atlas to fix and redeploy."},
-    {"type":"policy","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
-    {"type":"implementation","status":"approved","version":"VS-43@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T22:05:00+02:00","rationale":"Product Owner explicitly authorized the bounded remediation and test-harness redeployment."},
-    {"type":"certification","status":"approved","version":"VS-43@1.0","commitSha":"e2cd74e5f7c9ede559abe78a43ebfacf6762262c","by":"ksazid","at":"2026-08-13T22:31:00+02:00","rationale":"Exact implementation head passed CI #814, Security baseline #769, and Product Intake #746; Product Owner instructed Atlas to fix and redeploy."},
-    {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
-    {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
-  ],
-  "decisionIds": ["DEC-12"],
-  "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
-  "certification": {"status":"passed","commitSha":"e2cd74e5f7c9ede559abe78a43ebfacf6762262c","evidence":["CI #814","Security baseline #769","Product Intake #746"]},
+  "allowedPaths": ["apps/mobile/app/connectors.tsx","apps/mobile/src/features/connectors/**","apps/mobile/src/features/business-hub/**","tests/mobile/**","delivery/**","docs/**"],
+  "protectedPaths": ["apps/api/**","tests/api/**","apps/api/Migrations/**",".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/appsettings.Production.json"],
+  "impact": {"areas":["frontend","customer-flow"],"notes":["Adds a dedicated restaurant-relevant Connectors hub between Profile and connector detail.","Business Context and Business Data cards share the same Profile card architecture.","Google Drive is shown as Live only after a recorded successful sync; saved connection alone remains Connected.","Existing Google Drive detail, scheduling and CSV fallback remain under the current Business Data route.","Unavailable future connectors are visibly Coming soon and do not pretend to be functional."]},
+  "approvals": [{"type":"scope","status":"approved","version":"VS-44@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T23:28:00+02:00","rationale":"Product Owner approved the attached Connectors hub direction, live signal state and matching Business Context/Business Data cards, then instructed Atlas to build."},{"type":"implementation","status":"approved","version":"VS-44@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T23:28:00+02:00","rationale":"Explicit build authorization."},{"type":"certification","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}],
+  "decisionIds": [],
+  "progress": {"discovery":100,"decisions":100,"implementation":60,"testing":0,"certification":0,"release":0,"validation":0},
+  "certification": {"status":"pending","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"ready","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-  "links": {"specification":"docs/slices/VS-43.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/67","evidence":["tests/mobile/vs31-navigation-alignment.test.mjs","tests/mobile/vs34-profile-back-navigation.test.mjs","tests/mobile/vs38-operational-data-model.test.mjs"]},
+  "links": {"specification":"docs/slices/VS-44.md","implementationPr":null,"evidence":[]},
   "maxAttempts": 3
 }
