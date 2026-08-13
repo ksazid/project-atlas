@@ -1,90 +1,64 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-42",
-  "title": "VS-42 — Operational Signal Prioritisation",
+  "sliceId": "VS-43",
+  "title": "VS-43 — Connector Error & Settings Alignment",
   "status": "active",
   "lifecycle": "implementing",
-  "riskLevel": "high",
+  "riskLevel": "medium",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-07"],
+  "requirements": ["FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
   "dependencies": [
     "ATLAS-PRD-001",
     "ATLAS-TRD-001",
     "ATLAS-DESIGN-001@1.2",
-    "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
     "VS-38@9e439b87c21615f33690b55855c0c5add4d99388",
     "VS-40@1fe27bb8a1e7f80fe0c7db4137100cd48e42e21f",
-    "VS-41@cd643778bb7aea59cb19dac94c3936008d2e203f"
+    "VS-41@cd643778bb7aea59cb19dac94c3936008d2e203f",
+    "VS-42@ba7552d47f7a65bfdc0e3059adb5b2b1715469b1"
   ],
   "blockers": [],
   "allowedPaths": [
-    "apps/api/OpportunityGeneration.cs",
-    "tests/api/OperationalSignalPrioritisationVs42Tests.cs",
+    "apps/mobile/app/settings.tsx",
+    "apps/mobile/src/features/settings/**",
+    "apps/mobile/src/features/operational-data/**",
+    "tests/mobile/**",
     "delivery/**",
     "docs/**"
   ],
   "protectedPaths": [
+    "apps/api/**",
+    "tests/api/**",
     "apps/api/Migrations/**",
-    "apps/mobile/**",
-    "tests/mobile/**",
     ".github/workflows/release.yml",
     "infrastructure/**",
     "**/Payments/**",
     "**/appsettings.Production.json"
   ],
   "impact": {
-    "areas": ["customer-flow","operations-support"],
+    "areas": ["frontend","customer-flow","operations-support"],
     "notes": [
-      "Prioritises valid fresh operational-change evidence within the same owner goal priority so Today’s Focus responds to real business movement before generic review patterns.",
-      "Among fresh operational candidates at the same goal priority, larger absolute observed relative movement is used before existing confidence, effort, category and deterministic tie-breakers.",
-      "Stale operational evidence is not promoted ahead of supported generic evidence.",
-      "Eligibility thresholds, supported metrics/windows, category rules, cooldowns, confidence degradation, evidence provenance and causation guardrails remain unchanged.",
-      "No connector, ingestion, database, mobile UI, release or production changes are authorized."
+      "Preserves valid connector state when sync, schedule or connect commands fail and presents operation-specific recovery copy.",
+      "Repairs low-contrast text and schedule controls on the dark Google Drive card using the established Profile visual language.",
+      "Removes duplicate Settings navigation hierarchy and aligns Settings typography, spacing, cards and actions with the approved Profile/Business Data system.",
+      "No connector API contract, database, Drive permission, ingestion policy, recommendation logic or production configuration changes are authorized.",
+      "Redeployment is limited to the isolated Expo Go harness and its existing Atlas test API service."
     ]
   },
   "approvals": [
-    {
-      "type": "scope",
-      "status": "approved",
-      "version": "VS-42@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-13T20:42:00+02:00",
-      "rationale": "Product Owner said 'Go ahead' after VS-41 merged; the next pilot-critical VS-42 boundary was then explicitly communicated as operational signal prioritisation."
-    },
-    {
-      "type": "policy",
-      "status": "approved",
-      "version": "VS-42@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-13T20:42:00+02:00",
-      "rationale": "Fresh observed operational evidence may affect ranking only; it must not weaken evidence thresholds, owner control, no-filler behavior, cooldowns or correlation-not-causation guardrails."
-    },
-    {
-      "type": "implementation",
-      "status": "approved",
-      "version": "VS-42@1.0",
-      "commitSha": null,
-      "by": "ksazid",
-      "at": "2026-08-13T20:42:00+02:00",
-      "rationale": "Product Owner instructed Atlas to proceed, authorizing implementation of the communicated VS-42 boundary."
-    },
+    {"type":"scope","status":"approved","version":"VS-43@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T22:05:00+02:00","rationale":"Product Owner supplied screenshots of the connector error and Settings inconsistency and instructed Atlas to fix and redeploy."},
+    {"type":"policy","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
+    {"type":"implementation","status":"approved","version":"VS-43@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T22:05:00+02:00","rationale":"Product Owner explicitly authorized the bounded remediation and test-harness redeployment."},
     {"type":"certification","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": ["DEC-12"],
-  "progress": {"discovery":100,"decisions":100,"implementation":90,"testing":70,"certification":0,"release":0,"validation":0},
+  "progress": {"discovery":100,"decisions":100,"implementation":20,"testing":0,"certification":0,"release":0,"validation":0},
   "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"ready","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-  "links": {
-    "specification": "docs/slices/VS-42.md",
-    "implementationPr": null,
-    "evidence": ["tests/api/OperationalSignalPrioritisationVs42Tests.cs"]
-  },
+  "links": {"specification":"docs/slices/VS-43.md","implementationPr":null,"evidence":["tests/mobile/vs43-connector-settings-remediation.test.mjs"]},
   "maxAttempts": 3
 }
