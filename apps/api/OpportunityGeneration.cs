@@ -200,6 +200,14 @@ public static class OpportunityGenerator
         ResolvedKnowledgeBundle bundle,
         out IReadOnlyList<OpportunityEvidenceReference> evidence)
     {
+        if (rule.OperationalRequirement is { } requirement)
+        {
+            evidence = OperationalEvidenceMatcher.Match(requirement, bundle.OperationalFacts)
+                .Select(FactEvidence)
+                .ToArray();
+            return evidence.Count >= rule.MinimumEvidenceCount;
+        }
+
         switch (rule.Key)
         {
             case "confirmed-profile":
@@ -287,6 +295,15 @@ public static class OpportunityGenerator
         var confidence = ResolveConfidence(pattern.Confidence, evidence);
         var title = pattern.TitleTemplate.Replace("{goal}", goal.Title.Trim(), StringComparison.Ordinal);
         var categorySpecific = manifest.Layer != KnowledgePackLayers.Core;
+        var limitations = new List<string>
+        {
+            "Expected impact is directional and not guaranteed.",
+            "Atlas has not measured an outcome for this action yet.",
+            "External action remains owner-controlled and requires owner review."
+        };
+        if (evidence.Any(IsOperationalEvidence))
+            limitations.Add("The observed movement does not prove what caused it; review assumptions before acting.");
+
         return new GeneratedOpportunityCandidate(
             pattern.Key,
             title,
@@ -305,11 +322,7 @@ public static class OpportunityGenerator
                 "The owner-confirmed Business Profile and selected goal remain current.",
                 "The supplied evidence remains accurate enough for this bounded review."
             ],
-            [
-                "Expected impact is directional and not guaranteed.",
-                "Atlas has not measured an outcome for this action yet.",
-                "External action remains owner-controlled and requires owner review."
-            ],
+            limitations,
             pattern.ExecutionTemplateKey,
             pattern.CooldownDays,
             manifest.PackKey,
@@ -325,11 +338,23 @@ public static class OpportunityGenerator
     private static string ResolveConfidence(string manifestConfidence, IReadOnlyList<OpportunityEvidenceReference> evidence)
     {
         if (string.Equals(manifestConfidence, "Low", StringComparison.OrdinalIgnoreCase)) return "Low";
+        if (evidence.Where(IsOperationalEvidence).Any(item =>
+                OperationalChangeEvidenceCodec.TryParse(
+                    new(item.Layer, item.Key, item.Value, item.Source), out var parsed) &&
+                parsed?.Freshness == OperationalFreshness.Stale))
+            return "Low";
+
         var hasNonOwnerEvidence = evidence.Any(x =>
-            x.Layer is not "policy" &&
+            x.Layer != "policy" &&
+            x.Layer != KnowledgeEvidenceLayers.Operational &&
             !string.Equals(x.Source, FieldSources.Owner, StringComparison.OrdinalIgnoreCase));
         return hasNonOwnerEvidence ? "Low" : "Medium";
     }
+
+    private static bool IsOperationalEvidence(OpportunityEvidenceReference evidence) =>
+        evidence.Layer == KnowledgeEvidenceLayers.Operational &&
+        OperationalChangeEvidenceCodec.TryParse(
+            new(evidence.Layer, evidence.Key, evidence.Value, evidence.Source), out _);
 
     private static bool IsSuppressed(
         string patternKey,

@@ -9,7 +9,9 @@
       "lifecycle": "certified",
       "riskLevel": "high",
       "implementationMode": "runtime-disabled",
-      "requirements": ["FR-06"],
+      "requirements": [
+        "FR-06"
+      ],
       "owners": {
         "product": "ksazid",
         "engineering": "ksazid",
@@ -42,7 +44,15 @@
         "**/Uploads/**"
       ],
       "impact": {
-        "areas": ["frontend", "api", "database", "authorization", "sensitive-data", "customer-flow", "legal-privacy"],
+        "areas": [
+          "frontend",
+          "api",
+          "database",
+          "authorization",
+          "sensitive-data",
+          "customer-flow",
+          "legal-privacy"
+        ],
         "notes": [
           "Adds the modular Knowledge Pack business-domain foundation without restructuring PES Mobile.",
           "Published versions are immutable and businesses retain explicit exact-version assignments.",
@@ -60,7 +70,15 @@
           "at": "2026-08-06T23:04:00+02:00",
           "rationale": "Product Owner approved VS-03 as the Knowledge Pack Foundation for FR-06 using the locked modular versioned business-domain model."
         },
-        {"type": "policy", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
+        {
+          "type": "policy",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        },
         {
           "type": "implementation",
           "status": "approved",
@@ -79,8 +97,24 @@
           "at": "2026-08-07T01:41:00+02:00",
           "rationale": "Product Owner approved certification close-out after CI #47, Security baseline #44 and Product intake #42 passed on the exact certified SHA."
         },
-        {"type": "release", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null},
-        {"type": "production-enable", "status": "pending", "version": null, "commitSha": null, "by": null, "at": null, "rationale": null}
+        {
+          "type": "release",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        },
+        {
+          "type": "production-enable",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        }
       ],
       "decisionIds": [],
       "progress": {
@@ -104,9 +138,20 @@
           "apps/mobile/src/features/knowledge-pack/KnowledgePackScreen.tsx"
         ]
       },
-      "release": {"status": "not-authorized", "releaseId": null},
-      "rollback": {"status": "not-applicable", "rollbackId": null},
-      "postRelease": {"status": "not-started", "reviewAt": null, "expectedOutcome": null, "metrics": []},
+      "release": {
+        "status": "not-authorized",
+        "releaseId": null
+      },
+      "rollback": {
+        "status": "not-applicable",
+        "rollbackId": null
+      },
+      "postRelease": {
+        "status": "not-started",
+        "reviewAt": null,
+        "expectedOutcome": null,
+        "metrics": []
+      },
       "links": {
         "specification": "docs/slices/VS-03.md",
         "implementationPr": "https://github.com/ksazid/project-atlas/pull/7",
@@ -126,14 +171,47 @@
       "lifecycle": "certified",
       "riskLevel": "medium",
       "implementationMode": "runtime-disabled",
-      "requirements": ["FR-15"],
-      "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-      "dependencies": ["ATLAS-PRD-001","ATLAS-TRD-001","VS-10@e9be1f4489d734abd3f427db4f23c8ad4bc80c54"],
+      "requirements": [
+        "FR-15"
+      ],
+      "owners": {
+        "product": "ksazid",
+        "engineering": "ksazid",
+        "operations": "ksazid",
+        "security": "ksazid"
+      },
+      "dependencies": [
+        "ATLAS-PRD-001",
+        "ATLAS-TRD-001",
+        "VS-10@e9be1f4489d734abd3f427db4f23c8ad4bc80c54"
+      ],
       "blockers": [],
-      "allowedPaths": ["apps/mobile/**","apps/api/**","tests/**","delivery/**","docs/**","README.md","scripts/**",".github/workflows/ci.yml",".github/workflows/intake.yml",".github/workflows/security.yml"],
-      "protectedPaths": [".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],
+      "allowedPaths": [
+        "apps/mobile/**",
+        "apps/api/**",
+        "tests/**",
+        "delivery/**",
+        "docs/**",
+        "README.md",
+        "scripts/**",
+        ".github/workflows/ci.yml",
+        ".github/workflows/intake.yml",
+        ".github/workflows/security.yml"
+      ],
+      "protectedPaths": [
+        ".github/workflows/release.yml",
+        "infrastructure/**",
+        "**/Payments/**",
+        "**/Uploads/**"
+      ],
       "impact": {
-        "areas": ["frontend","api","authorization","customer-flow","analytics"],
+        "areas": [
+          "frontend",
+          "api",
+          "authorization",
+          "customer-flow",
+          "analytics"
+        ],
         "notes": [
           "Adds owner-controlled in-app notifications for meaningful Atlas events and follow-ups.",
           "Notification records are business-isolated, deduplicated, auditable and derived only from authoritative Atlas records.",
@@ -146,22 +224,454 @@
         ]
       },
       "approvals": [
-        {"type":"scope","status":"approved","version":"ATLAS-PRD-001@1.0","commitSha":"e9be1f4489d734abd3f427db4f23c8ad4bc80c54","by":"ksazid","at":"2026-08-07T19:59:00+02:00","rationale":"Product Owner instructed starting VS-11 after certified VS-10 merge."},
-        {"type":"policy","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
-        {"type":"implementation","status":"approved","version":"VS-11@1.0","commitSha":"b7030ff3c17b4c440709125f1ca442b00e38d664","by":"ksazid","at":"2026-08-08T08:21:00+02:00","rationale":"VS-11 implementation completed and CI #168, Security baseline #157 and Product intake #142 passed on the exact implementation head."},
-        {"type":"certification","status":"approved","version":"VS-11@1.0","commitSha":"b7030ff3c17b4c440709125f1ca442b00e38d664","by":"ksazid","at":"2026-08-08T08:21:00+02:00","rationale":"Product Owner instructed proceeding to the next close-out step after all VS-11 implementation gates passed."},
-        {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
-        {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
+        {
+          "type": "scope",
+          "status": "approved",
+          "version": "ATLAS-PRD-001@1.0",
+          "commitSha": "e9be1f4489d734abd3f427db4f23c8ad4bc80c54",
+          "by": "ksazid",
+          "at": "2026-08-07T19:59:00+02:00",
+          "rationale": "Product Owner instructed starting VS-11 after certified VS-10 merge."
+        },
+        {
+          "type": "policy",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        },
+        {
+          "type": "implementation",
+          "status": "approved",
+          "version": "VS-11@1.0",
+          "commitSha": "b7030ff3c17b4c440709125f1ca442b00e38d664",
+          "by": "ksazid",
+          "at": "2026-08-08T08:21:00+02:00",
+          "rationale": "VS-11 implementation completed and CI #168, Security baseline #157 and Product intake #142 passed on the exact implementation head."
+        },
+        {
+          "type": "certification",
+          "status": "approved",
+          "version": "VS-11@1.0",
+          "commitSha": "b7030ff3c17b4c440709125f1ca442b00e38d664",
+          "by": "ksazid",
+          "at": "2026-08-08T08:21:00+02:00",
+          "rationale": "Product Owner instructed proceeding to the next close-out step after all VS-11 implementation gates passed."
+        },
+        {
+          "type": "release",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        },
+        {
+          "type": "production-enable",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        }
       ],
       "decisionIds": [],
-      "progress": {"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},
-      "certification": {"status":"passed","commitSha":"b7030ff3c17b4c440709125f1ca442b00e38d664","evidence":["CI #168 passed","Security baseline #157 passed","Product intake #142 passed"]},
-      "release": {"status":"not-authorized","releaseId":null},
-      "rollback": {"status":"not-applicable","rollbackId":null},
-      "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-      "links": {"specification":"docs/slices/VS-11.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/16","evidence":["apps/api/Notifications.cs","apps/api/Migrations/20260807220000_Notifications.cs","apps/mobile/src/features/notifications/NotificationCenterScreen.tsx","apps/mobile/app/notifications.tsx"]},
+      "progress": {
+        "discovery": 100,
+        "decisions": 100,
+        "implementation": 100,
+        "testing": 100,
+        "certification": 100,
+        "release": 0,
+        "validation": 0
+      },
+      "certification": {
+        "status": "passed",
+        "commitSha": "b7030ff3c17b4c440709125f1ca442b00e38d664",
+        "evidence": [
+          "CI #168 passed",
+          "Security baseline #157 passed",
+          "Product intake #142 passed"
+        ]
+      },
+      "release": {
+        "status": "not-authorized",
+        "releaseId": null
+      },
+      "rollback": {
+        "status": "not-applicable",
+        "rollbackId": null
+      },
+      "postRelease": {
+        "status": "not-started",
+        "reviewAt": null,
+        "expectedOutcome": null,
+        "metrics": []
+      },
+      "links": {
+        "specification": "docs/slices/VS-11.md",
+        "implementationPr": "https://github.com/ksazid/project-atlas/pull/16",
+        "evidence": [
+          "apps/api/Notifications.cs",
+          "apps/api/Migrations/20260807220000_Notifications.cs",
+          "apps/mobile/src/features/notifications/NotificationCenterScreen.tsx",
+          "apps/mobile/app/notifications.tsx"
+        ]
+      },
       "maxAttempts": 3
     },
-    {"schemaVersion":2,"sliceId":"VS-13","title":"VS-13 — Business Profile Visual Migration","status":"active","lifecycle":"certified","riskLevel":"medium","implementationMode":"runtime-enabled","requirements":["FR-03"],"owners":{"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},"dependencies":["ATLAS-PRD-001","ATLAS-TRD-001","VS-02@9c080a4a8867076be95ddd672b646e7eb5f2a535"],"blockers":[],"allowedPaths":[".agents/**","apps/mobile/**","tests/mobile/**","delivery/**","docs/**","product/DESIGN.md","design-system/**"],"protectedPaths":[".github/workflows/release.yml","infrastructure/**","**/Payments/**","**/Uploads/**"],"impact":{"areas":["frontend","customer-flow"],"notes":["Migrates the existing authenticated Business/Profile experience to the approved Atlas visual system.","Consolidates the temporary test mark behind one replaceable presentation boundary without changing API, domain, authentication, navigation, release or production behavior.","The user mandated restoration of the official Superpowers workflow as a prerequisite before VS-13 activation; .agents/** is allowed only for that tracked prerequisite and does not expand runtime product scope."]},"approvals":[{"type":"scope","status":"approved","version":"VS-13@1.0","commitSha":null,"by":"ksazid","at":"2026-08-09T12:54:00+02:00","rationale":"Product Owner approved the written VS-13 Business Profile Visual Migration specification."},{"type":"policy","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},{"type":"implementation","status":"approved","version":"VS-13@1.0","commitSha":null,"by":"ksazid","at":"2026-08-09T12:54:00+02:00","rationale":"Product Owner approved runtime implementation bound to the written VS-13 Business Profile Visual Migration specification."},{"type":"certification","status":"approved","version":"VS-13@1.0","commitSha":"6cfe2be5520fc2938e13c82a04524a967e03bbde","by":"ksazid","at":"2026-08-09T15:18:46+02:00","rationale":"Product Owner instructed certification and merge after the exact PR head passed CI #214, Security baseline #201 and Product intake #185; release and production remain unauthorized."},{"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},{"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}],"decisionIds":["DEC-01"],"progress":{"discovery":100,"decisions":100,"implementation":100,"testing":100,"certification":100,"release":0,"validation":0},"certification":{"status":"passed","commitSha":"6cfe2be5520fc2938e13c82a04524a967e03bbde","evidence":["Remote PR head 6cfe2be5520fc2938e13c82a04524a967e03bbde has tree e91285bd544099dd3f80d92df04c389f8f9deb0f, exactly matching locally reviewed head 0303eadf9c26e47eab3a5060a7c988a9554e3b71.","https://github.com/ksazid/project-atlas/actions/runs/31315368737","https://github.com/ksazid/project-atlas/actions/runs/31315368747","https://github.com/ksazid/project-atlas/actions/runs/31315368728","npm run planning:validate","npm run governance:validate","npm run slice:validate","npm run dashboard:check","npm run platform:validate","npm run mobile:validate","npm run preflight","tests/mobile/profile-model.test.mjs","docs/evidence/VS-13-RUNTIME-2026-08-09.md","apps/mobile/src/auth/session-routing.ts","apps/mobile/src/features/profile/profile-model.ts","Native iOS keyboard, dynamic-type, and physical-device validation remain pending and are not represented as passed by this local evidence."]},"release":{"status":"not-authorized","releaseId":null},"rollback":{"status":"not-applicable","rollbackId":null},"postRelease":{"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},"links":{"specification":"docs/slices/VS-13.md","implementationPr":"https://github.com/ksazid/project-atlas/pull/19","evidence":["https://github.com/ksazid/project-atlas/actions/runs/31315368737","https://github.com/ksazid/project-atlas/actions/runs/31315368747","https://github.com/ksazid/project-atlas/actions/runs/31315368728","docs/evidence/VS-13-RUNTIME-2026-08-09.md","docs/evidence/vs-13/profile-390x844-diagnostic.png","docs/evidence/vs-13/profile-390x844-opening-hours-focused.png","docs/evidence/vs-13/profile-390x844-ready.png","docs/evidence/vs-13/profile-390x844-save-reachable.png","docs/evidence/vs-13/profile-768x1024-ready.png","docs/evidence/vs-13/sign-in-390x844.png","docs/evidence/vs-13/welcome-390x844.png","apps/mobile/app/(tabs)/profile.tsx","apps/mobile/app/(tabs)/index.tsx","apps/mobile/app/index.tsx","apps/mobile/src/auth/session-routing.ts","apps/mobile/src/features/profile/profile-model.ts","tests/mobile/profile-model.test.mjs"]},"maxAttempts":3}
+    {
+      "schemaVersion": 2,
+      "sliceId": "VS-13",
+      "title": "VS-13 — Business Profile Visual Migration",
+      "status": "active",
+      "lifecycle": "certified",
+      "riskLevel": "medium",
+      "implementationMode": "runtime-enabled",
+      "requirements": [
+        "FR-03"
+      ],
+      "owners": {
+        "product": "ksazid",
+        "engineering": "ksazid",
+        "operations": "ksazid",
+        "security": "ksazid"
+      },
+      "dependencies": [
+        "ATLAS-PRD-001",
+        "ATLAS-TRD-001",
+        "VS-02@9c080a4a8867076be95ddd672b646e7eb5f2a535"
+      ],
+      "blockers": [],
+      "allowedPaths": [
+        ".agents/**",
+        "apps/mobile/**",
+        "tests/mobile/**",
+        "delivery/**",
+        "docs/**",
+        "product/DESIGN.md",
+        "design-system/**"
+      ],
+      "protectedPaths": [
+        ".github/workflows/release.yml",
+        "infrastructure/**",
+        "**/Payments/**",
+        "**/Uploads/**"
+      ],
+      "impact": {
+        "areas": [
+          "frontend",
+          "customer-flow"
+        ],
+        "notes": [
+          "Migrates the existing authenticated Business/Profile experience to the approved Atlas visual system.",
+          "Consolidates the temporary test mark behind one replaceable presentation boundary without changing API, domain, authentication, navigation, release or production behavior.",
+          "The user mandated restoration of the official Superpowers workflow as a prerequisite before VS-13 activation; .agents/** is allowed only for that tracked prerequisite and does not expand runtime product scope."
+        ]
+      },
+      "approvals": [
+        {
+          "type": "scope",
+          "status": "approved",
+          "version": "VS-13@1.0",
+          "commitSha": null,
+          "by": "ksazid",
+          "at": "2026-08-09T12:54:00+02:00",
+          "rationale": "Product Owner approved the written VS-13 Business Profile Visual Migration specification."
+        },
+        {
+          "type": "policy",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        },
+        {
+          "type": "implementation",
+          "status": "approved",
+          "version": "VS-13@1.0",
+          "commitSha": null,
+          "by": "ksazid",
+          "at": "2026-08-09T12:54:00+02:00",
+          "rationale": "Product Owner approved runtime implementation bound to the written VS-13 Business Profile Visual Migration specification."
+        },
+        {
+          "type": "certification",
+          "status": "approved",
+          "version": "VS-13@1.0",
+          "commitSha": "6cfe2be5520fc2938e13c82a04524a967e03bbde",
+          "by": "ksazid",
+          "at": "2026-08-09T15:18:46+02:00",
+          "rationale": "Product Owner instructed certification and merge after the exact PR head passed CI #214, Security baseline #201 and Product intake #185; release and production remain unauthorized."
+        },
+        {
+          "type": "release",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        },
+        {
+          "type": "production-enable",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        }
+      ],
+      "decisionIds": [
+        "DEC-01"
+      ],
+      "progress": {
+        "discovery": 100,
+        "decisions": 100,
+        "implementation": 100,
+        "testing": 100,
+        "certification": 100,
+        "release": 0,
+        "validation": 0
+      },
+      "certification": {
+        "status": "passed",
+        "commitSha": "6cfe2be5520fc2938e13c82a04524a967e03bbde",
+        "evidence": [
+          "Remote PR head 6cfe2be5520fc2938e13c82a04524a967e03bbde has tree e91285bd544099dd3f80d92df04c389f8f9deb0f, exactly matching locally reviewed head 0303eadf9c26e47eab3a5060a7c988a9554e3b71.",
+          "https://github.com/ksazid/project-atlas/actions/runs/31315368737",
+          "https://github.com/ksazid/project-atlas/actions/runs/31315368747",
+          "https://github.com/ksazid/project-atlas/actions/runs/31315368728",
+          "npm run planning:validate",
+          "npm run governance:validate",
+          "npm run slice:validate",
+          "npm run dashboard:check",
+          "npm run platform:validate",
+          "npm run mobile:validate",
+          "npm run preflight",
+          "tests/mobile/profile-model.test.mjs",
+          "docs/evidence/VS-13-RUNTIME-2026-08-09.md",
+          "apps/mobile/src/auth/session-routing.ts",
+          "apps/mobile/src/features/profile/profile-model.ts",
+          "Native iOS keyboard, dynamic-type, and physical-device validation remain pending and are not represented as passed by this local evidence."
+        ]
+      },
+      "release": {
+        "status": "not-authorized",
+        "releaseId": null
+      },
+      "rollback": {
+        "status": "not-applicable",
+        "rollbackId": null
+      },
+      "postRelease": {
+        "status": "not-started",
+        "reviewAt": null,
+        "expectedOutcome": null,
+        "metrics": []
+      },
+      "links": {
+        "specification": "docs/slices/VS-13.md",
+        "implementationPr": "https://github.com/ksazid/project-atlas/pull/19",
+        "evidence": [
+          "https://github.com/ksazid/project-atlas/actions/runs/31315368737",
+          "https://github.com/ksazid/project-atlas/actions/runs/31315368747",
+          "https://github.com/ksazid/project-atlas/actions/runs/31315368728",
+          "docs/evidence/VS-13-RUNTIME-2026-08-09.md",
+          "docs/evidence/vs-13/profile-390x844-diagnostic.png",
+          "docs/evidence/vs-13/profile-390x844-opening-hours-focused.png",
+          "docs/evidence/vs-13/profile-390x844-ready.png",
+          "docs/evidence/vs-13/profile-390x844-save-reachable.png",
+          "docs/evidence/vs-13/profile-768x1024-ready.png",
+          "docs/evidence/vs-13/sign-in-390x844.png",
+          "docs/evidence/vs-13/welcome-390x844.png",
+          "apps/mobile/app/(tabs)/profile.tsx",
+          "apps/mobile/app/(tabs)/index.tsx",
+          "apps/mobile/app/index.tsx",
+          "apps/mobile/src/auth/session-routing.ts",
+          "apps/mobile/src/features/profile/profile-model.ts",
+          "tests/mobile/profile-model.test.mjs"
+        ]
+      },
+      "maxAttempts": 3
+    },
+    {
+      "schemaVersion": 2,
+      "sliceId": "VS-38",
+      "title": "VS-38 — Google Drive Operational Signals",
+      "status": "completed",
+      "lifecycle": "certified",
+      "riskLevel": "high",
+      "implementationMode": "runtime-enabled",
+      "requirements": [
+        "FR-05",
+        "FR-07",
+        "FR-16"
+      ],
+      "owners": {
+        "product": "ksazid",
+        "engineering": "ksazid",
+        "operations": "ksazid",
+        "security": "ksazid"
+      },
+      "dependencies": [
+        "ATLAS-PRD-001",
+        "ATLAS-TRD-001",
+        "ATLAS-DESIGN-001@1.2",
+        "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2",
+        "VS-37@f75ce6142e88230220042c8d448111c562eb9ebb",
+        "MERGED@9e439b87c21615f33690b55855c0c5add4d99388"
+      ],
+      "blockers": [],
+      "allowedPaths": [
+        "apps/api/**",
+        "apps/mobile/**",
+        "tests/api/**",
+        "tests/mobile/**",
+        "delivery/**",
+        "docs/**",
+        "README.md"
+      ],
+      "protectedPaths": [
+        ".github/workflows/release.yml",
+        "infrastructure/**",
+        "**/Payments/**"
+      ],
+      "impact": {
+        "areas": [
+          "product-policy",
+          "architecture",
+          "frontend",
+          "api",
+          "database",
+          "authorization",
+          "sensitive-data",
+          "customer-flow",
+          "analytics",
+          "legal-privacy",
+          "operations-support"
+        ],
+        "notes": [
+          "Primary pilot path is one Google Drive folder explicitly shared Viewer-only with the Atlas connector identity; no public-link sharing and no whole-Drive OAuth grant.",
+          "Manual Sync now and scheduled polling share one idempotent path and detect new/changed CSV files using Drive file ID, metadata and content fingerprint.",
+          "Raw CSV remains in Drive and is process-and-discard in Atlas; durable storage is limited to connector state, file checkpoints, normalized signals, changes and provenance.",
+          "End-customer PII, payment secrets and customer-level profiling are prohibited from normalized data, logs, memory and model input.",
+          "Device CSV upload remains a secondary fallback; Google Drive webhooks, XLSX, provider write-back, new ranking rules and analytics dashboards remain out of scope.",
+          "No production release, deployment, EAS/OTA or production database mutation is authorized."
+        ]
+      },
+      "approvals": [
+        {
+          "type": "scope",
+          "status": "approved",
+          "version": "VS-38@1.0",
+          "commitSha": null,
+          "by": "ksazid",
+          "at": "2026-08-13T06:16:00+02:00",
+          "rationale": "Product Owner explicitly approved the detailed Level 2 Google Drive pilot scope and instructed implementation to start."
+        },
+        {
+          "type": "policy",
+          "status": "approved",
+          "version": "DEC-12",
+          "commitSha": null,
+          "by": "ksazid",
+          "at": "2026-08-13T06:16:00+02:00",
+          "rationale": "Product Owner approved selected-folder-only read access, no public-link sharing, raw-file non-retention and exclusion of customer PII. DEC-12 implements this through a Viewer-shared folder without whole-Drive OAuth."
+        },
+        {
+          "type": "implementation",
+          "status": "approved",
+          "version": "VS-38@1.0",
+          "commitSha": null,
+          "by": "ksazid",
+          "at": "2026-08-13T06:16:00+02:00",
+          "rationale": "Product Owner instructed Atlas to start working after approving the Level 2 connector workflow; implementation is feature-branch only and remains subject to exact-head certification."
+        },
+        {
+          "type": "certification",
+          "status": "approved",
+          "version": "VS-38@1.0",
+          "commitSha": "0808438a26459fe78cd60ed40eba7adf9d70e7f7",
+          "by": "ksazid",
+          "at": "2026-08-13T14:55:11+02:00",
+          "rationale": "Product Owner explicitly instructed merge to main and deployment to the isolated test Expo Go harness after CI #786, Security baseline #746 and Product intake #723 passed on the exact certification candidate."
+        },
+        {
+          "type": "release",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        },
+        {
+          "type": "production-enable",
+          "status": "pending",
+          "version": null,
+          "commitSha": null,
+          "by": null,
+          "at": null,
+          "rationale": null
+        }
+      ],
+      "decisionIds": [
+        "DEC-12"
+      ],
+      "progress": {
+        "discovery": 100,
+        "decisions": 100,
+        "implementation": 100,
+        "testing": 100,
+        "certification": 100,
+        "release": 0,
+        "validation": 0
+      },
+      "certification": {
+        "status": "passed",
+        "commitSha": "0808438a26459fe78cd60ed40eba7adf9d70e7f7",
+        "evidence": [
+          "Implementation CI #785 passed: https://github.com/ksazid/project-atlas/actions/runs/31700941375",
+          "Implementation Security baseline #745 passed: https://github.com/ksazid/project-atlas/actions/runs/31700941527",
+          "Implementation Product intake #722 passed: https://github.com/ksazid/project-atlas/actions/runs/31700941439",
+          "Certification-head CI #786 passed: https://github.com/ksazid/project-atlas/actions/runs/31701462157",
+          "Certification-head Security baseline #746 passed: https://github.com/ksazid/project-atlas/actions/runs/31701462266",
+          "Certification-head Product intake #723 passed: https://github.com/ksazid/project-atlas/actions/runs/31701462254",
+          "docs/slices/VS-38.md"
+        ]
+      },
+      "release": {
+        "status": "not-authorized",
+        "releaseId": null
+      },
+      "rollback": {
+        "status": "ready",
+        "rollbackId": null
+      },
+      "postRelease": {
+        "status": "not-started",
+        "reviewAt": null,
+        "expectedOutcome": null,
+        "metrics": []
+      },
+      "links": {
+        "specification": "docs/slices/VS-38.md",
+        "implementationPr": "https://github.com/ksazid/project-atlas/pull/62",
+        "evidence": [
+          "docs/superpowers/specs/2026-08-13-vs-38-pilot-operational-signals-design.md",
+          "docs/superpowers/plans/2026-08-13-vs-38-google-drive-operational-signals.md",
+          "merge:9e439b87c21615f33690b55855c0c5add4d99388"
+        ]
+      },
+      "maxAttempts": 3
+    }
   ]
 }

@@ -59,6 +59,9 @@ public sealed class OperationalEvidenceProjectionTests
         Assert.Contains(first.ToString("D"), fact.Source, StringComparison.Ordinal);
         Assert.Contains(second.ToString("D"), fact.Source, StringComparison.Ordinal);
         Assert.DoesNotContain("caused", fact.Value, StringComparison.OrdinalIgnoreCase);
+        Assert.True(OperationalChangeEvidenceCodec.TryParse(fact, out var evidence));
+        Assert.Equal(change.Id, evidence!.ChangeId);
+        Assert.Equal(new[] { first, second }.Order().ToArray(), evidence.SignalIds);
     }
 
     [Fact]
