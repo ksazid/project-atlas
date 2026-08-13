@@ -132,6 +132,18 @@
       "decidedBy": "ksazid",
       "decidedAt": "2026-08-12T17:05:00+02:00",
       "rationale": "The Product Owner re-authorized Pilot Operations as VS-35 after VS-34 merged. Dedicated operator commands preserve owner authority and auditability while satisfying FR-18 without a full admin platform."
+    },
+    {
+      "id": "DEC-12",
+      "sliceId": "VS-38",
+      "status": "approved",
+      "question": "How should Atlas obtain persistent pilot operational CSV evidence without retaining raw files or gaining unnecessary Google Drive access?",
+      "options": ["Device upload only", "Whole-Drive OAuth with application-side folder filtering", "One Viewer-shared Atlas folder with scheduled polling and device upload fallback"],
+      "decision": "Use Level 2 persistent Google Drive as the primary VS-38 pilot path: one Atlas folder explicitly shared Viewer-only with the Atlas connector identity, no public link and no whole-Drive OAuth grant; detect new or changed CSV files by Drive file ID plus metadata and content fingerprint; support Sync now and scheduled polling; leave raw files in Drive and retain only normalized, PII-excluded signals. Keep device CSV upload as fallback.",
+      "blocks": [],
+      "decidedBy": "ksazid",
+      "decidedAt": "2026-08-13T06:16:00+02:00",
+      "rationale": "The Product Owner explicitly approved Level 2 persistent Google Drive for the pilot and required selected-folder-only, read-only access, secure persistence, changed-file detection, manual and scheduled sync, no raw-file retention and no customer PII. A Viewer-shared folder enforces that boundary without a broader Google Drive OAuth consent."
     }
   ]
 }

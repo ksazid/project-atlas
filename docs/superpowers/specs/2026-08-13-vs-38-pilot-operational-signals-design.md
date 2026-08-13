@@ -3,7 +3,7 @@
 ## Goal
 Give Atlas enough fresh operational evidence to produce materially useful, non-repetitive pilot recommendations without turning the MVP into a POS, ERP, data warehouse or autonomous operations platform.
 
-VS-38 introduces the provider-neutral operational-signal boundary and proves it end-to-end with owner-supplied sales/order CSV exports. Later live connectors must feed the same boundary instead of creating provider-specific intelligence paths.
+VS-38 introduces the provider-neutral operational-signal boundary and proves it end-to-end with a persistent, folder-scoped Google Drive pilot connector. Owner device upload remains a fallback. Both sources feed the same normalization boundary instead of creating provider-specific intelligence paths.
 
 ## Product problem
 Atlas currently reasons mainly from Business Profile, Goals, owner-confirmed Context, public Business discovery, Knowledge Packs, prior Opportunities and outcomes. That is sufficient for generic guidance but too weak for a realistic pilot because the engine cannot reliably observe what changed in day-to-day performance.
@@ -23,16 +23,16 @@ VS-37 repaired duplicate identity. VS-38 addresses the separate upstream evidenc
 ## New decision boundary — DEC-12
 The Product Owner approved a new pilot policy direction:
 
-> Atlas may ingest owner-authorized, read-only operational data for closed-pilot intelligence. Operational data is normalized into minimal provider-neutral Business Signals with source, freshness, confidence and provenance. Atlas must minimise or exclude end-customer PII, must not perform external business actions through these sources in the pilot, and must preserve Business isolation and owner authority. Provider-specific live APIs require their own bounded credentials/policy review before activation.
+> Atlas may ingest owner-authorized, read-only operational data for closed-pilot intelligence. The VS-38 primary source is one Google Drive folder explicitly shared read-only with the Atlas connector identity; no public-link sharing or whole-Drive OAuth grant is permitted. Atlas stores only the selected folder identity, connector state, file identities/fingerprints and normalized provider-neutral Business Signals. Raw files remain in Google Drive and are never retained by Atlas. Customer PII is excluded. Device CSV upload remains a fallback. Atlas must not perform external business actions through these sources and must preserve Business isolation and owner authority.
 
-VS-38 implements only the first safe source under that policy: owner-supplied CSV sales/order exports. Direct XLSX parsing, Wolt, Bolt, Square, Google Business Profile and other live provider adapters remain separate follow-up slices.
+VS-38 implements Google Drive folder polling plus fallback device upload for owner-supplied CSV sales/order exports. Direct XLSX parsing, Wolt, Bolt, Square, Google Business Profile and other live provider adapters remain separate follow-up slices.
 
 ## Chosen approach
 Three approaches were considered:
 
 1. Build Wolt/Bolt/POS APIs first. This gives live data but risks blocking the pilot on provider access, credentials, commercial terms and provider-specific schemas.
 2. Build only generic manual Context fields. This is cheap but does not create enough temporal or item-level evidence to solve the observed recommendation-quality problem.
-3. Build a provider-neutral signal/change model first, with owner-uploaded operational CSV exports as the first adapter. This proves the intelligence contract immediately and lets later connectors reuse the same ingestion path.
+3. Build a provider-neutral signal/change model first, with a persistent Google Drive folder as the primary adapter and owner device upload as fallback. This proves the intelligence contract immediately and lets later connectors reuse the same ingestion path.
 
 VS-38 uses approach 3.
 
@@ -40,7 +40,7 @@ VS-38 uses approach 3.
 Keep Atlas as one modular monolith. Add a bounded operational-ingestion path at the application/infrastructure boundary:
 
 ```text
-Owner-supplied operational CSV
+Google Drive Atlas folder / device CSV fallback
         |
         v
 Operational Import Adapter
@@ -142,6 +142,23 @@ The import path must:
 8. expose last import and freshness status;
 9. make eligible derived evidence available to the existing Intelligence pipeline.
 
+## Google Drive Level 2 connector contract
+The pilot uses a dedicated Atlas connector identity with Google Drive API access. The owner grants that identity Viewer access to exactly one Atlas folder. Atlas must reject public-link-only access and must never request Editor access. The connector does not use a whole-Drive OAuth scope or store a user Google refresh token.
+
+Connection setup records only:
+- Business ID and owner who connected it;
+- selected Google Drive folder ID and display name;
+- connector identity/version and read-only grant verification;
+- encrypted connector configuration where any secret material is unavoidable;
+- schedule, last-attempt/last-success timestamps and health/error code;
+- per-file Google Drive file ID, MIME type, modified time, size and deterministic content fingerprint.
+
+Atlas queries only direct `.csv` children of the selected folder. Nested folders, shortcuts, Google Sheets, XLSX and unrelated files are ignored. A scheduled poll and owner-triggered `Sync now` use the same idempotent job. Webhooks and real-time change subscriptions are deferred.
+
+For each candidate file Atlas compares Google file ID, modified time, size and content fingerprint. Unchanged files are not downloaded again. New or changed CSV content is streamed through the same preview/validation/normalization boundary as device upload. Raw bytes may exist only in bounded transient memory/stream processing and are disposed after the attempt. Atlas never writes, renames, moves, shares or deletes Drive content.
+
+If the folder grant is removed, the connector becomes `reauthorization-required`; existing normalized signals remain with truthful freshness, scheduled polling stops retrying aggressively, and the owner can reconnect or use device upload.
+
 ## Data minimisation and privacy
 Operational exports may contain end-customer information that Atlas does not need.
 
@@ -156,18 +173,22 @@ No customer-level behavioural profiling or loyalty analysis enters VS-38.
 ## Business isolation and authority
 Every imported record and derived signal is Business-scoped. API authorization must derive the authenticated owner membership server-side. A client-provided BusinessId cannot bypass membership validation.
 
-Only Business owners may confirm an operational import in VS-38. Pilot operators do not gain an import command in this slice. No provider credentials are stored.
+Only Business owners may connect/disconnect a folder, invoke `Sync now`, change the schedule or confirm a fallback device import in VS-38. Pilot operators do not gain these commands. Connector runtime credentials are server-side only and never exposed to the mobile app.
 
 ## Owner experience
 Keep the existing four-tab topology unchanged.
 
-Add a bounded operational-data entry under Profile/Business Hub rather than creating a persistent Analytics tab. The owner experience supports:
-- `Import sales data`;
-- CSV file selection/upload;
+Add a prominent `Business data` card under Profile/Business Hub, alongside the existing Business Context card, rather than a plain text link or persistent Analytics tab. Its primary action is `Connect Google Drive`; after connection it shows folder, sync health, freshness and `Sync now`. The owner experience supports:
+- Google Drive connection guidance and one-folder confirmation;
+- scheduled sync control with a bounded pilot cadence;
+- `Sync now`;
+- disconnect/reconnect without deleting normalized history;
+- `Upload CSV from this device` as a secondary fallback;
+- CSV file selection/upload for the fallback;
 - preview of recognized date range, row/order count, supported columns, ignored sensitive columns and derivable metrics;
 - explicit confirmation;
 - import success/failure;
-- last imported date/freshness;
+- last synced/imported date and source-data freshness;
 - clear duplicate/overlap result;
 - privacy copy explaining that Atlas ignores customer-identifying fields and does not retain the raw CSV.
 
@@ -212,7 +233,8 @@ The import UI must display the most recent operational date so the owner can und
 - conflicting overlapping observations: reject with an overlap-conflict result;
 - derivation lacks comparison coverage: retain supported signals but do not fabricate a Business Change;
 - operational data is stale: preserve truthful freshness and do not present old data as current evidence;
-- import service failure: existing Today content may remain safely readable; no fabricated fallback metrics.
+- Drive permission removed: mark reauthorization required and preserve truthful stale state;
+- scheduled or manual sync failure: existing Today content may remain safely readable; no fabricated fallback metrics;
 
 ## Testing strategy
 Use strict TDD for all runtime work after the written spec and implementation plan are approved.
@@ -233,17 +255,21 @@ Required coverage:
 13. mobile import flow accessibility/degraded-state tests;
 14. clean PostgreSQL migration replay if persistence changes require migrations;
 15. full API/mobile/preflight, Security baseline and Product Intake on the exact head.
+16. selected-folder isolation, Viewer-only verification and no public-link dependency;
+17. file-ID/modified-time/size/fingerprint changed-file detection;
+18. manual and scheduled sync parity, lease/idempotency and revoked-access behavior;
+19. raw Drive response/file content redaction and non-retention guards.
 
 ## Success criteria
 VS-38 succeeds when:
-- an owner can import a realistic CSV operational export without exposing customer PII to Atlas intelligence;
+- an owner can connect one Viewer-shared Google Drive folder and sync realistic CSV exports without granting whole-Drive access or exposing customer PII to Atlas intelligence;
 - Atlas does not durably retain the raw CSV or raw rows;
 - Atlas persists provider-neutral, provenance-rich Business Signals rather than source-specific operational rows;
 - deterministic Business Changes are derived only from sufficient comparable data;
 - the existing intelligence pipeline can reference those signals/changes as factual Evidence;
 - re-imports are idempotent and conflicting overlaps fail safely;
 - the same architecture can later accept live provider adapters without changing Knowledge Pack or Intelligence contracts;
-- no external write action, provider credential, deep POS integration, data warehouse or new persistent analytics tab is introduced.
+- no external write action, user Google OAuth token, deep POS integration, data warehouse or new persistent analytics tab is introduced.
 
 ## Compatibility
 VS-38 starts from merged VS-37 main `f75ce6142e88230220042c8d448111c562eb9ebb`.
@@ -261,13 +287,13 @@ Preserve:
 
 ## Explicit non-goals
 - direct XLSX parsing;
-- live Wolt/Bolt/Square/Google/POS connector implementation;
-- provider OAuth/credential storage;
+- live Wolt/Bolt/Square/Google Business Profile/POS connector implementation;
+- whole-Drive OAuth access or user Google refresh-token storage;
 - accepting, rejecting or modifying orders;
 - menu or price write-back;
 - payments, refunds or financial actions;
 - customer-level CRM/loyalty analytics;
-- real-time streaming/event-bus ingestion;
+- real-time streaming, Drive webhooks or event-bus ingestion;
 - data warehouse/lake architecture;
 - arbitrary dashboard builder;
 - causal claims from correlations;

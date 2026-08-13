@@ -7,6 +7,7 @@ import { BrandMark } from '@/components/BrandMark';
 import { AtlasPressable } from '@/components/AtlasPressable';
 import { AtlasScreen } from '@/components/AtlasScreen';
 import { BusinessContextStatus } from '@/features/business-hub/BusinessContextStatus';
+import { BusinessDataCard } from '@/features/business-hub/BusinessDataCard';
 import { BusinessHero } from '@/features/business-hub/BusinessHero';
 import { getBusinessHubState } from '@/features/business-hub/business-hub-api';
 import { BusinessMediaPreview } from '@/features/business-hub/BusinessMediaPreview';
@@ -79,6 +80,7 @@ export function BusinessHubScreen() {
         <View accessibilityLabel={REVIEW_CONTEXT_ACTION}>
           <BusinessContextStatus context={hub.context} onReview={() => router.push('/context')} />
         </View>
+        <BusinessDataCard onOpen={() => router.push('/business-data')} />
 
         <View style={styles.profileActions}>
           <AtlasPressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')} style={styles.secondaryButton}>
