@@ -13,7 +13,7 @@
   "allowedPaths": ["apps/mobile/src/features/operational-data/**", "tests/mobile/**", "delivery/**", "docs/**", "README.md"],
   "protectedPaths": ["apps/api/**", "tests/api/**", ".github/workflows/release.yml", "infrastructure/**", "**/Payments/**", "**/Uploads/**", "**/appsettings.Production.json"],
   "impact": {
-    "areas": ["customer-flow", "connector", "frontend", "operations-support"],
+    "areas": ["customer-flow", "frontend", "operations-support"],
     "notes": [
       "Repairs the pilot Google Drive activation path without changing backend persistence, permissions or ingestion policy.",
       "Mobile now follows the authoritative POST connect contract, maps connector status correctly and treats first-use 404 as disconnected.",
