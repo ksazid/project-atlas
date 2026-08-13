@@ -7,6 +7,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+builder.Services.Configure<GoogleDriveConnectorOptions>(builder.Configuration.GetSection("GoogleDriveConnector"));
+builder.Services.AddHttpClient("GoogleDriveToken", client => client.Timeout = TimeSpan.FromSeconds(15));
+builder.Services.AddSingleton<IGoogleDriveAccessTokenProvider, GoogleServiceAccountAccessTokenProvider>();
+builder.Services.AddHttpClient<GoogleDriveOperationalSource>(client =>
+{
+    client.BaseAddress = new Uri("https://www.googleapis.com/drive/v3/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 builder.Services.AddHttpClient<BusinessDiscoveryService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(8);
