@@ -84,7 +84,8 @@ export function OperationalDataScreen() {
       const picked = await File.pickFileAsync(undefined, 'text/csv');
       const file = Array.isArray(picked) ? picked[0] : picked;
       if (!file) return;
-      if (!file.name.toLowerCase().endsWith('.csv')) {
+      const fileName = decodeURIComponent(file.uri.split('/').pop() ?? 'business-data.csv');
+      if (!fileName.toLowerCase().endsWith('.csv')) {
         setUploadMessage('Choose a CSV file.');
         return;
       }
@@ -94,7 +95,7 @@ export function OperationalDataScreen() {
       }
       const session = await loadSession();
       if (!session?.businessId) return;
-      const asset: OperationalUploadAsset = { uri: file.uri, name: file.name, file };
+      const asset: OperationalUploadAsset = { uri: file.uri, name: fileName, file };
       setSelectedCsv(asset);
       setUploadPreview(null);
       setUploadResult(null);
