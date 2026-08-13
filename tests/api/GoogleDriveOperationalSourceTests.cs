@@ -43,12 +43,14 @@ public sealed class GoogleDriveOperationalSourceTests
     public async Task List_queries_only_direct_nontrashed_children_and_returns_csv_files()
     {
         var handler = new RecordingHandler(_ => Json(HttpStatusCode.OK,
-            """{"files":[
+            """
+            {"files":[
               {"id":"csv-1","name":"sales.csv","mimeType":"text/csv","modifiedTime":"2026-08-13T09:00:00Z","size":"120","md5Checksum":"abc"},
               {"id":"sheet-1","name":"sales","mimeType":"application/vnd.google-apps.spreadsheet","modifiedTime":"2026-08-13T09:00:00Z"},
               {"id":"xlsx-1","name":"sales.xlsx","mimeType":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","modifiedTime":"2026-08-13T09:00:00Z","size":"300"},
               {"id":"shortcut-1","name":"other.csv","mimeType":"application/vnd.google-apps.shortcut","modifiedTime":"2026-08-13T09:00:00Z"}
-            ]}"""));
+            ]}
+            """));
         var source = Source(handler);
 
         var files = await source.ListAsync("folder-38", default);
