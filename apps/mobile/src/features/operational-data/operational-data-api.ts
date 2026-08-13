@@ -18,7 +18,7 @@ export type OperationalSyncResult = {
   unchangedFiles: number;
 };
 
-export type OperationalUploadAsset = { uri: string; name: string; file?: Blob | null };
+export type OperationalUploadAsset = { uri: string; name: string; file?: unknown };
 export type OperationalUploadPreview = {
   previewFingerprint: string;
   rowCount: number;
@@ -63,7 +63,7 @@ const mapConnector = (value: OperationalConnectorWire): OperationalConnector => 
 });
 
 function appendCsv(form: FormData, asset: OperationalUploadAsset) {
-  if (asset.file) form.append('file', asset.file, asset.name);
+  if (asset.file) form.append('file', asset.file as Blob, asset.name);
   else form.append('file', { uri: asset.uri, name: asset.name, type: 'text/csv' } as unknown as Blob);
 }
 
