@@ -4,15 +4,12 @@ import test from 'node:test';
 
 const read = path => fs.readFileSync(path, 'utf8');
 
-test('VS-41 selects one CSV with Expo DocumentPicker', () => {
-  const pkg = JSON.parse(read('apps/mobile/package.json'));
+test('VS-41 selects one CSV with the built-in Expo file picker', () => {
   const screen = read('apps/mobile/src/features/operational-data/OperationalDataScreen.tsx');
-  assert.equal(pkg.dependencies['expo-document-picker'], '~14.0.8');
-  assert.match(screen, /expo-document-picker/);
-  assert.match(screen, /getDocumentAsync/);
+  assert.match(screen, /expo-file-system/);
+  assert.match(screen, /File\.pickFileAsync/);
   assert.match(screen, /text\/csv/);
-  assert.match(screen, /multiple:\s*false/);
-  assert.match(screen, /base64:\s*false/);
+  assert.match(screen, /10 \* 1024 \* 1024/);
 });
 
 test('VS-41 reuses preview and confirm upload endpoints', () => {
@@ -29,6 +26,7 @@ test('VS-41 previews before confirmation while Drive stays primary', () => {
   assert.match(screen, /FALLBACK/);
   assert.match(screen, /previewOperationalUpload/);
   assert.match(screen, /confirmOperationalUpload/);
+  assert.match(screen, /Preview before importing/);
   assert.match(screen, /Confirm import/);
   assert.match(screen, /Ignored sensitive columns/);
   assert.match(screen, /Choose another CSV/);
