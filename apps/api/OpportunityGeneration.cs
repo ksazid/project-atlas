@@ -248,7 +248,7 @@ public static class OpportunityGenerator
     }
 
     private static IEnumerable<ResolvedKnowledgeFact> AllFacts(ResolvedKnowledgeBundle bundle) =>
-        bundle.ContextFacts.Concat(bundle.LocalMarketFacts).Concat(bundle.MemoryFacts);
+        bundle.ContextFacts.Concat(bundle.LocalMarketFacts).Concat(bundle.MemoryFacts).Concat(bundle.OperationalFacts);
 
     private static IReadOnlyList<OpportunityEvidenceReference> MatchingFacts(
         IEnumerable<ResolvedKnowledgeFact> facts,

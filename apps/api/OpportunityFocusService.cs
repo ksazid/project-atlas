@@ -117,6 +117,12 @@ public static class OpportunityFocusService
         var memoryItems = await db.BusinessMemoryItems
             .Where(x => x.BusinessId == businessId)
             .ToListAsync(ct);
+        var operationalSignals = await db.BusinessSignals
+            .Where(x => x.BusinessId == businessId)
+            .ToListAsync(ct);
+        var operationalChanges = await db.BusinessChanges
+            .Where(x => x.BusinessId == businessId)
+            .ToListAsync(ct);
         var priorOpportunities = await db.Set<Opportunity>()
             .Where(x => x.BusinessId == businessId)
             .OrderByDescending(x => x.CreatedAt)
@@ -130,7 +136,8 @@ public static class OpportunityFocusService
                 assignment,
                 profileFields,
                 contextEntries,
-                memoryItems);
+                memoryItems,
+                OperationalEvidenceProjector.Project(operationalSignals, operationalChanges, now));
         }
         catch (KnowledgeBundleResolutionException ex)
         {
