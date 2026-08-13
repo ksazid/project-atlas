@@ -1,40 +1,41 @@
 {
   "schemaVersion": 2,
-  "sliceId": "VS-39",
-  "title": "VS-39 — Operational Signal Recommendations",
+  "sliceId": "VS-40",
+  "title": "VS-40 — Operational Connector Activation Repair",
   "status": "active",
   "lifecycle": "implementing",
   "riskLevel": "high",
   "implementationMode": "runtime-enabled",
-  "requirements": ["FR-05", "FR-07", "FR-08", "FR-16"],
+  "requirements": ["FR-16"],
   "owners": {"product":"ksazid","engineering":"ksazid","operations":"ksazid","security":"ksazid"},
-  "dependencies": ["ATLAS-PRD-001", "ATLAS-TRD-001", "ATLAS-DESIGN-001@1.2", "VS-15@a46b9f28ec1e1d360c153adf8e90c40bbe0caca2", "VS-38@9e439b87c21615f33690b55855c0c5add4d99388"],
+  "dependencies": ["ATLAS-PRD-001", "ATLAS-TRD-001", "ATLAS-DESIGN-001@1.2", "VS-38@9e439b87c21615f33690b55855c0c5add4d99388", "VS-39@de7138f7b75637621a50fd28ebccf3533ec71bcb"],
   "blockers": [],
-  "allowedPaths": ["apps/api/**", "tests/api/**", "delivery/**", "docs/**", "README.md"],
-  "protectedPaths": [".github/workflows/release.yml", "infrastructure/**", "apps/mobile/**", "tests/mobile/**", "**/Payments/**", "**/Uploads/**", "**/appsettings.Production.json"],
+  "allowedPaths": ["apps/mobile/src/features/operational-data/**", "tests/mobile/**", "delivery/**", "docs/**", "README.md"],
+  "protectedPaths": ["apps/api/**", "tests/api/**", ".github/workflows/release.yml", "infrastructure/**", "**/Payments/**", "**/Uploads/**", "**/appsettings.Production.json"],
   "impact": {
-    "areas": ["product-policy", "architecture", "api", "customer-flow", "analytics", "operations-support"],
+    "areas": ["customer-flow", "connector", "frontend", "operations-support"],
     "notes": [
-      "Turns material normalized operational changes into deterministic, goal-aligned Today recommendations through versioned Restaurant & Café Knowledge Pack rules.",
-      "Eligibility is limited to gross-sales, orders, repeat-orders and delivery-time changes of at least 10% over exactly 7 or 28 days; zero comparisons and historical evidence are excluded.",
-      "Recommendations preserve exact change and Signal provenance, use observational non-causal copy, remain business-isolated and retain existing ranking, cooldown and no-filler behavior.",
-      "No migration, connector change, raw-file retention, customer PII, external action, mobile change, deployment, release or production enablement is authorized."
+      "Repairs the pilot Google Drive activation path without changing backend persistence, permissions or ingestion policy.",
+      "Mobile now follows the authoritative POST connect contract, maps connector status correctly and treats first-use 404 as disconnected.",
+      "Sync reloads authoritative connector state after completion rather than interpreting a sync result as connector state.",
+      "The existing daily, six-hour and manual schedules are exposed with API-boundary translation for the server schedule literal.",
+      "Device CSV fallback activation is explicitly deferred to VS-41; no database, API, Drive permission, recommendation-engine, release or production change is authorized."
     ]
   },
   "approvals": [
-    {"type":"scope","status":"approved","version":"VS-39@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T16:08:37+02:00","rationale":"Product Owner approved the written VS-39 design and instructed implementation to proceed."},
-    {"type":"policy","status":"approved","version":"VS-39@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T16:08:37+02:00","rationale":"Product Owner approved deterministic provider-neutral matching with Restaurant & Café category rules, non-causal wording, exact provenance, PII exclusion and no-filler behavior."},
-    {"type":"implementation","status":"approved","version":"VS-39@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T16:08:37+02:00","rationale":"Product Owner selected inline execution and instructed Atlas to continue; implementation remains feature-branch only and subject to exact-head certification."},
+    {"type":"scope","status":"approved","version":"VS-40@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T16:53:00+02:00","rationale":"Product Owner approved VS-40 Option 1: Operational Connector Activation Repair."},
+    {"type":"policy","status":"approved","version":"VS-40@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T16:53:00+02:00","rationale":"Repair is bounded to the existing persistent Google Drive pilot contract and privacy policy; no scope expansion is authorized."},
+    {"type":"implementation","status":"approved","version":"VS-40@1.0","commitSha":null,"by":"ksazid","at":"2026-08-13T16:53:00+02:00","rationale":"Product Owner instructed Atlas to proceed with implementation after approving the proposed VS-40 boundary."},
     {"type":"certification","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"release","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null},
     {"type":"production-enable","status":"pending","version":null,"commitSha":null,"by":null,"at":null,"rationale":null}
   ],
   "decisionIds": [],
-  "progress": {"discovery":100,"decisions":100,"implementation":0,"testing":0,"certification":0,"release":0,"validation":0},
+  "progress": {"discovery":100,"decisions":100,"implementation":80,"testing":20,"certification":0,"release":0,"validation":0},
   "certification": {"status":"not-started","commitSha":null,"evidence":[]},
   "release": {"status":"not-authorized","releaseId":null},
   "rollback": {"status":"ready","rollbackId":null},
   "postRelease": {"status":"not-started","reviewAt":null,"expectedOutcome":null,"metrics":[]},
-  "links": {"specification":"docs/slices/VS-39.md","implementationPr":null,"evidence":["docs/superpowers/specs/2026-08-13-vs-39-operational-signal-recommendations-design.md","docs/superpowers/plans/2026-08-13-vs-39-operational-signal-recommendations.md"]},
+  "links": {"specification":"docs/slices/VS-40.md","implementationPr":null,"evidence":["tests/mobile/vs40-operational-connector-activation.test.mjs"]},
   "maxAttempts": 3
 }
