@@ -91,4 +91,71 @@ public sealed class KnowledgePackManifestV2Tests
 
         Assert.Contains("supportedCategoryKeys", errors.Keys);
     }
+
+    [Fact]
+    public void Valid_operational_evidence_requirement_is_accepted()
+    {
+        var manifest = WithOperationalRequirement(new(
+            "gross-sales", OperationalChangeDirections.Decrease, .10m, [7, 28],
+            [OperationalFreshness.Fresh, OperationalFreshness.Stale]));
+
+        Assert.Empty(KnowledgePackManifestV2Policy.Validate(manifest));
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidOperationalRequirements))]
+    public void Invalid_operational_evidence_requirements_are_rejected(KnowledgeOperationalEvidenceRequirement requirement)
+    {
+        var errors = KnowledgePackManifestV2Policy.Validate(WithOperationalRequirement(requirement));
+
+        Assert.Contains("evidenceRules", errors.Keys);
+    }
+
+    [Fact]
+    public void Operational_requirement_fields_are_fingerprinted()
+    {
+        var original = WithOperationalRequirement(new(
+            "gross-sales", OperationalChangeDirections.Decrease, .10m, [7, 28],
+            [OperationalFreshness.Fresh, OperationalFreshness.Stale]));
+        var changed = WithOperationalRequirement(new(
+            "orders", OperationalChangeDirections.Increase, .20m, [28],
+            [OperationalFreshness.Stale]));
+
+        Assert.NotEqual(
+            KnowledgePackManifestV2Policy.Fingerprint(original),
+            KnowledgePackManifestV2Policy.Fingerprint(changed));
+    }
+
+    public static TheoryData<KnowledgeOperationalEvidenceRequirement> InvalidOperationalRequirements => new()
+    {
+        new("", OperationalChangeDirections.Decrease, .10m, [7], [OperationalFreshness.Fresh]),
+        new("Gross Sales", OperationalChangeDirections.Decrease, .10m, [7], [OperationalFreshness.Fresh]),
+        new("gross-sales", "sideways", .10m, [7], [OperationalFreshness.Fresh]),
+        new("gross-sales", OperationalChangeDirections.Decrease, 0m, [7], [OperationalFreshness.Fresh]),
+        new("gross-sales", OperationalChangeDirections.Decrease, 1.01m, [7], [OperationalFreshness.Fresh]),
+        new("gross-sales", OperationalChangeDirections.Decrease, .10m, [14], [OperationalFreshness.Fresh]),
+        new("gross-sales", OperationalChangeDirections.Decrease, .10m, [7, 7], [OperationalFreshness.Fresh]),
+        new("gross-sales", OperationalChangeDirections.Decrease, .10m, [7], [OperationalFreshness.Historical]),
+        new("gross-sales", OperationalChangeDirections.Decrease, .10m, [7], [OperationalFreshness.Fresh, OperationalFreshness.Fresh])
+    };
+
+    private static KnowledgePackManifestV2 WithOperationalRequirement(KnowledgeOperationalEvidenceRequirement requirement)
+    {
+        var manifest = GenericBusinessKnowledgeManifestV2.Create();
+        return manifest with
+        {
+            EvidenceRules =
+            [
+                new KnowledgeEvidenceRule(
+                    "sales-decline-observed",
+                    "Require a material observed sales decline.",
+                    1,
+                    false)
+                {
+                    OperationalRequirement = requirement
+                }
+            ],
+            OpportunityPatterns = []
+        };
+    }
 }

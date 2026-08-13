@@ -16,11 +16,29 @@ public static class KnowledgePackLayers
 
 public sealed record KnowledgeKpiDefinition(string Key, string Label, string Description);
 
+public static class OperationalChangeDirections
+{
+    public const string Decrease = "decrease";
+    public const string Increase = "increase";
+
+    public static bool IsValid(string? value) => value is Decrease or Increase;
+}
+
+public sealed record KnowledgeOperationalEvidenceRequirement(
+    string MetricKey,
+    string Direction,
+    decimal MinimumRelativeChange,
+    IReadOnlyList<int> Windows,
+    IReadOnlyList<string> Freshness);
+
 public sealed record KnowledgeEvidenceRule(
     string Key,
     string Description,
     int MinimumEvidenceCount,
-    bool OwnerConfirmationRequired);
+    bool OwnerConfirmationRequired)
+{
+    public KnowledgeOperationalEvidenceRequirement? OperationalRequirement { get; init; }
+}
 
 public sealed record KnowledgeOpportunityPattern(
     string Key,
@@ -127,6 +145,22 @@ public static class KnowledgePackManifestV2Policy
             ValidateText(errors, "evidenceRules", evidence.Description);
             if (evidence.MinimumEvidenceCount is < 1 or > 20)
                 Add(errors, "evidenceRules", $"Evidence rule '{evidence.Key}' must require between 1 and 20 evidence items.");
+
+            var operational = evidence.OperationalRequirement;
+            if (operational is null) continue;
+
+            if (!KnowledgePackKeys.IsValid(operational.MetricKey))
+                Add(errors, "evidenceRules", $"Evidence rule '{evidence.Key}' operational metric key is invalid.");
+            if (!OperationalChangeDirections.IsValid(operational.Direction))
+                Add(errors, "evidenceRules", $"Evidence rule '{evidence.Key}' operational direction is invalid.");
+            if (operational.MinimumRelativeChange is <= 0 or > 1)
+                Add(errors, "evidenceRules", $"Evidence rule '{evidence.Key}' operational threshold must be greater than zero and at most one.");
+            if (operational.Windows.Count == 0 || operational.Windows.Any(window => window is not (7 or 28)) || HasDuplicate(operational.Windows))
+                Add(errors, "evidenceRules", $"Evidence rule '{evidence.Key}' operational windows must be unique supported values.");
+            if (operational.Freshness.Count == 0 ||
+                operational.Freshness.Any(value => value is not (OperationalFreshness.Fresh or OperationalFreshness.Stale)) ||
+                HasDuplicate(operational.Freshness))
+                Add(errors, "evidenceRules", $"Evidence rule '{evidence.Key}' operational freshness values must be unique fresh or stale values.");
         }
 
         var evidenceKeys = manifest.EvidenceRules.Select(item => item.Key).ToHashSet(StringComparer.Ordinal);
@@ -179,7 +213,21 @@ public static class KnowledgePackManifestV2Policy
             Kpis = manifest.Kpis.OrderBy(item => item.Key, StringComparer.Ordinal)
                 .Select(item => new { item.Key, item.Label, item.Description }).ToArray(),
             EvidenceRules = manifest.EvidenceRules.OrderBy(item => item.Key, StringComparer.Ordinal)
-                .Select(item => new { item.Key, item.Description, item.MinimumEvidenceCount, item.OwnerConfirmationRequired }).ToArray(),
+                .Select(item => new
+                {
+                    item.Key,
+                    item.Description,
+                    item.MinimumEvidenceCount,
+                    item.OwnerConfirmationRequired,
+                    OperationalRequirement = item.OperationalRequirement is null ? null : new
+                    {
+                        item.OperationalRequirement.MetricKey,
+                        item.OperationalRequirement.Direction,
+                        item.OperationalRequirement.MinimumRelativeChange,
+                        Windows = item.OperationalRequirement.Windows.Order().ToArray(),
+                        Freshness = item.OperationalRequirement.Freshness.Order(StringComparer.Ordinal).ToArray()
+                    }
+                }).ToArray(),
             OpportunityPatterns = manifest.OpportunityPatterns.OrderBy(item => item.Key, StringComparer.Ordinal)
                 .Select(item => new
                 {
@@ -231,6 +279,9 @@ public static class KnowledgePackManifestV2Policy
 
     private static bool HasDuplicate(IEnumerable<string> values) =>
         values.GroupBy(value => value, StringComparer.Ordinal).Any(group => group.Count() > 1);
+
+    private static bool HasDuplicate(IEnumerable<int> values) =>
+        values.GroupBy(value => value).Any(group => group.Count() > 1);
 
     private static void Add(Dictionary<string, List<string>> errors, string key, string message)
     {

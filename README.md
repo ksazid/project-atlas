@@ -185,6 +185,8 @@ The dashboard deliberately has no database, authentication or editable approvals
 
 ## Operating modes
 
+Current implementation slice: **VS-39 — Operational Signal Recommendations**. It converts material normalized operational changes into deterministic Restaurant & Café Today recommendations while preserving provenance, non-causal wording, category isolation and no-filler behavior.
+
 PES begins in **Lite** mode and adds complexity only when evidence shows it will reduce risk or rework.
 
 | Mode | Intended use | Delivery execution |

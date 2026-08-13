@@ -3,7 +3,7 @@ namespace Atlas.Api;
 public static class RestaurantCafeKnowledgeManifestV2
 {
     public const string PackKey = "restaurant-cafe-intelligence";
-    public const string Version = "1.0";
+    public const string Version = "1.1";
 
     public static KnowledgePackManifestV2 Create() => new(
         SchemaVersion: 2,
@@ -25,7 +25,23 @@ public static class RestaurantCafeKnowledgeManifestV2
             new KnowledgeEvidenceRule("ordering-channel-confirmed", "Require an owner-confirmed service or ordering channel before reviewing ordering-path clarity.", 1, true),
             new KnowledgeEvidenceRule("hours-evidence-present", "Require owner-confirmed or attributable public hours evidence before reviewing hours consistency.", 1, false),
             new KnowledgeEvidenceRule("current-offer-confirmed", "Require an owner-confirmed current offer or near-term priority before reviewing offer visibility.", 1, true),
-            new KnowledgeEvidenceRule("reputation-signal-present", "Require an attributable reputation signal or owner-confirmed reputation concern before suggesting a follow-up.", 1, false)
+            new KnowledgeEvidenceRule("reputation-signal-present", "Require an attributable reputation signal or owner-confirmed reputation concern before suggesting a follow-up.", 1, false),
+            new KnowledgeEvidenceRule("sales-decline-observed", "Require a material observed gross-sales decline over a complete supported comparison.", 1, false)
+            {
+                OperationalRequirement = new("gross-sales", OperationalChangeDirections.Decrease, .10m, [7, 28], [OperationalFreshness.Fresh, OperationalFreshness.Stale])
+            },
+            new KnowledgeEvidenceRule("order-decline-observed", "Require a material observed order decline over a complete supported comparison.", 1, false)
+            {
+                OperationalRequirement = new("orders", OperationalChangeDirections.Decrease, .10m, [7, 28], [OperationalFreshness.Fresh, OperationalFreshness.Stale])
+            },
+            new KnowledgeEvidenceRule("repeat-order-decline-observed", "Require a material observed repeat-order decline over a complete supported comparison.", 1, false)
+            {
+                OperationalRequirement = new("repeat-orders", OperationalChangeDirections.Decrease, .10m, [7, 28], [OperationalFreshness.Fresh, OperationalFreshness.Stale])
+            },
+            new KnowledgeEvidenceRule("delivery-time-deterioration-observed", "Require a material observed delivery-time increase over a complete supported comparison.", 1, false)
+            {
+                OperationalRequirement = new("delivery-time", OperationalChangeDirections.Increase, .10m, [7, 28], [OperationalFreshness.Fresh, OperationalFreshness.Stale])
+            }
         ],
         OpportunityPatterns:
         [
@@ -76,14 +92,66 @@ public static class RestaurantCafeKnowledgeManifestV2
                 "Medium",
                 "Medium",
                 "reputation-follow-up-checklist",
-                14)
+                14),
+            new KnowledgeOpportunityPattern(
+                "sales-decline-review",
+                "Review the observed gross-sales decline",
+                ["revenue", "growth"],
+                ["sales-decline-observed"],
+                "A material observed movement makes a bounded review of controllable trading operations relevant to the current goal.",
+                "A complete recent comparison is available, so the owner can review the periods and choose whether to test one practical change.",
+                "One owner-reviewed experiment with the later observation recorded separately.",
+                "Low",
+                "Medium",
+                "sales-decline-review-checklist",
+                7),
+            new KnowledgeOpportunityPattern(
+                "order-decline-review",
+                "Review the observed order decline",
+                ["revenue", "growth"],
+                ["order-decline-observed"],
+                "A material observed movement makes a bounded review of the ordering workflow relevant to the current goal.",
+                "A complete recent comparison is available, so the owner can review the periods and choose whether to test one practical change.",
+                "One owner-reviewed experiment with the later observation recorded separately.",
+                "Low",
+                "Medium",
+                "order-decline-review-checklist",
+                7),
+            new KnowledgeOpportunityPattern(
+                "repeat-order-decline-review",
+                "Review the observed repeat-order decline",
+                ["retention", "customer-experience"],
+                ["repeat-order-decline-observed"],
+                "A material observed movement makes a bounded review of the returning-order experience relevant to the current goal.",
+                "A complete recent comparison is available, so the owner can review the periods and choose whether to test one practical change.",
+                "One owner-reviewed experiment with the later observation recorded separately.",
+                "Low",
+                "Medium",
+                "repeat-order-decline-review-checklist",
+                7),
+            new KnowledgeOpportunityPattern(
+                "delivery-time-deterioration-review",
+                "Review the observed delivery-time deterioration",
+                ["efficiency", "customer-experience"],
+                ["delivery-time-deterioration-observed"],
+                "A material observed movement makes a bounded review of the ordering-to-handover workflow relevant to the current goal.",
+                "A complete recent comparison is available, so the owner can review the workflow and choose whether to test one practical change.",
+                "One owner-reviewed checklist experiment with the later observation recorded separately.",
+                "Medium",
+                "Medium",
+                "delivery-time-review-checklist",
+                7)
         ],
         ExecutionTemplates:
         [
             new KnowledgeExecutionTemplate("ordering-path-review-checklist", "checklist", "Ordering path review", "1. Confirm the primary ordering channel.\n2. Follow the customer path using current owner-approved information.\n3. Record one point of friction or confirm that none is evident.\n4. Make only an owner-approved change.\n5. Recheck the same path and record the observation."),
             new KnowledgeExecutionTemplate("hours-consistency-checklist", "checklist", "Opening-hours consistency review", "1. Start from owner-confirmed hours.\n2. Compare only attributable public information already available to Atlas.\n3. Record any mismatch.\n4. Let the owner choose the authoritative correction.\n5. Recheck after the owner-approved update."),
             new KnowledgeExecutionTemplate("offer-visibility-checklist", "checklist", "Current offer visibility review", "1. Reconfirm the current owner-approved offer or priority.\n2. Choose the channels the owner wants to review.\n3. Check wording, availability and timing for consistency.\n4. Update only owner-approved content.\n5. Record one observable follow-up signal."),
-            new KnowledgeExecutionTemplate("reputation-follow-up-checklist", "checklist", "Reputation signal follow-up", "1. Review the attributable signal in context.\n2. Separate observed facts from assumptions.\n3. Choose one owner-controlled response or operational follow-up if appropriate.\n4. Complete the action.\n5. Record what was observed afterward without claiming causation.")
+            new KnowledgeExecutionTemplate("reputation-follow-up-checklist", "checklist", "Reputation signal follow-up", "1. Review the attributable signal in context.\n2. Separate observed facts from assumptions.\n3. Choose one owner-controlled response or operational follow-up if appropriate.\n4. Complete the action.\n5. Record what was observed afterward without claiming causation."),
+            new KnowledgeExecutionTemplate("sales-decline-review-checklist", "checklist", "Gross-sales movement review", "1. Review the observed current and comparison periods.\n2. Check only controllable trading operations supported by available facts.\n3. Write down assumptions and select one bounded experiment.\n4. Approve the experiment before any action.\n5. Record the later observation separately from the experiment."),
+            new KnowledgeExecutionTemplate("order-decline-review-checklist", "checklist", "Order movement review", "1. Review the observed current and comparison periods.\n2. Check the owner-controlled ordering workflow using available facts.\n3. Write down assumptions and select one bounded experiment.\n4. Approve the experiment before any action.\n5. Record the later observation separately from the experiment."),
+            new KnowledgeExecutionTemplate("repeat-order-decline-review-checklist", "checklist", "Repeat-order movement review", "1. Review the observed current and comparison periods.\n2. Check the owner-controlled returning-order experience using available facts.\n3. Write down assumptions and select one bounded experiment.\n4. Approve the experiment before any action.\n5. Record the later observation separately from the experiment."),
+            new KnowledgeExecutionTemplate("delivery-time-review-checklist", "checklist", "Delivery-time movement review", "1. Review the observed current and comparison periods.\n2. Use a checklist to review the owner-controlled ordering-to-handover workflow.\n3. Write down assumptions and select one bounded experiment.\n4. Approve the experiment before any action.\n5. Record the later observation separately from the experiment.")
         ],
         MeasurementSuggestions:
         [
@@ -102,6 +170,7 @@ public static class RestaurantCafeKnowledgeManifestV2
             "Use confirmed business/category/context facts and attributable public evidence; do not invent menu, pricing, hours, demand or reputation facts.",
             "Keep marketplace and ordering-channel guidance provider-neutral unless the owner has supplied an attributable source.",
             "Do not claim that visibility, response, ranking, traffic, conversion or revenue will certainly improve because an action is taken.",
+            "Treat operational movements as observed associations: correlation is not causation, and the evidence does not identify why a metric changed.",
             "External publication or account changes remain owner-controlled and require owner review."
         ]);
 }
