@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -33,6 +34,7 @@ public sealed record GeneratedOpportunityCandidate(
     string KnowledgePackVersion,
     IReadOnlyList<ResolvedKnowledgeManifest> Manifests,
     string BundleFingerprint,
+    string CooldownFingerprint,
     DateTimeOffset GeneratedAt,
     DateTimeOffset ExpiresAt,
     bool CategorySpecific);
@@ -88,10 +90,18 @@ public static class OpportunityGenerator
                 foreach (var goal in goals.OrderBy(x => x.Priority).ThenBy(x => x.Id))
                 {
                     if (!MatchesGoal(pattern, goal)) continue;
-                    if (IsSuppressed(pattern.Key, pattern.CooldownDays, priorOpportunities, now)) continue;
                     if (!TryResolveEvidence(manifest, pattern, profile, goal, bundle, out var evidence)) continue;
 
-                    candidates.Add(CreateCandidate(manifest, pattern, goal, bundle, evidence, now));
+                    var cooldownFingerprint = OpportunityGenerationSnapshot.ComputeCooldownFingerprint(
+                        pattern.Key,
+                        goal.Id,
+                        goal.Type,
+                        goal.Title,
+                        goal.Priority,
+                        evidence.Select(x => x.EvidenceId));
+                    if (IsSuppressed(pattern.Key, pattern.CooldownDays, cooldownFingerprint, priorOpportunities, now)) continue;
+
+                    candidates.Add(CreateCandidate(manifest, pattern, goal, bundle, evidence, cooldownFingerprint, now));
                 }
             }
         }
@@ -271,6 +281,7 @@ public static class OpportunityGenerator
         BusinessGoal goal,
         ResolvedKnowledgeBundle bundle,
         IReadOnlyList<OpportunityEvidenceReference> evidence,
+        string cooldownFingerprint,
         DateTimeOffset now)
     {
         var confidence = ResolveConfidence(pattern.Confidence, evidence);
@@ -305,6 +316,7 @@ public static class OpportunityGenerator
             manifest.ExactVersion,
             bundle.Manifests.ToArray(),
             bundle.Fingerprint,
+            cooldownFingerprint,
             now,
             now.AddDays(1),
             categorySpecific);
@@ -322,6 +334,7 @@ public static class OpportunityGenerator
     private static bool IsSuppressed(
         string patternKey,
         int cooldownDays,
+        string cooldownFingerprint,
         IReadOnlyCollection<Opportunity> priorOpportunities,
         DateTimeOffset now)
     {
@@ -330,8 +343,11 @@ public static class OpportunityGenerator
         foreach (var prior in priorOpportunities)
         {
             if (prior.CreatedAt < threshold || prior.CreatedAt > now) continue;
-            if (OpportunityGenerationSnapshot.TryReadPatternKey(prior.EvidenceJson, out var priorPattern) &&
-                string.Equals(priorPattern, patternKey, StringComparison.Ordinal))
+            if (!OpportunityGenerationSnapshot.TryReadCooldownIdentity(prior.EvidenceJson, out var priorPattern, out var priorFingerprint) ||
+                !string.Equals(priorPattern, patternKey, StringComparison.Ordinal))
+                continue;
+
+            if (priorFingerprint is null || string.Equals(priorFingerprint, cooldownFingerprint, StringComparison.Ordinal))
                 return true;
         }
         return false;
@@ -355,7 +371,7 @@ public static class OpportunityGenerator
 
 public static class OpportunityGenerationSnapshot
 {
-    public const int SchemaVersion = 1;
+    public const int SchemaVersion = 2;
 
     public static string Serialize(GeneratedOpportunityCandidate candidate)
     {
@@ -365,6 +381,7 @@ public static class OpportunityGenerationSnapshot
             schemaVersion = SchemaVersion,
             patternKey = candidate.PatternKey,
             bundleFingerprint = candidate.BundleFingerprint,
+            cooldownFingerprint = candidate.CooldownFingerprint,
             goal = new
             {
                 id = candidate.GoalId,
@@ -396,21 +413,57 @@ public static class OpportunityGenerationSnapshot
         });
     }
 
-    public static bool TryReadPatternKey(string? json, out string? patternKey)
+    public static string ComputeCooldownFingerprint(
+        string patternKey,
+        Guid goalId,
+        string goalType,
+        string goalTitle,
+        int goalPriority,
+        IEnumerable<string> evidenceIds)
+    {
+        ArgumentNullException.ThrowIfNull(evidenceIds);
+        var parts = new List<string>
+        {
+            patternKey.Trim(),
+            goalId.ToString("D"),
+            goalType.Trim().ToLowerInvariant(),
+            goalTitle.Trim(),
+            goalPriority.ToString(CultureInfo.InvariantCulture)
+        };
+        parts.AddRange(evidenceIds
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal));
+        var canonical = string.Join('\u001f', parts);
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant();
+    }
+
+    public static bool TryReadCooldownIdentity(string? json, out string? patternKey, out string? cooldownFingerprint)
     {
         patternKey = null;
+        cooldownFingerprint = null;
         if (string.IsNullOrWhiteSpace(json)) return false;
         try
         {
             using var document = JsonDocument.Parse(json);
-            if (!document.RootElement.TryGetProperty("patternKey", out var value) || value.ValueKind != JsonValueKind.String)
+            if (!document.RootElement.TryGetProperty("patternKey", out var pattern) || pattern.ValueKind != JsonValueKind.String)
                 return false;
-            patternKey = value.GetString();
-            return !string.IsNullOrWhiteSpace(patternKey);
+            patternKey = pattern.GetString()?.Trim();
+            if (string.IsNullOrWhiteSpace(patternKey)) return false;
+
+            if (document.RootElement.TryGetProperty("cooldownFingerprint", out var fingerprint) &&
+                fingerprint.ValueKind == JsonValueKind.String &&
+                !string.IsNullOrWhiteSpace(fingerprint.GetString()))
+                cooldownFingerprint = fingerprint.GetString()!.Trim();
+            return true;
         }
         catch (JsonException)
         {
             return false;
         }
     }
+
+    public static bool TryReadPatternKey(string? json, out string? patternKey) =>
+        TryReadCooldownIdentity(json, out patternKey, out _);
 }
