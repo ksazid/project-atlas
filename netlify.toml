@@ -1,0 +1,11 @@
+[build]
+  command = "npm install --ignore-scripts && npm exec --workspace @pes/mobile expo export -- --platform web --output-dir dist"
+  publish = "apps/mobile/dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
