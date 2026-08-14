@@ -13,6 +13,8 @@ import { getBusinessHubState } from '@/features/business-hub/business-hub-api';
 import { BusinessMediaPreview } from '@/features/business-hub/BusinessMediaPreview';
 import { BusinessSnapshotCard } from '@/features/business-hub/BusinessSnapshotCard';
 import { MenuIntelligenceCard } from '@/features/business-hub/MenuIntelligenceCard';
+import { getOperationalConnector } from '@/features/operational-data/operational-data-api';
+import type { OperationalConnector } from '@/features/operational-data/operational-data-model';
 import { tokens } from '@/theme/tokens';
 
 type ScreenState = 'loading' | 'ready' | 'missing' | 'error';
@@ -22,6 +24,7 @@ export function BusinessHubScreen() {
   const router = useRouter();
   const [state, setState] = useState<ScreenState>('loading');
   const [hub, setHub] = useState<BusinessHub | null>(null);
+  const [connector, setConnector] = useState<OperationalConnector | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [heroFailed, setHeroFailed] = useState(false);
 
@@ -29,10 +32,13 @@ export function BusinessHubScreen() {
     if (manual) setRefreshing(true); else setState('loading');
     try {
       const session = await loadSession();
-      if (!session?.businessId) { setHub(null); setState('missing'); return; }
-      const result = await getBusinessHubState(session.accessToken, session.businessId);
-      if (result.state === 'missing') { await clearBusinessSelection(); setHub(null); setState('missing'); return; }
-      setHub(result.hub); setHeroFailed(false); setState('ready');
+      if (!session?.businessId) { setHub(null); setConnector(null); setState('missing'); return; }
+      const [result, connectorResult] = await Promise.all([
+        getBusinessHubState(session.accessToken, session.businessId),
+        getOperationalConnector(session.accessToken, session.businessId).catch(() => null),
+      ]);
+      if (result.state === 'missing') { await clearBusinessSelection(); setHub(null); setConnector(null); setState('missing'); return; }
+      setHub(result.hub); setConnector(connectorResult); setHeroFailed(false); setState('ready');
     } catch { setState('error'); } finally { setRefreshing(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
@@ -48,7 +54,7 @@ export function BusinessHubScreen() {
         <BusinessMediaPreview media={hub.media} title="Business photos" />
         <MenuIntelligenceCard menu={hub.menu} title="Menu intelligence" onViewFull={() => router.push('/business-menu')} />
         <View accessibilityLabel={REVIEW_CONTEXT_ACTION}><BusinessContextStatus context={hub.context} onReview={() => router.push('/context')} /></View>
-        <BusinessDataCard onOpen={() => router.push('/connectors')} />
+        <BusinessDataCard onOpen={() => router.push('/connectors')} liveSummary={formatBusinessDataSummary(connector)} />
         <View style={styles.profileActions}>
           <AtlasPressable accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')} style={styles.secondaryButton}><Text style={styles.secondaryButtonText}>Settings</Text></AtlasPressable>
           <AtlasPressable accessibilityRole="button" accessibilityLabel="Edit business details" onPress={() => router.push('/edit-business')} style={styles.editButton}><Text style={styles.editButtonText}>Edit business details</Text></AtlasPressable>
@@ -57,6 +63,25 @@ export function BusinessHubScreen() {
       </View>
     </AtlasScreen>
   );
+}
+
+function formatBusinessDataSummary(connector: OperationalConnector | null): string | null {
+  if (!connector) return null;
+  if (connector.lastSuccessfulSyncAt) return `Live business data · synced ${formatRelative(connector.lastSuccessfulSyncAt)}`;
+  if (connector.state === 'connected') return 'Google Drive connected · waiting for the first successful sync.';
+  if (connector.state === 'reauthorization-required') return 'Google Drive needs attention before Atlas can refresh live signals.';
+  return null;
+}
+
+function formatRelative(value: string): string {
+  const time = new Date(value).getTime();
+  if (Number.isNaN(time)) return 'recently';
+  const minutes = Math.max(0, Math.round((Date.now() - time) / 60000));
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  return `${Math.round(hours / 24)} d ago`;
 }
 
 function HubState({ state, onRetry, onContinue }: { state: ScreenState; onRetry: () => void; onContinue: () => void }) {
